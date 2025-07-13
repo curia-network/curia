@@ -16,8 +16,8 @@
 
 import React, { useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-// Removed ThemeProvider - embed should respect parent website theme only
 import { QueryClientProvider } from '@/components/providers/QueryClientProvider';
+import { EmbedThemeProvider } from '@/contexts/EmbedThemeProvider';
 import { 
   LoadingStep,
   SessionCheckStep,
@@ -301,33 +301,17 @@ const EmbedContent: React.FC = () => {
 export default function EmbedPage() {
   return (
     <QueryClientProvider>
-      <EmbedPageContent />
+      <Suspense fallback={<LoadingStep />}>
+        <EmbedPageContent />
+      </Suspense>
     </QueryClientProvider>
   );
 }
 
 function EmbedPageContent() {
   const searchParams = useSearchParams();
-  const themeParam = searchParams.get('theme') || 'light';
+  const themeParam = (searchParams.get('theme') as 'light' | 'dark' | 'auto') || 'light';
   const backgroundColor = searchParams.get('background_color') || undefined;
-  
-  // Apply theme directly to document (no ThemeProvider needed)
-  React.useEffect(() => {
-    let resolvedTheme: 'light' | 'dark' = 'light';
-    
-    if (themeParam === 'auto') {
-      // Detect system preference for auto theme
-      resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    } else {
-      resolvedTheme = themeParam as 'light' | 'dark';
-    }
-    
-    // Apply theme class directly to document
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(resolvedTheme);
-    
-    console.log('[Embed] Theme applied:', resolvedTheme, 'from param:', themeParam);
-  }, [themeParam]);
   
   // Prepare container styles with custom background if provided
   const containerStyles: React.CSSProperties = {
@@ -339,13 +323,15 @@ function EmbedPageContent() {
   }
   
   return (
-    <div 
-      className={`min-h-screen text-foreground ${!backgroundColor ? 'bg-background' : ''}`}
-      style={containerStyles}
-    >
-      <Suspense fallback={<LoadingStep />}>
-        <EmbedContent />
-      </Suspense>
-    </div>
+    <EmbedThemeProvider theme={themeParam}>
+      <div 
+        className={`min-h-screen text-foreground ${!backgroundColor ? 'bg-background' : ''}`}
+        style={containerStyles}
+      >
+        <Suspense fallback={<LoadingStep />}>
+          <EmbedContent />
+        </Suspense>
+      </div>
+    </EmbedThemeProvider>
   );
 } 
