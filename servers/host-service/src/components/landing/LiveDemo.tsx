@@ -25,7 +25,8 @@ export function LiveDemo() {
     width: '100%',
     height: '100%',
     theme: 'auto' as const,
-    borderRadius: '8px'
+    borderRadius: '8px',
+    backgroundColor: '#0F172A'
   }
 
   const handleStartDemo = () => {
