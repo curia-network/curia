@@ -4,7 +4,8 @@
 
 export interface EmbedConfig {
   community: string | null;
-  theme: 'light' | 'dark';
+  theme: 'light' | 'dark' | 'auto';
+  backgroundColor?: string;
   container: string | null;
   height: string;
   width: string;

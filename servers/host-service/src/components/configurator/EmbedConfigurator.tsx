@@ -9,6 +9,7 @@ export interface EmbedConfig {
   width: string;
   height: string;
   theme: 'light' | 'dark' | 'auto';
+  backgroundColor?: string;
 }
 
 interface EmbedConfiguratorProps {
@@ -76,6 +77,10 @@ export function EmbedConfigurator({ config, onChange, onPreview }: EmbedConfigur
 
   const handleThemeChange = (theme: 'light' | 'dark' | 'auto') => {
     onChange({ theme });
+  };
+
+  const handleBackgroundColorChange = (backgroundColor: string) => {
+    onChange({ backgroundColor: backgroundColor || undefined });
   };
 
   return (
@@ -195,6 +200,49 @@ export function EmbedConfigurator({ config, onChange, onPreview }: EmbedConfigur
               <Monitor className="w-5 h-5 mb-2 text-slate-600 dark:text-slate-400" />
               <span className="text-slate-900 dark:text-white">Auto</span>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Background Color Configuration */}
+      <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-slate-200 dark:border-slate-700">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">🎨 Background Color (Optional)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="backgroundColor" className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+                Custom Background Color
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  id="backgroundColor"
+                  type="color"
+                  value={config.backgroundColor || '#ffffff'}
+                  onChange={(e) => handleBackgroundColorChange(e.target.value)}
+                  className="w-12 h-10 border border-slate-300 dark:border-slate-600 rounded cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={config.backgroundColor || ''}
+                  onChange={(e) => handleBackgroundColorChange(e.target.value)}
+                  placeholder="#ffffff"
+                  className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                />
+                {config.backgroundColor && (
+                  <button
+                    onClick={() => handleBackgroundColorChange('')}
+                    className="px-3 py-2 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              💡 Leave empty to use default theme background. Useful for matching your website's design.
+            </p>
           </div>
         </CardContent>
       </Card>

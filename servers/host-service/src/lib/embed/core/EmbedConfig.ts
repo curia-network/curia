@@ -19,7 +19,8 @@ export function parseEmbedConfig(): EmbedConfig {
   // Read configuration from data attributes
   const config: EmbedConfig = {
     community: script.getAttribute('data-community') || null,
-    theme: (script.getAttribute('data-theme') as 'light' | 'dark') || 'light',
+    theme: (script.getAttribute('data-theme') as 'light' | 'dark' | 'auto') || 'light',
+    backgroundColor: script.getAttribute('data-background-color') || undefined,
     container: script.getAttribute('data-container') || null,
     height: script.getAttribute('data-height') || '600px',
     width: script.getAttribute('data-width') || '100%'
@@ -34,9 +35,15 @@ export function parseEmbedConfig(): EmbedConfig {
  */
 export function validateEmbedConfig(config: EmbedConfig): void {
   // Validate theme
-  if (config.theme !== 'light' && config.theme !== 'dark') {
+  if (config.theme !== 'light' && config.theme !== 'dark' && config.theme !== 'auto') {
     console.warn('[Curia] Invalid theme, using light:', config.theme);
     config.theme = 'light';
+  }
+
+  // Validate background color (if provided)
+  if (config.backgroundColor && !config.backgroundColor.match(/^#[0-9A-Fa-f]{6}$/)) {
+    console.warn('[Curia] Invalid background color format, removing:', config.backgroundColor);
+    config.backgroundColor = undefined;
   }
 
   // Validate height format
@@ -68,6 +75,7 @@ export function generateConfigCode(config: EmbedConfig): string {
   const config = {
     community: script.getAttribute('data-community') || null,
     theme: script.getAttribute('data-theme') || 'light',
+    backgroundColor: script.getAttribute('data-background-color') || undefined,
     container: script.getAttribute('data-container') || null,
     height: script.getAttribute('data-height') || '600px',
     width: script.getAttribute('data-width') || '100%'

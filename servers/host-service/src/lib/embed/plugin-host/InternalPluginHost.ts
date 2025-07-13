@@ -93,9 +93,16 @@ export class InternalPluginHost {
   private initializeAuthPhase(): void {
     console.log('[InternalPluginHost] Initializing auth phase');
     
+    // Build auth iframe URL with theme parameters
+    const authUrl = new URL(`${this.hostServiceUrl}/embed`);
+    authUrl.searchParams.set('theme', this.config.theme || 'light');
+    if (this.config.backgroundColor) {
+      authUrl.searchParams.set('background_color', this.config.backgroundColor);
+    }
+    
     // Create auth iframe
     const iframe = document.createElement('iframe');
-    iframe.src = `${this.hostServiceUrl}/embed`;
+    iframe.src = authUrl.toString();
     iframe.style.width = this.config.width || '100%';
     iframe.style.height = this.config.height || '700px';
     iframe.style.border = 'none';
@@ -107,7 +114,7 @@ export class InternalPluginHost {
     this.container.appendChild(iframe);
     this.currentIframe = iframe;
     
-    console.log('[InternalPluginHost] Auth iframe loaded');
+    console.log('[InternalPluginHost] Auth iframe loaded with theme:', this.config.theme);
   }
 
   /**
@@ -184,6 +191,9 @@ export class InternalPluginHost {
     const forumUrl = new URL(this.forumUrl);
     forumUrl.searchParams.set('mod', 'standalone');
     forumUrl.searchParams.set('cg_theme', this.config.theme || 'light');
+    if (this.config.backgroundColor) {
+      forumUrl.searchParams.set('cg_background_color', this.config.backgroundColor);
+    }
     forumUrl.searchParams.set('iframeUid', this.currentIframeUid);
     
     console.log('[InternalPluginHost] Forum URL:', forumUrl.toString());
@@ -369,8 +379,15 @@ export function generateInternalPluginHostCode(urls: { hostUrl: string; forumUrl
       initializeAuthPhase() {
         console.log('[InternalPluginHost] Initializing auth phase');
         
+        // Build auth iframe URL with theme parameters
+        const authUrl = new URL(this.hostServiceUrl + '/embed');
+        authUrl.searchParams.set('theme', this.config.theme || 'light');
+        if (this.config.backgroundColor) {
+          authUrl.searchParams.set('background_color', this.config.backgroundColor);
+        }
+        
         const iframe = document.createElement('iframe');
-        iframe.src = this.hostServiceUrl + '/embed';
+        iframe.src = authUrl.toString();
         iframe.style.width = this.config.width || '100%';
         iframe.style.height = this.config.height || '700px';
         iframe.style.border = 'none';
@@ -381,7 +398,7 @@ export function generateInternalPluginHostCode(urls: { hostUrl: string; forumUrl
         this.container.appendChild(iframe);
         this.currentIframe = iframe;
         
-        console.log('[InternalPluginHost] Auth iframe loaded');
+        console.log('[InternalPluginHost] Auth iframe loaded with theme:', this.config.theme);
       }
 
       setupMessageListener() {
@@ -442,6 +459,9 @@ export function generateInternalPluginHostCode(urls: { hostUrl: string; forumUrl
         const forumUrl = new URL(this.forumUrl);
         forumUrl.searchParams.set('mod', 'standalone');
         forumUrl.searchParams.set('cg_theme', this.config.theme || 'light');
+        if (this.config.backgroundColor) {
+          forumUrl.searchParams.set('cg_background_color', this.config.backgroundColor);
+        }
         forumUrl.searchParams.set('iframeUid', this.currentIframeUid);
         
         console.log('[InternalPluginHost] Forum URL:', forumUrl.toString());

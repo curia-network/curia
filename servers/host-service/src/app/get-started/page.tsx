@@ -13,6 +13,7 @@ export interface EmbedConfig {
   width: string;
   height: string;
   theme: 'light' | 'dark' | 'auto';
+  backgroundColor?: string;
 }
 
 export default function GetStartedPage() {

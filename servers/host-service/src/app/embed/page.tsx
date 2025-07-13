@@ -16,7 +16,7 @@
 
 import React, { useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ThemeProvider, ThemeToggle } from '@/contexts/ThemeContext';
+// Removed ThemeProvider - embed should respect parent website theme only
 import { QueryClientProvider } from '@/components/providers/QueryClientProvider';
 import { 
   LoadingStep,
@@ -27,6 +27,7 @@ import {
   CommunitySelectionStep,
   AuthCompleteStep
 } from '@/components/embed';
+import { EmbedTopBar } from '@/components/embed/EmbedTopBar';
 import { EmbedConfig, EmbedStep, ProfileData } from '@/types/embed';
 
 const EmbedContent: React.FC = () => {
@@ -39,7 +40,8 @@ const EmbedContent: React.FC = () => {
   // Parse embed configuration from URL parameters
   const config: EmbedConfig = {
     community: searchParams.get('community') || undefined,
-    theme: (searchParams.get('theme') as 'light' | 'dark') || 'light',
+    theme: (searchParams.get('theme') as 'light' | 'dark' | 'auto') || 'light',
+    backgroundColor: searchParams.get('background_color') || undefined,
   };
 
   // Check for legacy flow parameter (for backwards compatibility)
@@ -196,6 +198,18 @@ const EmbedContent: React.FC = () => {
     }
   }, [profileData, sendAuthCompleteMessage, currentStep]);
 
+  // Handle user disconnect (clear session and reset)
+  const handleDisconnect = useCallback(() => {
+    console.log('[Embed] User disconnecting - clearing session and resetting');
+    
+    // Clear all state
+    setProfileData(null);
+    setSelectedCommunityId(null);
+    setCurrentStep('authentication');
+    
+    // Session token is cleared by the EmbedUserWidget component
+  }, []);
+
   // Initialize loading sequence
   React.useEffect(() => {
     const timer = setTimeout(handleLoadingComplete, 1500);
@@ -270,28 +284,16 @@ const EmbedContent: React.FC = () => {
 
   return (
     <div className="embed-container">
+      {/* Top Bar with Progress and User Info */}
+      <EmbedTopBar 
+        currentStep={currentStep}
+        profileData={profileData}
+        onDisconnect={handleDisconnect}
+      />
+      
       <div className="embed-content">
         {renderStep()}
       </div>
-      
-      {/* Theme Toggle (for development) */}
-      <div className="fixed top-4 right-4 z-50">
-        <ThemeToggle />
-      </div>
-
-      {/* Flow Indicator (for development) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4 z-50">
-          <div className="bg-background border border-border rounded-lg px-3 py-2 text-xs">
-            <div className="font-mono text-muted-foreground">
-              {useModernFlow ? '🚀 Modern Flow' : '📜 Legacy Flow'}
-            </div>
-            <div className="font-mono text-muted-foreground">
-              Step: {currentStep}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -299,13 +301,51 @@ const EmbedContent: React.FC = () => {
 export default function EmbedPage() {
   return (
     <QueryClientProvider>
-      <ThemeProvider>
-        <div className="min-h-screen bg-background text-foreground">
-          <Suspense fallback={<LoadingStep />}>
-            <EmbedContent />
-          </Suspense>
-        </div>
-      </ThemeProvider>
+      <EmbedPageContent />
     </QueryClientProvider>
+  );
+}
+
+function EmbedPageContent() {
+  const searchParams = useSearchParams();
+  const themeParam = searchParams.get('theme') || 'light';
+  const backgroundColor = searchParams.get('background_color') || undefined;
+  
+  // Apply theme directly to document (no ThemeProvider needed)
+  React.useEffect(() => {
+    let resolvedTheme: 'light' | 'dark' = 'light';
+    
+    if (themeParam === 'auto') {
+      // Detect system preference for auto theme
+      resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    } else {
+      resolvedTheme = themeParam as 'light' | 'dark';
+    }
+    
+    // Apply theme class directly to document
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(resolvedTheme);
+    
+    console.log('[Embed] Theme applied:', resolvedTheme, 'from param:', themeParam);
+  }, [themeParam]);
+  
+  // Prepare container styles with custom background if provided
+  const containerStyles: React.CSSProperties = {
+    minHeight: '100vh',
+  };
+  
+  if (backgroundColor) {
+    containerStyles.backgroundColor = backgroundColor;
+  }
+  
+  return (
+    <div 
+      className={`min-h-screen text-foreground ${!backgroundColor ? 'bg-background' : ''}`}
+      style={containerStyles}
+    >
+      <Suspense fallback={<LoadingStep />}>
+        <EmbedContent />
+      </Suspense>
+    </div>
   );
 } 

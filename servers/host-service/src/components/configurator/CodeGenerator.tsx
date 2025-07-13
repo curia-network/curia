@@ -9,6 +9,7 @@ export interface EmbedConfig {
   width: string;
   height: string;
   theme: 'light' | 'dark' | 'auto';
+  backgroundColor?: string;
 }
 
 interface CodeGeneratorProps {
@@ -30,6 +31,11 @@ export function CodeGenerator({ config }: CodeGeneratorProps) {
       `data-container="curia-forum"`,
       `data-community="your-community-id"`
     ];
+
+    // Add background color if specified
+    if (config.backgroundColor) {
+      attributes.splice(-2, 0, `data-background-color="${config.backgroundColor}"`);
+    }
 
     return `<script ${attributes.join('\n        ')}></script>
 
@@ -65,6 +71,18 @@ export function CodeGenerator({ config }: CodeGeneratorProps) {
             <span className="text-slate-600 dark:text-slate-400">Theme:</span>
             <span className="font-medium capitalize text-slate-900 dark:text-white">{config.theme}</span>
           </div>
+          {config.backgroundColor && (
+            <div className="flex justify-between items-center">
+              <span className="text-slate-600 dark:text-slate-400">Background:</span>
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-4 h-4 rounded border border-slate-300 dark:border-slate-600" 
+                  style={{ backgroundColor: config.backgroundColor }}
+                ></div>
+                <span className="font-medium font-mono text-slate-900 dark:text-white">{config.backgroundColor}</span>
+              </div>
+            </div>
+          )}
           <div className="flex justify-between items-center">
             <span className="text-slate-600 dark:text-slate-400">Container ID:</span>
             <span className="font-medium font-mono text-slate-900 dark:text-white">curia-forum</span>

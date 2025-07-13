@@ -4,7 +4,8 @@
 
 export interface EmbedConfig {
   community?: string;
-  theme: 'light' | 'dark';
+  theme: 'light' | 'dark' | 'auto';
+  backgroundColor?: string;
 }
 
 export type EmbedStep = 
