@@ -75,7 +75,7 @@ export function LiveDemo() {
     <section className="py-20 sm:py-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center space-y-6 mb-16">
+        <div className="text-center space-y-6 mb-20">
           <Badge className="inline-flex items-center gap-2 px-3 py-1 bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800">
             <Play className="w-4 h-4" />
             Live Demo

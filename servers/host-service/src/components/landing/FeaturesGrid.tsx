@@ -142,26 +142,45 @@ export function FeaturesGrid() {
           })}
         </div>
         
-        {/* Bottom CTA */}
-        <div className="text-center mt-16">
-          <p className="text-slate-600 dark:text-slate-300 mb-6">
-            Ready to add Web3 community features to your website?
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
-            >
-              <Play className="w-5 h-5" />
-              Try Live Demo
-            </button>
-            <a 
-              href="/demo" 
-              className="inline-flex items-center gap-2 px-6 py-3 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-medium"
-            >
-              <Globe className="w-5 h-5" />
-              Full Page Demo
-            </a>
+        {/* Highlighted Demo CTA */}
+        <div className="mt-24 mb-8 relative">
+          {/* Subtle background highlight */}
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 rounded-2xl -m-8"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-100/20 to-purple-100/20 dark:from-indigo-900/10 dark:to-purple-900/10 rounded-2xl -m-8 backdrop-blur-3xl"></div>
+          
+          <div className="relative text-center py-8 px-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 text-indigo-700 dark:text-indigo-300 rounded-full text-sm font-medium mb-4">
+              <Sparkles className="w-4 h-4" />
+              Experience the Platform
+            </div>
+            
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              Ready to add Web3 community features to your website?
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400 mb-6">
+              Try our interactive demos to see the full platform in action
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <Play className="w-5 h-5" />
+                Open in Modal
+              </button>
+              <a 
+                href="/demo" 
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 border-2 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+              >
+                <Globe className="w-5 h-5" />
+                Open Full Page
+              </a>
+            </div>
+            
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-4 font-medium">
+              ✨ Full Page Demo showcases our complete platform experience
+            </p>
           </div>
         </div>
       </div>

@@ -11,7 +11,8 @@ import {
   Palette, 
   Monitor,
   Smartphone,
-  Laptop
+  Laptop,
+  Settings
 } from "lucide-react"
 
 const codeExamples = {
@@ -204,7 +205,7 @@ export function CodeExample() {
             </Card>
             
             {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4 mb-8">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">10KB</div>
                 <div className="text-sm text-slate-600 dark:text-slate-400">Bundle Size</div>
@@ -218,7 +219,25 @@ export function CodeExample() {
                 <div className="text-sm text-slate-600 dark:text-slate-400">Dependencies</div>
               </div>
             </div>
+
           </div>
+        </div>
+
+        {/* Get Started CTA - Full Width */}
+        <div className="text-center mt-16">
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            Ready to configure your own embed?
+          </p>
+          <a 
+            href="/get-started"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+          >
+            <Settings className="w-5 h-5" />
+            Configure Your Forum
+          </a>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-3">
+            Use our visual configurator to customize size, theme, and features
+          </p>
         </div>
       </div>
     </section>
