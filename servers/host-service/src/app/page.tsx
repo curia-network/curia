@@ -4,6 +4,7 @@ import {
   FeaturesGrid, 
   CodeExample, 
   LiveDemo,
+  Testimonials,
   Footer 
 } from "@/components/landing"
 
@@ -19,6 +20,7 @@ export default function HomePage() {
       <PartnersSection />
       <FeaturesGrid />
       <CodeExample />
+      <Testimonials />
       <LiveDemo />
       <Footer />
     </main>

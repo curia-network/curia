@@ -52,6 +52,12 @@ export function PartnersSection() {
       description: "Basic Income Protocol",
       logo: "/circles.svg",
       url: "https://aboutcircles.com"
+    },
+    {
+      name: "Common Ground",
+      description: "Web3 Community Platform",
+      logo: "/cg_color.svg",
+      url: "https://commonground.cg"
     }
   ]
 
