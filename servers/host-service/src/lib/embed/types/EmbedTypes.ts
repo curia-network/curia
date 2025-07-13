@@ -50,7 +50,7 @@ export interface Phase3EmbedReference {
 // Global embed references
 declare global {
   interface Window {
-    // Phase 3: Single embed per page
-    curiaEmbed?: Phase3EmbedReference;
+    // Refactored: Direct TypeScript class instance
+    curiaEmbed?: any; // Will be InternalPluginHost, but avoiding circular import
   }
 } 
