@@ -18,7 +18,7 @@ export interface EmbedConfig {
 export default function GetStartedPage() {
   const [config, setConfig] = useState<EmbedConfig>({
     width: '100%',
-    height: '600px',
+    height: '100%',
     theme: 'auto'
   });
   
