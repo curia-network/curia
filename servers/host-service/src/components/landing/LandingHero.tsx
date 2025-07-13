@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PreviewModal } from "@/components/configurator/PreviewModal"
+import { ThemeToggle } from "@/contexts/ThemeContext"
 import { ArrowRight, Zap, Shield, Globe, Play } from "lucide-react"
 
 export function LandingHero() {
@@ -26,7 +27,23 @@ export function LandingHero() {
       <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
       
       <div className="relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
+        {/* Navigation Header */}
+        <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            {/* Logo/Brand */}
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-slate-900 dark:text-white">Curia</span>
+            </div>
+            
+            {/* Theme Toggle */}
+            <ThemeToggle />
+          </div>
+        </header>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-32">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Hero Content */}
             <div className="space-y-8">

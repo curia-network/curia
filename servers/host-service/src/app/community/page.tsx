@@ -52,8 +52,8 @@ export default function CommunityPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      {/* Subtle Top Bar - Hidden on mobile, visible on desktop */}
-      <div className="hidden md:flex bg-white border-b border-gray-200 px-4 py-3 items-center shadow-sm flex-shrink-0">
+      {/* Subtle Top Bar */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center shadow-sm flex-shrink-0">
         <button
           onClick={handleBack}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 font-medium"
@@ -68,8 +68,15 @@ export default function CommunityPage() {
       </div>
 
       {/* Full Screen Embed Container */}
-      <div className="flex-1 bg-white min-h-0">
-        <div id="curia-community-forum" className="w-full h-full"></div>
+      <div className="flex-1 bg-white min-h-0 overflow-hidden">
+        <div 
+          id="curia-community-forum" 
+          className="w-full h-full"
+          style={{
+            maxHeight: '100%',
+            overflow: 'hidden'
+          }}
+        ></div>
       </div>
     </div>
   );

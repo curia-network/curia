@@ -1,6 +1,9 @@
+'use client';
+
 import Link from 'next/link'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
+import { useTheme } from '@/contexts/ThemeContext'
 import { 
   Globe, 
   Twitter, 
@@ -14,6 +17,8 @@ import {
 } from 'lucide-react'
 
 export function Footer() {
+  const { resolvedTheme } = useTheme();
+  
   return (
     <footer className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -73,7 +78,7 @@ export function Footer() {
                     className="w-9 h-9 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-800 transition-colors"
                   >
                     <Image 
-                      src="/cg.svg" 
+                      src={resolvedTheme === 'dark' ? '/cg_dark.svg' : '/cg_light.svg'} 
                       alt="Common Ground" 
                       width={16} 
                       height={16} 
