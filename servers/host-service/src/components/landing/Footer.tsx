@@ -72,7 +72,7 @@ export function Footer() {
                     <Github className="w-4 h-4" />
                   </a>
                   <a 
-                    href="https://app.cg/c/curia/" 
+                    href="https://app.cg/c/uria/" 
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-9 h-9 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-800 transition-colors"
