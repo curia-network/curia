@@ -10,6 +10,7 @@ export interface EmbedConfig {
   height: string;
   theme: 'light' | 'dark' | 'auto';
   backgroundColor?: string;
+  borderRadius?: string;
 }
 
 interface CodeGeneratorProps {
@@ -35,6 +36,11 @@ export function CodeGenerator({ config }: CodeGeneratorProps) {
     // Add background color if specified
     if (config.backgroundColor) {
       attributes.splice(-2, 0, `data-background-color="${config.backgroundColor}"`);
+    }
+
+    // Add border radius if specified
+    if (config.borderRadius) {
+      attributes.splice(-2, 0, `data-border-radius="${config.borderRadius}"`);
     }
 
     return `<script ${attributes.join('\n        ')}></script>

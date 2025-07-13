@@ -65,11 +65,12 @@ const features = [
 export function FeaturesGrid() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   
-  // Default configuration for features demo modal - Full Container preset
+  // Default configuration for features demo modal - Full Container preset with matching border radius
   const defaultConfig = {
     width: '100%',
     height: '100%',
-    theme: 'auto' as const
+    theme: 'auto' as const,
+    borderRadius: '8px'
   }
 
   return (

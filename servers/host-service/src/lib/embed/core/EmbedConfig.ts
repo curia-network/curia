@@ -21,6 +21,7 @@ export function parseEmbedConfig(): EmbedConfig {
     community: script.getAttribute('data-community') || null,
     theme: (script.getAttribute('data-theme') as 'light' | 'dark' | 'auto') || 'light',
     backgroundColor: script.getAttribute('data-background-color') || undefined,
+    borderRadius: script.getAttribute('data-border-radius') || undefined,
     container: script.getAttribute('data-container') || null,
     height: script.getAttribute('data-height') || '600px',
     width: script.getAttribute('data-width') || '100%'
@@ -76,6 +77,7 @@ export function generateConfigCode(config: EmbedConfig): string {
     community: script.getAttribute('data-community') || null,
     theme: script.getAttribute('data-theme') || 'light',
     backgroundColor: script.getAttribute('data-background-color') || undefined,
+    borderRadius: script.getAttribute('data-border-radius') || undefined,
     container: script.getAttribute('data-container') || null,
     height: script.getAttribute('data-height') || '600px',
     width: script.getAttribute('data-width') || '100%'

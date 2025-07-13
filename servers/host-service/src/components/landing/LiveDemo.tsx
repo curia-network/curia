@@ -20,11 +20,12 @@ export function LiveDemo() {
   const embedRef = useRef<HTMLDivElement>(null)
   const scriptRef = useRef<HTMLScriptElement | null>(null)
 
-  // Default configuration for live demo modal - Full Container preset
+  // Default configuration for live demo modal - Full Container preset with matching border radius
   const defaultConfig = {
     width: '100%',
     height: '100%',
-    theme: 'auto' as const
+    theme: 'auto' as const,
+    borderRadius: '8px'
   }
 
   const handleStartDemo = () => {
@@ -39,6 +40,7 @@ export function LiveDemo() {
       script.setAttribute('data-community', 'test-community')
       script.setAttribute('data-theme', 'auto')
       script.setAttribute('data-height', '500px')
+      script.setAttribute('data-border-radius', '8px')
       
       document.head.appendChild(script)
       scriptRef.current = script

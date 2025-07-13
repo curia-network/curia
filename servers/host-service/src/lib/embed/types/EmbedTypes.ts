@@ -6,6 +6,7 @@ export interface EmbedConfig {
   community: string | null;
   theme: 'light' | 'dark' | 'auto';
   backgroundColor?: string;
+  borderRadius?: string;
   container: string | null;
   height: string;
   width: string;

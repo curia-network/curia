@@ -10,6 +10,7 @@ export interface EmbedConfig {
   height: string;
   theme: 'light' | 'dark' | 'auto';
   backgroundColor?: string;
+  borderRadius?: string;
 }
 
 interface EmbedConfiguratorProps {
@@ -81,6 +82,10 @@ export function EmbedConfigurator({ config, onChange, onPreview }: EmbedConfigur
 
   const handleBackgroundColorChange = (backgroundColor: string) => {
     onChange({ backgroundColor: backgroundColor || undefined });
+  };
+
+  const handleBorderRadiusChange = (borderRadius: string) => {
+    onChange({ borderRadius: borderRadius || undefined });
   };
 
   return (
@@ -242,6 +247,52 @@ export function EmbedConfigurator({ config, onChange, onPreview }: EmbedConfigur
             </div>
             <p className="text-xs text-slate-400 dark:text-slate-500">
               💡 Leave empty to use default theme background. Useful for matching your website's design.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Border Radius Configuration */}
+      <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-slate-200 dark:border-slate-700">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">📐 Border Radius (Optional)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="borderRadius" className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+                Corner Roundness
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  id="borderRadius"
+                  type="range"
+                  min="0"
+                  max="24"
+                  step="1"
+                  value={parseInt(config.borderRadius || '8')}
+                  onChange={(e) => handleBorderRadiusChange(`${e.target.value}px`)}
+                  className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={config.borderRadius || '8px'}
+                  onChange={(e) => handleBorderRadiusChange(e.target.value)}
+                  placeholder="8px"
+                  className="w-20 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                />
+                {config.borderRadius && config.borderRadius !== '8px' && (
+                  <button
+                    onClick={() => handleBorderRadiusChange('8px')}
+                    className="px-3 py-2 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
+            </div>
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              💡 Makes iframe corners match your container's border radius for seamless integration.
             </p>
           </div>
         </CardContent>

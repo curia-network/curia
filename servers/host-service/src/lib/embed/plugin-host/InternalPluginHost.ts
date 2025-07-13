@@ -106,7 +106,7 @@ export class InternalPluginHost {
     iframe.style.width = this.config.width || '100%';
     iframe.style.height = this.config.height || '700px';
     iframe.style.border = 'none';
-    iframe.style.borderRadius = '8px';
+    iframe.style.borderRadius = this.config.borderRadius || '8px';
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox');
     iframe.setAttribute('allow', getIframePermissions());
     
@@ -237,7 +237,7 @@ export class InternalPluginHost {
     iframe.style.width = this.config.width || '100%';
     iframe.style.height = this.config.height || '700px';
     iframe.style.border = 'none';
-    iframe.style.borderRadius = '8px';
+    iframe.style.borderRadius = this.config.borderRadius || '8px';
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox');
     iframe.setAttribute('allow', getIframePermissions());
     
@@ -419,7 +419,7 @@ export function generateInternalPluginHostCode(urls: { hostUrl: string; forumUrl
         iframe.style.width = this.config.width || '100%';
         iframe.style.height = this.config.height || '700px';
         iframe.style.border = 'none';
-        iframe.style.borderRadius = '8px';
+        iframe.style.borderRadius = this.config.borderRadius || '8px';
         iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox');
         iframe.setAttribute('allow', getIframePermissions());
         
@@ -531,7 +531,7 @@ export function generateInternalPluginHostCode(urls: { hostUrl: string; forumUrl
         iframe.style.width = this.config.width || '100%';
         iframe.style.height = this.config.height || '700px';
         iframe.style.border = 'none';
-        iframe.style.borderRadius = '8px';
+        iframe.style.borderRadius = this.config.borderRadius || '8px';
         iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox');
         iframe.setAttribute('allow', getIframePermissions());
         

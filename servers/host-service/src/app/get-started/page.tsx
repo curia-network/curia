@@ -14,13 +14,15 @@ export interface EmbedConfig {
   height: string;
   theme: 'light' | 'dark' | 'auto';
   backgroundColor?: string;
+  borderRadius?: string;
 }
 
 export default function GetStartedPage() {
   const [config, setConfig] = useState<EmbedConfig>({
     width: '100%',
     height: '100%',
-    theme: 'auto'
+    theme: 'auto',
+    borderRadius: '8px'
   });
   
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);

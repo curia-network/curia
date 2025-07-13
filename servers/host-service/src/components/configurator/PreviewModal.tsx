@@ -7,6 +7,7 @@ export interface EmbedConfig {
   height: string;
   theme: 'light' | 'dark' | 'auto';
   backgroundColor?: string;
+  borderRadius?: string;
 }
 
 interface PreviewModalProps {
@@ -60,6 +61,11 @@ export function PreviewModal({ isOpen, onClose, config }: PreviewModalProps) {
     // Only set background color if specified
     if (config.backgroundColor) {
       script.setAttribute('data-background-color', config.backgroundColor);
+    }
+    
+    // Only set border radius if specified
+    if (config.borderRadius) {
+      script.setAttribute('data-border-radius', config.borderRadius);
     }
     
     document.head.appendChild(script);

@@ -10,11 +10,12 @@ import { ArrowRight, Zap, Shield, Globe, Play } from "lucide-react"
 export function LandingHero() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   
-  // Default configuration for landing page demo - Full Container preset
+  // Default configuration for landing page demo - Full Container preset with matching border radius
   const defaultConfig = {
     width: '100%',
     height: '100%',
-    theme: 'auto' as const
+    theme: 'auto' as const,
+    borderRadius: '8px'
   }
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800">
