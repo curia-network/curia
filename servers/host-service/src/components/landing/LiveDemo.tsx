@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PreviewModal } from "@/components/configurator/PreviewModal"
@@ -95,61 +95,33 @@ export function LiveDemo() {
         <div className="grid lg:grid-cols-3 gap-12 items-start">
           {/* Demo Preview */}
           <div className="space-y-6 lg:col-span-2">
-            <Card className="overflow-hidden border-slate-200 dark:border-slate-700 shadow-xl">
-              <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
-                    Interactive Demo
-                  </CardTitle>
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                    <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                  </div>
-                </div>
-              </CardHeader>
+            <div className="h-[500px] rounded-lg bg-slate-50 dark:bg-slate-900 overflow-hidden relative shadow-xl border border-slate-200 dark:border-slate-700">
+              {/* Always present embed container */}
+              <div 
+                id="curia-live-demo"
+                ref={embedRef}
+                className="w-full h-full"
+              />
               
-              <CardContent className="p-4">
-                <div className="h-[500px] border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 overflow-hidden relative">
-                  {/* Always present embed container */}
-                  <div 
-                    id="curia-live-demo"
-                    ref={embedRef}
-                    className="w-full h-full"
-                  />
-                  
-                  {/* Big Play Button Overlay (only shown when not loaded) */}
-                  {!isEmbedLoaded && (
-                    <button 
-                      onClick={handleStartDemo}
-                      className="absolute inset-0 w-full h-full flex flex-col items-center justify-center space-y-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 hover:from-blue-100 hover:to-indigo-100 dark:hover:from-slate-700 dark:hover:to-slate-600 transition-all duration-300 border-2 border-dashed border-blue-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-slate-500 rounded-lg group"
-                    >
-                      <div className="w-24 h-24 mx-auto bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
-                        <Play className="w-12 h-12 text-white ml-1" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                          Start Demo
-                        </h3>
-                        <p className="text-slate-600 dark:text-slate-300 max-w-md px-4">
-                          Experience the full Web3 forum functionality
-                        </p>
-                      </div>
-                    </button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Main Action */}
-            <div className="text-center">
-              <Button 
-                size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                onClick={() => window.location.href = '/get-started'}
-              >
-                🚀 Get Your Own Forum
-              </Button>
+              {/* Big Play Button Overlay (only shown when not loaded) */}
+              {!isEmbedLoaded && (
+                <button 
+                  onClick={handleStartDemo}
+                  className="absolute inset-0 w-full h-full flex flex-col items-center justify-center space-y-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 hover:from-blue-100 hover:to-indigo-100 dark:hover:from-slate-700 dark:hover:to-slate-600 transition-all duration-300 border-2 border-dashed border-blue-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-slate-500 rounded-lg group"
+                >
+                  <div className="w-24 h-24 mx-auto bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+                    <Play className="w-12 h-12 text-white ml-1" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                      Start Demo
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-300 max-w-md px-4">
+                      Experience the full Web3 forum functionality
+                    </p>
+                  </div>
+                </button>
+              )}
             </div>
           </div>
           
@@ -208,7 +180,16 @@ export function LiveDemo() {
               </div>
             </div>
             
-
+            {/* Main Action */}
+            <div className="mt-8">
+              <Button 
+                size="lg"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                onClick={() => window.location.href = '/get-started'}
+              >
+                🚀 Get Your Own Forum
+              </Button>
+            </div>
           </div>
         </div>
       </div>
