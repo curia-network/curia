@@ -280,16 +280,13 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
                             
                             {/* Community Info */}
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <h4 className="font-semibold text-foreground">
                                   {community.name}
                                 </h4>
                                 <Badge variant="outline" className="text-xs">
-                                  {community.userRole}
-                                </Badge>
-                                <Badge variant="secondary" className="text-xs">
                                   <Globe className="w-3 h-3 mr-1" />
-                                  Member
+                                  {community.userRole}
                                 </Badge>
                               </div>
                               
@@ -302,7 +299,7 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
                             </div>
 
                             {/* Selection Indicator */}
-                            <div className="flex items-center">
+                            <div className="flex items-center flex-shrink-0">
                               {selectedCommunity === community.id ? (
                                 <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
                                   <div className="w-2 h-2 rounded-full bg-white"></div>
@@ -360,7 +357,7 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
                             
                             {/* Community Info */}
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <h3 className="font-semibold text-foreground text-lg">
                                   {community.name}
                                 </h3>
@@ -390,7 +387,7 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
                             </div>
 
                             {/* Selection Indicator */}
-                            <div className="flex items-center">
+                            <div className="flex items-center flex-shrink-0">
                               {selectedCommunity === community.id ? (
                                 <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
                                   <div className="w-3 h-3 rounded-full bg-white"></div>
