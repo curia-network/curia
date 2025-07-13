@@ -190,7 +190,35 @@ export class InternalPluginHost {
     // Build forum URL with parameters
     const forumUrl = new URL(this.forumUrl);
     forumUrl.searchParams.set('mod', 'standalone');
-    forumUrl.searchParams.set('cg_theme', this.config.theme || 'light');
+    
+    // ========================================================================
+    // THEME RESOLUTION: Convert "auto" to actual system preference for forum
+    // ========================================================================
+    // The embed route (/embed) can handle "auto" theme perfectly and will 
+    // apply system-aware styling. However, the main Curia forum application
+    // only understands explicit "dark" or "light" values, not "auto".
+    //
+    // This logic resolves "auto" to the user's actual system preference
+    // before sending to the forum, while preserving "auto" functionality
+    // in the embed authentication flow.
+    //
+    // Data Flow:
+    // 1. ✅ Embed route gets "auto" → Handles system detection internally
+    // 2. ✅ Forum route gets "dark"/"light" → Works with resolved value
+    // ========================================================================
+    let resolvedTheme = this.config.theme || 'light';
+    if (resolvedTheme === 'auto') {
+      // Detect user's system preference using standard web API
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        resolvedTheme = 'dark';
+      } else {
+        resolvedTheme = 'light'; // Safe fallback default
+      }
+      console.log('[InternalPluginHost] Resolved auto theme to:', resolvedTheme, 
+                  '(system prefers:', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light', ')');
+    }
+    
+    forumUrl.searchParams.set('cg_theme', resolvedTheme);
     if (this.config.backgroundColor) {
       forumUrl.searchParams.set('cg_bg_color', this.config.backgroundColor);
     }
@@ -458,7 +486,35 @@ export function generateInternalPluginHostCode(urls: { hostUrl: string; forumUrl
         
         const forumUrl = new URL(this.forumUrl);
         forumUrl.searchParams.set('mod', 'standalone');
-        forumUrl.searchParams.set('cg_theme', this.config.theme || 'light');
+        
+        // ========================================================================
+        // THEME RESOLUTION: Convert "auto" to actual system preference for forum
+        // ========================================================================
+        // The embed route (/embed) can handle "auto" theme perfectly and will 
+        // apply system-aware styling. However, the main Curia forum application
+        // only understands explicit "dark" or "light" values, not "auto".
+        //
+        // This logic resolves "auto" to the user's actual system preference
+        // before sending to the forum, while preserving "auto" functionality
+        // in the embed authentication flow.
+        //
+        // Data Flow:
+        // 1. ✅ Embed route gets "auto" → Handles system detection internally
+        // 2. ✅ Forum route gets "dark"/"light" → Works with resolved value
+        // ========================================================================
+        let resolvedTheme = this.config.theme || 'light';
+        if (resolvedTheme === 'auto') {
+          // Detect user's system preference using standard web API
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            resolvedTheme = 'dark';
+          } else {
+            resolvedTheme = 'light'; // Safe fallback default
+          }
+          console.log('[InternalPluginHost] Resolved auto theme to:', resolvedTheme, 
+                      '(system prefers:', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light', ')');
+        }
+        
+        forumUrl.searchParams.set('cg_theme', resolvedTheme);
         if (this.config.backgroundColor) {
           forumUrl.searchParams.set('cg_bg_color', this.config.backgroundColor);
         }

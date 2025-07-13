@@ -4,11 +4,18 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { DemoModal } from "./DemoModal"
+import { PreviewModal } from "@/components/configurator/PreviewModal"
 import { ArrowRight, Zap, Shield, Globe, Play } from "lucide-react"
 
 export function LandingHero() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  
+  // Default configuration for landing page demo - full width, good height, auto theme
+  const defaultConfig = {
+    width: '100%',
+    height: '700px',
+    theme: 'auto' as const
+  }
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800">
       {/* Background decoration */}
@@ -112,9 +119,10 @@ export function LandingHero() {
       </div>
 
       {/* Demo Modal */}
-      <DemoModal 
+      <PreviewModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
+        config={defaultConfig}
       />
     </section>
   )

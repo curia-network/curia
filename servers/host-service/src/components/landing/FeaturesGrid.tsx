@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { DemoModal } from "./DemoModal"
+import { PreviewModal } from "@/components/configurator/PreviewModal"
 import { 
   Wallet, 
   Users, 
@@ -64,6 +64,13 @@ const features = [
 
 export function FeaturesGrid() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  
+  // Default configuration for features demo modal - full width, good height, auto theme
+  const defaultConfig = {
+    width: '100%',
+    height: '700px',
+    theme: 'auto' as const
+  }
 
   return (
     <section className="py-20 sm:py-32">
@@ -159,9 +166,10 @@ export function FeaturesGrid() {
       </div>
 
       {/* Demo Modal */}
-      <DemoModal 
+      <PreviewModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
+        config={defaultConfig}
       />
     </section>
   )

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { DemoModal } from "./DemoModal"
+import { PreviewModal } from "@/components/configurator/PreviewModal"
 import { 
   Play, 
   ExternalLink, 
@@ -18,6 +18,13 @@ export function LiveDemo() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const embedRef = useRef<HTMLDivElement>(null)
   const scriptRef = useRef<HTMLScriptElement | null>(null)
+
+  // Default configuration for live demo modal - full width, good height, auto theme
+  const defaultConfig = {
+    width: '100%',
+    height: '700px',
+    theme: 'auto' as const
+  }
 
   useEffect(() => {
     if (embedRef.current) {
@@ -174,9 +181,10 @@ export function LiveDemo() {
       </div>
 
       {/* Demo Modal */}
-      <DemoModal 
+      <PreviewModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
+        config={defaultConfig}
       />
     </section>
   )
