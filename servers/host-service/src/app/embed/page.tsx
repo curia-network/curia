@@ -313,12 +313,9 @@ function EmbedPageContent() {
   const themeParam = (searchParams.get('theme') as 'light' | 'dark' | 'auto') || 'light';
   const backgroundColor = searchParams.get('background_color') || undefined;
   
-  // Apply custom background color to document body and CSS custom properties
+  // Apply custom background color via CSS custom properties only (not document.body)
   React.useEffect(() => {
     if (backgroundColor) {
-      // Apply to document body for full coverage
-      document.body.style.setProperty('background-color', backgroundColor, 'important');
-      
       // Override CSS custom properties used by theme system
       document.documentElement.style.setProperty('--background', backgroundColor);
       document.documentElement.style.setProperty('--background-color', backgroundColor);
@@ -329,7 +326,6 @@ function EmbedPageContent() {
     // Cleanup function to restore original styles
     return () => {
       if (backgroundColor) {
-        document.body.style.removeProperty('background-color');
         document.documentElement.style.removeProperty('--background');
         document.documentElement.style.removeProperty('--background-color');
       }
@@ -339,6 +335,7 @@ function EmbedPageContent() {
   // Prepare container styles with custom background if provided
   const containerStyles: React.CSSProperties = {
     minHeight: '100vh',
+    overflow: 'hidden',  // Clip content to iframe border-radius
   };
   
   if (backgroundColor) {

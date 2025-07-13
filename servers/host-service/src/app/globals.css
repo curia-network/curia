@@ -615,7 +615,6 @@ button[data-rk]:not([class*="bg-"]):not([style*="background"]):hover {
   /* Embed Page Components */
   .embed-container {
     min-height: 100vh;
-    background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
 
