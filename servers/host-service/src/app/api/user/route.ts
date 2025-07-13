@@ -21,32 +21,35 @@ export async function POST(request: NextRequest) {
     // Parse the request body
     const body = await request.json();
     
-    // Validate required fields
-    if (!body.method || !body.communityId) {
-      return NextResponse.json({
+    // Helper function to create CORS-enabled error response
+    const createErrorResponse = (error: string, status: number) => {
+      const response = NextResponse.json({
         data: null,
         success: false,
-        error: 'Missing required fields: method, communityId'
-      }, { status: 400 });
+        error
+      }, { status });
+      
+      response.headers.set('Access-Control-Allow-Origin', origin || '*');
+      response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      
+      return response;
+    };
+
+    // Validate required fields
+    if (!body.method || !body.communityId) {
+      return createErrorResponse('Missing required fields: method, communityId', 400);
     }
 
     // Only handle user-related methods
     if (!['getUserInfo', 'getUserFriends', 'getContextData'].includes(body.method)) {
-      return NextResponse.json({
-        data: null,
-        success: false,
-        error: `Invalid method for user endpoint: ${body.method}`
-      }, { status: 400 });
+      return createErrorResponse(`Invalid method for user endpoint: ${body.method}`, 400);
     }
 
     // Validate origin (for production, check against allowed origins)
     // For development, we'll allow all origins
     if (!pluginHost.validateOrigin(origin)) {
-      return NextResponse.json({
-        data: null,
-        success: false,
-        error: 'Unauthorized origin'
-      }, { status: 403 });
+      return createErrorResponse('Unauthorized origin', 403);
     }
 
     // Process the API request
@@ -60,18 +63,33 @@ export async function POST(request: NextRequest) {
       success: response.success
     });
 
-    // Return response with appropriate status code
+    // Return response with appropriate status code and CORS headers
     const statusCode = response.success ? 200 : 400;
-    return NextResponse.json(response, { status: statusCode });
+    const jsonResponse = NextResponse.json(response, { status: statusCode });
+    
+    // Add CORS headers to allow third-party domains
+    jsonResponse.headers.set('Access-Control-Allow-Origin', origin || '*');
+    jsonResponse.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    jsonResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    return jsonResponse;
     
   } catch (error) {
     console.error('[User API] Error processing request:', error);
     
-    return NextResponse.json({
+    const errorResponse = NextResponse.json({
       data: null,
       success: false,
       error: 'Internal server error'
     }, { status: 500 });
+    
+    // Add CORS headers to error responses too
+    const origin = request.headers.get('origin') || '';
+    errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*');
+    errorResponse.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    return errorResponse;
   }
 }
 

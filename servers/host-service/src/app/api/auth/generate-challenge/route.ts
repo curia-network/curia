@@ -15,6 +15,9 @@ interface GenerateChallengeRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    // Get request origin for CORS
+    const origin = request.headers.get('origin') || '';
+    
     const body: GenerateChallengeRequest = await request.json();
     const { identityType, walletAddress, ensName, upAddress } = body;
 
@@ -58,15 +61,44 @@ export async function POST(request: NextRequest) {
       identityType
     };
 
-    return NextResponse.json(responseData);
+    const response = NextResponse.json(responseData);
+    
+    // Add CORS headers
+    response.headers.set('Access-Control-Allow-Origin', origin || '*');
+    response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    return response;
 
   } catch (error) {
     console.error('[generate-challenge] Error:', error);
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
+    
+    // Add CORS headers to error response
+    errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*');
+    errorResponse.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    return errorResponse;
   }
+}
+
+// Handle OPTIONS requests for CORS
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin') || '';
+  
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': origin || '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
 }
 
 // Generate a cryptographically secure challenge

@@ -20,6 +20,9 @@ interface CommunityRow {
 
 export async function GET(request: NextRequest) {
   try {
+    // Get request origin for CORS
+    const origin = request.headers.get('origin') || '';
+    
     const client = await pool.connect();
     
     try {
@@ -131,11 +134,18 @@ export async function GET(request: NextRequest) {
           createdAt: row.created_at.toISOString()
         }));
 
-        return NextResponse.json({ 
+        const response = NextResponse.json({ 
           userCommunities,
           availableCommunities,
           isAuthenticated: true
         });
+        
+        // Add CORS headers
+        response.headers.set('Access-Control-Allow-Origin', origin || '*');
+        response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        
+        return response;
 
       } else {
         // Unauthenticated user: show all public communities
@@ -172,23 +182,53 @@ export async function GET(request: NextRequest) {
           createdAt: row.created_at.toISOString()
         }));
 
-        return NextResponse.json({ 
+        const response = NextResponse.json({ 
           communities,
           userCommunities: [],
           availableCommunities: communities,
           isAuthenticated: false
         });
+        
+        // Add CORS headers
+        response.headers.set('Access-Control-Allow-Origin', origin || '*');
+        response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        
+        return response;
       }
     } finally {
       client.release();
     }
   } catch (error) {
     console.error('[communities] Error fetching communities:', error);
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: 'Failed to fetch communities' },
       { status: 500 }
     );
+    
+    // Add CORS headers to error response
+    const origin = request.headers.get('origin') || '';
+    errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*');
+    errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    return errorResponse;
   }
+}
+
+// Handle OPTIONS requests for CORS
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin') || '';
+  
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': origin || '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
 }
 
 // Helper function to assign gradient classes based on community name
