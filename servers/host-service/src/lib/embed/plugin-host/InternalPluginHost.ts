@@ -192,7 +192,7 @@ export class InternalPluginHost {
     forumUrl.searchParams.set('mod', 'standalone');
     forumUrl.searchParams.set('cg_theme', this.config.theme || 'light');
     if (this.config.backgroundColor) {
-      forumUrl.searchParams.set('cg_background_color', this.config.backgroundColor);
+      forumUrl.searchParams.set('cg_bg_color', this.config.backgroundColor);
     }
     forumUrl.searchParams.set('iframeUid', this.currentIframeUid);
     
@@ -460,7 +460,7 @@ export function generateInternalPluginHostCode(urls: { hostUrl: string; forumUrl
         forumUrl.searchParams.set('mod', 'standalone');
         forumUrl.searchParams.set('cg_theme', this.config.theme || 'light');
         if (this.config.backgroundColor) {
-          forumUrl.searchParams.set('cg_background_color', this.config.backgroundColor);
+          forumUrl.searchParams.set('cg_bg_color', this.config.backgroundColor);
         }
         forumUrl.searchParams.set('iframeUid', this.currentIframeUid);
         

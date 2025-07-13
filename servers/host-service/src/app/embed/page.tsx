@@ -313,13 +313,38 @@ function EmbedPageContent() {
   const themeParam = (searchParams.get('theme') as 'light' | 'dark' | 'auto') || 'light';
   const backgroundColor = searchParams.get('background_color') || undefined;
   
+  // Apply custom background color to document body and CSS custom properties
+  React.useEffect(() => {
+    if (backgroundColor) {
+      // Apply to document body for full coverage
+      document.body.style.setProperty('background-color', backgroundColor, 'important');
+      
+      // Override CSS custom properties used by theme system
+      document.documentElement.style.setProperty('--background', backgroundColor);
+      document.documentElement.style.setProperty('--background-color', backgroundColor);
+      
+      console.log('[Embed] Applied custom background color:', backgroundColor);
+    }
+    
+    // Cleanup function to restore original styles
+    return () => {
+      if (backgroundColor) {
+        document.body.style.removeProperty('background-color');
+        document.documentElement.style.removeProperty('--background');
+        document.documentElement.style.removeProperty('--background-color');
+      }
+    };
+  }, [backgroundColor]);
+  
   // Prepare container styles with custom background if provided
   const containerStyles: React.CSSProperties = {
     minHeight: '100vh',
   };
   
   if (backgroundColor) {
+    // Use !important equivalent by setting the property directly
     containerStyles.backgroundColor = backgroundColor;
+    containerStyles.background = backgroundColor; // Additional fallback
   }
   
   return (
