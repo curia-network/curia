@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Eye, Monitor, Sun, Moon } from 'lucide-react';
+import { Eye, Monitor, Sun, Moon, PanelLeft, FileText, Layout, Maximize } from 'lucide-react';
 
 export interface EmbedConfig {
   width: string;
@@ -22,13 +22,14 @@ interface SizePreset {
   width: string;
   height: string;
   description: string;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 const SIZE_PRESETS: SizePreset[] = [
-  { name: 'Small', width: '400px', height: '300px', description: 'Compact sidebar' },
-  { name: 'Medium', width: '600px', height: '400px', description: 'Article embed' },
-  { name: 'Large', width: '800px', height: '600px', description: 'Main content area' },
-  { name: 'Full Width', width: '100%', height: '600px', description: 'Responsive width' },
+  { name: 'Sidebar Widget', width: '400px', height: '600px', description: 'Compact but usable', icon: PanelLeft },
+  { name: 'Article Embed', width: '100%', height: '500px', description: 'Embedded in blog posts', icon: FileText },
+  { name: 'Main Content', width: '100%', height: '800px', description: 'Large content area', icon: Layout },
+  { name: 'Full Container', width: '100%', height: '100%', description: 'Fill parent container', icon: Maximize },
 ];
 
 // Helper function to cap dimensions to screen size
@@ -93,6 +94,7 @@ export function EmbedConfigurator({ config, onChange, onPreview }: EmbedConfigur
             <div className="grid grid-cols-2 gap-3">
               {SIZE_PRESETS.map((preset) => {
                 const isSelected = config.width === preset.width && config.height === preset.height;
+                const IconComponent = preset.icon;
                 return (
                   <div
                     key={preset.name}
@@ -103,7 +105,10 @@ export function EmbedConfigurator({ config, onChange, onPreview }: EmbedConfigur
                     }`}
                     onClick={() => handlePresetClick(preset)}
                   >
-                    <div className="font-medium text-slate-900 dark:text-white">{preset.name}</div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <IconComponent className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                      <div className="font-medium text-slate-900 dark:text-white">{preset.name}</div>
+                    </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">{preset.width} × {preset.height}</div>
                     <div className="text-xs text-slate-400 dark:text-slate-500">{preset.description}</div>
                   </div>

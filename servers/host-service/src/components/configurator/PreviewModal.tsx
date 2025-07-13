@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
 
 export interface EmbedConfig {
   width: string;
@@ -68,64 +66,48 @@ export function PreviewModal({ isOpen, onClose, config }: PreviewModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      
-      {/* Modal Content */}
-      <div className="relative bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm rounded-lg shadow-xl max-w-6xl max-h-[90vh] w-full mx-4 overflow-hidden border border-slate-200 dark:border-slate-700">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-              🔍 Preview Your Forum
-            </h2>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onClose}
-              className="hover:bg-slate-100 dark:hover:bg-slate-700"
-            >
-              <X className="w-5 h-5" />
-            </Button>
+    <div className="fixed inset-0 z-50 bg-slate-100 dark:bg-slate-900">
+      {/* Safari-style Browser Window - Full Screen */}
+      <div className="bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 w-full h-full flex flex-col">
+        {/* Browser Header Bar */}
+        <div className="flex items-center justify-between px-4 py-3 bg-slate-100 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+          <div className="flex items-center gap-2">
+            <button onClick={onClose} className="w-3 h-3 bg-red-400 rounded-full hover:bg-red-500 transition-colors"></button>
+            <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+            <span className="ml-3 text-sm text-slate-600 dark:text-slate-300">yourwebsite.com</span>
           </div>
-          <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400 mt-2">
-            <span>Size: {config.width} × {config.height}</span>
-            <span>•</span>
-            <span>Theme: {config.theme}</span>
+          <div className="text-sm text-slate-500 dark:text-slate-400">
+            Forum: {config.width} × {config.height} • Theme: {config.theme}
           </div>
         </div>
         
-        {/* Content */}
-        <div className="p-6">
-          {/* Preview Container */}
-          <div className="border-2 border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-              <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-              <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-              <span className="ml-2 text-sm text-slate-500 dark:text-slate-400">Preview Mode</span>
-            </div>
-            
-            {/* Embed Container */}
+        {/* Website Content Area */}
+        <div className="flex-1 bg-white dark:bg-slate-900 p-6 flex flex-col overflow-hidden">
+          {/* Mock webpage header */}
+          <div className="mb-6 pb-4 border-b border-slate-200 dark:border-slate-700">
+            <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded mb-3 w-1/3"></div>
+            <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-2/3"></div>
+          </div>
+          
+          {/* The actual embed - constrained to remaining space */}
+          <div className="flex-1 min-h-0">
             <div 
               ref={embedRef}
-              className="bg-white dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-600"
+              className="bg-white dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-600 shadow-sm"
               style={{
-                width: config.width === '100%' ? '100%' : config.width,
-                height: config.height,
-                minHeight: '300px'
+                width: config.width,
+                height: config.height === '100%' ? '100%' : Math.min(parseInt(config.height) || 600, 800) + 'px',
+                maxHeight: '100%',
+                overflow: 'hidden'
               }}
             />
           </div>
           
-          {/* Info Text */}
-          <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-4">
-            This is exactly how your forum will look on your website
-          </p>
+          {/* Mock webpage footer */}
+          <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-1/2"></div>
+          </div>
         </div>
       </div>
     </div>
