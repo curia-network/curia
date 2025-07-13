@@ -102,11 +102,11 @@ export function Footer() {
                   Documentation
                 </Link>
                 <Link 
-                  href="#"
+                  href="/community"
                   className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
                 >
-                  <Users className="w-4 h-4" />
-                  Community
+                  <MessageSquare className="w-4 h-4" />
+                  Visit Our Community
                 </Link>
               </div>
             </div>

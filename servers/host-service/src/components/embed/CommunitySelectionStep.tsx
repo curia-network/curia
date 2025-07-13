@@ -6,10 +6,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, ArrowRight, Crown, Globe, Lock, Loader2 } from 'lucide-react';
+import { Users, ArrowRight, Crown, Globe, Lock, Loader2, Info, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CommunitySelectionStepProps } from '@/types/embed';
 import { Community } from '@/types/embed';
+import { toast } from 'sonner';
 
 export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({ 
   onCommunitySelected, 
@@ -23,6 +24,7 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [autoLoadingCommunity, setAutoLoadingCommunity] = useState<{ id: string; name: string; icon: string; gradientClass: string } | null>(null);
 
   // Fetch communities from database
   useEffect(() => {
@@ -61,6 +63,37 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
           availableCommunities: data.availableCommunities?.length || data.communities?.length || 0,
           isAuthenticated: data.isAuthenticated || false
         });
+        
+        // Auto-skip logic: If config.community is provided, validate and auto-select if exists
+        if (config.community) {
+          const allCommunities = [...(data.userCommunities || []), ...(data.availableCommunities || data.communities || [])];
+          const targetCommunity = allCommunities.find(c => c.id === config.community);
+          
+          if (targetCommunity) {
+            // Community exists → show loading state and auto-skip
+            console.log(`[CommunitySelectionStep] Auto-loading community: ${targetCommunity.name}`);
+            setAutoLoadingCommunity({ 
+              id: config.community, 
+              name: targetCommunity.name,
+              icon: targetCommunity.icon,
+              gradientClass: targetCommunity.gradientClass
+            });
+            setSelectedCommunity(config.community);
+            
+            // Auto-trigger join after a brief moment to show loading state
+            setTimeout(() => {
+              handleJoinCommunity(config.community);
+            }, 1000);
+          } else {
+            // Community doesn't exist → show info toast and normal UI
+            console.log(`[CommunitySelectionStep] Community '${config.community}' not found, showing selection UI`);
+            toast.info(`Community '${config.community}' not found`, {
+              description: 'Please select an available community from the list below.',
+              icon: <Info className="w-4 h-4" />,
+              duration: 4000
+            });
+          }
+        }
       } catch (err) {
         console.error('[CommunitySelectionStep] Error fetching communities:', err);
         setError(err instanceof Error ? err.message : 'Failed to load communities');
@@ -70,26 +103,27 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
     };
 
     fetchCommunities();
-  }, [sessionToken]);
+  }, [sessionToken, config.community]);
 
   const handleCommunitySelect = (communityId: string) => {
     setSelectedCommunity(communityId);
   };
 
-  const handleJoinCommunity = async () => {
-    if (!selectedCommunity) return;
+  const handleJoinCommunity = async (communityId?: string) => {
+    const targetCommunity = communityId || selectedCommunity;
+    if (!targetCommunity) return;
     
     setIsJoining(true);
     
     try {
       // TODO: Join community API call
-      console.log(`[Embed] Joining community: ${selectedCommunity}`);
+      console.log(`[Embed] Joining community: ${targetCommunity}`);
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Pass the selected community ID to the parent
-      onCommunitySelected(selectedCommunity);
+      onCommunitySelected(targetCommunity);
     } catch (error) {
       console.error('[Embed] Error joining community:', error);
       setIsJoining(false);
@@ -98,6 +132,40 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
 
   // Check if selected community is from user's communities
   const selectedFromUser = userCommunities.find(c => c.id === selectedCommunity);
+
+  // Show auto-loading state for direct community access
+  if (autoLoadingCommunity) {
+    return (
+      <div className="embed-step">
+        <Card className="embed-card embed-card--lg">
+                     <CardHeader className="text-center pb-6">
+             <div className="flex justify-center mb-6">
+               <div className={cn("embed-header-icon animate-pulse", autoLoadingCommunity.gradientClass)}>
+                 <span className="text-3xl">{autoLoadingCommunity.icon}</span>
+               </div>
+             </div>
+            <CardTitle className="text-2xl embed-gradient-text mb-4">
+              Entering {autoLoadingCommunity.name}
+            </CardTitle>
+            <CardDescription className="text-base mb-6">
+              Taking you to your community forum...
+            </CardDescription>
+            
+                         {/* Animated Loading Indicator */}
+             <div className="flex justify-center">
+               <div className="flex items-center gap-2">
+                 <div className="flex space-x-1">
+                   <div className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                   <div className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                   <div className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce"></div>
+                 </div>
+               </div>
+             </div>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="embed-step">
@@ -330,7 +398,7 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
                 <>
                   <div className="flex justify-center">
                     <Button
-                      onClick={handleJoinCommunity}
+                      onClick={() => handleJoinCommunity()}
                       disabled={!selectedCommunity || isJoining}
                       className={cn(
                         "btn-gradient-purple-pink min-w-[200px]",

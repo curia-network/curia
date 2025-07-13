@@ -18,6 +18,7 @@ import React, { useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { QueryClientProvider } from '@/components/providers/QueryClientProvider';
 import { EmbedThemeProvider } from '@/contexts/EmbedThemeProvider';
+import { Toaster } from 'sonner';
 import { 
   LoadingStep,
   SessionCheckStep,
@@ -353,6 +354,16 @@ function EmbedPageContent() {
         <Suspense fallback={<LoadingStep />}>
           <EmbedContent />
         </Suspense>
+        <Toaster 
+          position="top-center"
+          toastOptions={{
+            style: {
+              background: 'hsl(var(--background))',
+              color: 'hsl(var(--foreground))',
+              border: '1px solid hsl(var(--border))',
+            },
+          }}
+        />
       </div>
     </EmbedThemeProvider>
   );

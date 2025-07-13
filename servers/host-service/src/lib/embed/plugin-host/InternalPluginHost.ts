@@ -95,11 +95,15 @@ export class InternalPluginHost {
   private initializeAuthPhase(): void {
     console.log('[InternalPluginHost] Initializing auth phase');
     
-    // Build auth iframe URL with theme parameters
+    // Build auth iframe URL with theme and community parameters
     const authUrl = new URL(`${this.hostServiceUrl}/embed`);
     authUrl.searchParams.set('theme', this.config.theme || 'light');
     if (this.config.backgroundColor) {
       authUrl.searchParams.set('background_color', this.config.backgroundColor);
+    }
+    if (this.config.community) {
+      authUrl.searchParams.set('community', this.config.community);
+      console.log('[InternalPluginHost] Adding community parameter to auth iframe:', this.config.community);
     }
     
     // Create auth iframe
