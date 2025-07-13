@@ -136,6 +136,8 @@ export const AuthenticationStep: React.FC<AuthenticationStepProps> = ({
             handleConnectionSuccess({
               type: 'anonymous',
               name: data.user.name,
+              userId: data.user.user_id,  // ← Fix: Include database user ID
+              sessionToken: data.token,   // ← Fix: Include session token
               verificationLevel: 'unverified' as const
             });
           }, 1000);
