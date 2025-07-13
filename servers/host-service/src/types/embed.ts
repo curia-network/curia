@@ -39,6 +39,7 @@ export interface Community {
   requiresApproval?: boolean;
   isMember?: boolean;
   userRole?: string;
+  createdAt?: string; // Add for sorting by recently created
 }
 
 export interface ProfileData {

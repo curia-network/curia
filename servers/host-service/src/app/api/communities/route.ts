@@ -112,7 +112,8 @@ export async function GET(request: NextRequest) {
           logoUrl: row.logo_url,
           requiresApproval: row.requires_approval,
           userRole: row.user_role, // Include user's role
-          isMember: true // Flag to indicate user is already a member
+          isMember: true, // Flag to indicate user is already a member
+          createdAt: row.created_at.toISOString()
         }));
 
         // Transform available communities
@@ -126,7 +127,8 @@ export async function GET(request: NextRequest) {
           icon: getIconForCommunity(row.name),
           logoUrl: row.logo_url,
           requiresApproval: row.requires_approval,
-          isMember: false // Flag to indicate user is not a member
+          isMember: false, // Flag to indicate user is not a member
+          createdAt: row.created_at.toISOString()
         }));
 
         return NextResponse.json({ 
@@ -166,7 +168,8 @@ export async function GET(request: NextRequest) {
           icon: getIconForCommunity(row.name),
           logoUrl: row.logo_url,
           requiresApproval: row.requires_approval,
-          isMember: false
+          isMember: false,
+          createdAt: row.created_at.toISOString()
         }));
 
         return NextResponse.json({ 

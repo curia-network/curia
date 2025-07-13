@@ -2,11 +2,12 @@
  * CommunitySelectionStep - Community selection and joining
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, ArrowRight, Crown, Globe, Lock, Loader2, Info, MessageSquare } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Users, ArrowRight, Crown, Globe, Lock, Loader2, Info, MessageSquare, Search, SortAsc, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CommunitySelectionStepProps } from '@/types/embed';
 import { Community } from '@/types/embed';
@@ -26,6 +27,46 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [autoLoadingCommunity, setAutoLoadingCommunity] = useState<{ id: string; name: string; icon: string; gradientClass: string; logoUrl?: string | null } | null>(null);
   const [shownToastFor, setShownToastFor] = useState<string | null>(null);
+  
+  // Filter and sort state
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [sortOption, setSortOption] = useState<'most_active' | 'recently_created'>('most_active');
+
+  // Filter and sort available communities
+  const filteredAndSortedCommunities = useMemo(() => {
+    let filtered = availableCommunities;
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(community => 
+        community.name.toLowerCase().includes(query) ||
+        community.description.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortOption === 'most_active') {
+        // Sort by member count (descending), then by name
+        if (a.memberCount !== b.memberCount) {
+          return b.memberCount - a.memberCount;
+        }
+        return a.name.localeCompare(b.name);
+      } else if (sortOption === 'recently_created') {
+        // Sort by created date (descending), then by name
+        const aDate = new Date(a.createdAt || 0);
+        const bDate = new Date(b.createdAt || 0);
+        if (aDate.getTime() !== bDate.getTime()) {
+          return bDate.getTime() - aDate.getTime();
+        }
+        return a.name.localeCompare(b.name);
+      }
+      return 0;
+    });
+
+    return sorted;
+  }, [availableCommunities, searchQuery, sortOption]);
 
   // Fetch communities from database
   useEffect(() => {
@@ -324,12 +365,58 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
                       <Globe className="w-5 h-5 text-muted-foreground" />
                       <h3 className="font-semibold text-lg">Explore Communities</h3>
                       <Badge variant="outline" className="text-xs">
-                        {availableCommunities.length}
+                        {filteredAndSortedCommunities.length}
                       </Badge>
                     </div>
                   )}
+                  
+                  {/* Filter Controls */}
+                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                    {/* Search Input */}
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search communities..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    
+                    {/* Sort Dropdown */}
+                    <div className="relative">
+                      <SortAsc className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                      <select
+                        value={sortOption}
+                        onChange={(e) => setSortOption(e.target.value as 'most_active' | 'recently_created')}
+                        className="pl-10 pr-10 py-2 text-sm border border-input bg-background text-foreground rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring min-w-[160px] appearance-none cursor-pointer"
+                      >
+                        <option value="most_active">Most Active</option>
+                        <option value="recently_created">Recently Created</option>
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                    </div>
+                  </div>
+                  {/* No results message */}
+                  {filteredAndSortedCommunities.length === 0 && searchQuery.trim() && (
+                    <div className="text-center py-8">
+                      <div className="text-muted-foreground">
+                        <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No communities found matching "{searchQuery}"</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSearchQuery('')}
+                          className="mt-2"
+                        >
+                          Clear search
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="grid gap-4">
-                    {availableCommunities.map((community: Community) => (
+                    {filteredAndSortedCommunities.map((community: Community) => (
                       <Card 
                         key={community.id}
                         className={cn(
@@ -420,7 +507,7 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
               )}
 
               {/* Action Button - Only show when communities are available */}
-              {(userCommunities.length > 0 || availableCommunities.length > 0) && (
+              {(userCommunities.length > 0 || filteredAndSortedCommunities.length > 0) && (
                 <>
                   <div className="flex justify-center">
                     <Button
