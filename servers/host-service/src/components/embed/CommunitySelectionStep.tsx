@@ -24,7 +24,8 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [autoLoadingCommunity, setAutoLoadingCommunity] = useState<{ id: string; name: string; icon: string; gradientClass: string } | null>(null);
+  const [autoLoadingCommunity, setAutoLoadingCommunity] = useState<{ id: string; name: string; icon: string; gradientClass: string; logoUrl?: string | null } | null>(null);
+  const [shownToastFor, setShownToastFor] = useState<string | null>(null);
 
   // Fetch communities from database
   useEffect(() => {
@@ -76,7 +77,8 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
               id: config.community, 
               name: targetCommunity.name,
               icon: targetCommunity.icon,
-              gradientClass: targetCommunity.gradientClass
+              gradientClass: targetCommunity.gradientClass,
+              logoUrl: targetCommunity.logoUrl
             });
             setSelectedCommunity(config.community);
             
@@ -85,13 +87,16 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
               handleJoinCommunity(config.community);
             }, 1000);
           } else {
-            // Community doesn't exist → show info toast and normal UI
-            console.log(`[CommunitySelectionStep] Community '${config.community}' not found, showing selection UI`);
-            toast.info(`Community '${config.community}' not found`, {
-              description: 'Please select an available community from the list below.',
-              icon: <Info className="w-4 h-4" />,
-              duration: 4000
-            });
+            // Community doesn't exist → show info toast and normal UI (only once)
+            if (shownToastFor !== config.community) {
+              console.log(`[CommunitySelectionStep] Community '${config.community}' not found, showing selection UI`);
+              setShownToastFor(config.community);
+              toast.info(`Community '${config.community}' not found`, {
+                description: 'Please select an available community from the list below.',
+                icon: <Info className="w-4 h-4" />,
+                duration: 4000
+              });
+            }
           }
         }
       } catch (err) {
@@ -140,8 +145,16 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
         <Card className="embed-card embed-card--lg">
                      <CardHeader className="text-center pb-6">
              <div className="flex justify-center mb-6">
-               <div className={cn("embed-header-icon animate-pulse", autoLoadingCommunity.gradientClass)}>
-                 <span className="text-3xl">{autoLoadingCommunity.icon}</span>
+               <div className={cn("embed-header-icon animate-pulse", autoLoadingCommunity.logoUrl ? "" : autoLoadingCommunity.gradientClass)}>
+                 {autoLoadingCommunity.logoUrl ? (
+                   <img 
+                     src={autoLoadingCommunity.logoUrl} 
+                     alt={autoLoadingCommunity.name}
+                     className="w-16 h-16 rounded-full object-cover"
+                   />
+                 ) : (
+                   <span className="text-3xl">{autoLoadingCommunity.icon}</span>
+                 )}
                </div>
              </div>
             <CardTitle className="text-2xl embed-gradient-text mb-4">
@@ -253,8 +266,16 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
                         <CardContent className="p-4">
                           <div className="flex items-center space-x-3">
                             {/* Community Icon */}
-                            <div className={cn("community-icon", community.gradientClass)}>
-                              <span className="text-xl">{community.icon}</span>
+                            <div className={cn("community-icon", community.logoUrl ? "" : community.gradientClass)}>
+                              {community.logoUrl ? (
+                                <img 
+                                  src={community.logoUrl} 
+                                  alt={community.name}
+                                  className="w-8 h-8 rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-xl">{community.icon}</span>
+                              )}
                             </div>
                             
                             {/* Community Info */}
@@ -325,8 +346,16 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
                         <CardContent className="p-5">
                           <div className="flex items-center space-x-4">
                             {/* Community Icon */}
-                            <div className={cn("community-icon", community.gradientClass)}>
-                              <span className="text-2xl">{community.icon}</span>
+                            <div className={cn("community-icon", community.logoUrl ? "" : community.gradientClass)}>
+                              {community.logoUrl ? (
+                                <img 
+                                  src={community.logoUrl} 
+                                  alt={community.name}
+                                  className="w-10 h-10 rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-2xl">{community.icon}</span>
+                              )}
                             </div>
                             
                             {/* Community Info */}
