@@ -28,11 +28,15 @@ export function ThemeProvider({
   const [theme, setTheme] = useState<Theme>(defaultTheme);
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
 
-  // Initialize theme from localStorage or default
+  // Initialize theme from localStorage or system preference
   useEffect(() => {
     const stored = localStorage.getItem('curia-theme') as Theme;
     if (stored && ['light', 'dark', 'system'].includes(stored)) {
       setTheme(stored);
+    } else {
+      // If no stored preference, use actual system preference instead of 'system'
+      const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      setTheme(systemPreference);
     }
   }, []);
 
@@ -97,41 +101,29 @@ export function useTheme() {
 
 // Theme toggle component
 export function ThemeToggle({ className }: { className?: string }) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
 
+  // Simple toggle between light and dark only
   const toggleTheme = () => {
-    if (theme === 'light') {
-      setTheme('dark');
-    } else if (theme === 'dark') {
-      setTheme('system');
-    } else {
-      setTheme('light');
-    }
-  };
-
-  const getThemeIcon = () => {
-    if (theme === 'system') {
-      return '🔄';
-    }
-    return resolvedTheme === 'dark' ? '🌙' : '☀️';
-  };
-
-  const getThemeLabel = () => {
-    if (theme === 'system') {
-      return `System (${resolvedTheme})`;
-    }
-    return theme === 'dark' ? 'Dark' : 'Light';
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
   };
 
   return (
     <button
       onClick={toggleTheme}
-      className={`theme-toggle ${className || ''}`}
-      title={`Switch to ${theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'} theme`}
-      aria-label={`Current theme: ${getThemeLabel()}`}
+      className={`inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 shadow-sm hover:shadow-md transition-all duration-200 ${className || ''}`}
+      title={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} theme`}
+      aria-label={`Current theme: ${resolvedTheme}. Click to switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} theme`}
     >
-      <span className="theme-toggle__icon">{getThemeIcon()}</span>
-      <span className="theme-toggle__label">{getThemeLabel()}</span>
+      {resolvedTheme === 'dark' ? (
+        <svg className="w-5 h-5 text-slate-600 dark:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      ) : (
+        <svg className="w-5 h-5 text-slate-600 dark:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+      )}
     </button>
   );
 } 

@@ -21,10 +21,10 @@ export function LandingHero() {
   }
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800">
-      {/* Background decoration */}
+      {/* Background decoration - contained within viewport */}
       <div className="absolute inset-0 bg-grid-slate-900/[0.04] dark:bg-grid-slate-400/[0.05] bg-[size:20px_20px]" />
-      <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-      <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl" />
+      <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl" />
       
       <div className="relative">
         {/* Navigation Header */}
@@ -43,7 +43,7 @@ export function LandingHero() {
           </div>
         </header>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 sm:pt-24 sm:pb-32">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Hero Content */}
             <div className="space-y-8">
@@ -107,31 +107,31 @@ export function LandingHero() {
             {/* Hero Visual */}
             <div className="relative">
               <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-white/20 shadow-2xl">
-                <CardContent className="p-8">
+                <CardContent className="p-4 sm:p-8">
                   <div className="space-y-4">
                     <div className="text-sm text-slate-500 dark:text-slate-400 font-mono">
                       // Add to any website
                     </div>
-                    <div className="bg-slate-900 dark:bg-slate-950 rounded-lg p-4 text-green-400 font-mono text-sm overflow-x-auto">
-                      <div>{`<div id="my-forum"></div>`}</div>
-                      <div className="mt-2">{`<script src="${hostUrl}/embed.js"`}</div>
-                      <div className="ml-8">{`data-community="my-dao"`}</div>
-                      <div className="ml-8">{`data-theme="light"`}</div>
-                      <div className="ml-8">{`async>`}</div>
-                      <div>{`</script>`}</div>
+                    <div className="bg-slate-900 dark:bg-slate-950 rounded-lg p-3 sm:p-4 text-green-400 font-mono text-xs sm:text-sm overflow-x-auto">
+                      <div className="whitespace-nowrap min-w-0">{`<div id="my-forum"></div>`}</div>
+                      <div className="mt-2 whitespace-nowrap min-w-0">{`<script src="${hostUrl}/embed.js"`}</div>
+                      <div className="ml-4 sm:ml-8 whitespace-nowrap min-w-0">{`data-community="my-dao"`}</div>
+                      <div className="ml-4 sm:ml-8 whitespace-nowrap min-w-0">{`data-theme="light"`}</div>
+                      <div className="ml-4 sm:ml-8 whitespace-nowrap min-w-0">{`async>`}</div>
+                      <div className="whitespace-nowrap min-w-0">{`</script>`}</div>
                     </div>
                     
                     <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span>Ready to deploy • 10KB • Zero dependencies</span>
+                      <span className="truncate">Ready to deploy • 10KB • Zero dependencies</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
               
-              {/* Floating elements */}
-              <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl opacity-20 animate-pulse"></div>
-              <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl opacity-30 animate-pulse delay-1000"></div>
+              {/* Floating elements - properly contained */}
+              <div className="absolute -top-2 -right-2 w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl opacity-20 animate-pulse"></div>
+              <div className="absolute -bottom-2 -left-2 w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl opacity-30 animate-pulse delay-1000"></div>
             </div>
           </div>
         </div>

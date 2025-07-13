@@ -72,7 +72,7 @@ export function LiveDemo() {
   }, [])
   
   return (
-    <section className="py-20 sm:py-32">
+    <section className="py-20 sm:py-32 no-horizontal-scroll">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center space-y-6 mb-20">

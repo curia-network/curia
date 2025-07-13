@@ -63,6 +63,23 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
+  /* Global overflow prevention */
+  html {
+    overflow-x: hidden;
+  }
+
+  /* Ensure all containers are properly contained */
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Prevent horizontal scroll on body */
+  body {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -100,13 +117,33 @@
     overflow-x: hidden;
     box-sizing: border-box;
   }
-  
-  /* Word wrapping utilities for mobile */
+
+  /* Prevent horizontal scroll on all containers */
+  .no-horizontal-scroll {
+    overflow-x: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Ensure all elements respect viewport width */
+  .viewport-safe {
+    max-width: 100vw;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  /* Safe padding for mobile */
+  .safe-padding {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  /* Text that should wrap and not cause overflow */
   .wrap-anywhere {
     word-wrap: break-word;
     overflow-wrap: anywhere;
-    word-break: break-word;
     hyphens: auto;
+    max-width: 100%;
   }
   
   /* Mobile-optimized spacing */
@@ -912,33 +949,7 @@ button[data-rk]:not([class*="bg-"]):not([style*="background"]):hover {
     border-color: hsl(217 91% 60%);
   }
 
-  /* Theme Toggle Component */
-  .theme-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    background-color: hsl(var(--secondary) / 0.8);
-    color: hsl(var(--secondary-foreground));
-    border: 1px solid hsl(var(--border));
-    transition: all 0.2s ease;
-  }
 
-  .theme-toggle:hover {
-    background-color: hsl(var(--secondary));
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    transform: translateY(-1px);
-  }
-
-  .theme-toggle__icon {
-    font-size: 1.125rem;
-  }
-
-  .theme-toggle__label {
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
 
   /* Plugin Container */
   .plugin-container {

@@ -78,7 +78,7 @@ export function CodeExample() {
   }
 
   return (
-    <section className="py-20 sm:py-32 bg-slate-50 dark:bg-slate-900/50">
+    <section className="py-20 sm:py-32 bg-slate-50 dark:bg-slate-900/50 no-horizontal-scroll">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-start">
           {/* Left Column - Description */}
@@ -199,8 +199,8 @@ export function CodeExample() {
               
               <CardContent className="p-0">
                 <div className="bg-slate-900 dark:bg-slate-950 text-green-400 font-mono text-sm overflow-x-auto">
-                  <pre className="p-6 whitespace-pre-wrap">
-                    <code>{codeExamples[activeTab].code}</code>
+                  <pre className="p-4 sm:p-6 whitespace-pre-wrap min-w-0">
+                    <code className="break-words whitespace-pre-wrap">{codeExamples[activeTab].code}</code>
                   </pre>
                 </div>
               </CardContent>
