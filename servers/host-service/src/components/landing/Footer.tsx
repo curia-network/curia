@@ -24,7 +24,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
         <div className="py-16 sm:py-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
             
             {/* Company Info */}
             <div className="space-y-6">
@@ -45,7 +45,7 @@ export function Footer() {
                 
                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                   Build engaged Web3 communities with our embeddable forum platform. 
-                  Blockchain authentication, token gating, and seamless integration in one script tag.
+                  ENS authentication, Universal Profile support, token gating, and seamless integration in one script tag.
                 </p>
               </div>
               
@@ -89,7 +89,7 @@ export function Footer() {
               </div>
             </div>
             
-            {/* Product Links */}
+            {/* Platform Links */}
             <div className="space-y-6">
               <h4 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">
                 Platform
@@ -110,13 +110,6 @@ export function Footer() {
                   Live Demo
                 </Link>
                 <Link 
-                  href="#"
-                  className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-                >
-                  <Shield className="w-4 h-4" />
-                  Documentation
-                </Link>
-                <Link 
                   href="/community"
                   className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
                 >
@@ -126,81 +119,18 @@ export function Footer() {
               </div>
             </div>
             
-            {/* Resources */}
-            <div className="space-y-6">
-              <h4 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">
-                Resources
-              </h4>
-              <div className="space-y-4">
-                <Link 
-                  href="#"
-                  className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-                >
-                  API Reference
-                  <ExternalLink className="w-3 h-3" />
-                </Link>
-                <Link 
-                  href="#"
-                  className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-                >
-                  Integration Guide
-                  <ExternalLink className="w-3 h-3" />
-                </Link>
-                <Link 
-                  href="#"
-                  className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-                >
-                  Web3 Best Practices
-                  <ExternalLink className="w-3 h-3" />
-                </Link>
-                <Link 
-                  href="#"
-                  className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-                >
-                  Help Center
-                  <ExternalLink className="w-3 h-3" />
-                </Link>
-              </div>
-            </div>
-            
-
-            
           </div>
         </div>
         
         {/* Bottom Bar */}
         <div className="border-t border-slate-200 dark:border-slate-700 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            
-            {/* Legal Links */}
-            <div className="flex items-center gap-6 text-sm">
-              <Link 
-                href="#"
-                className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-              >
-                Privacy Policy
-              </Link>
-              <Link 
-                href="#"
-                className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-              >
-                Terms of Service
-              </Link>
-              <Link 
-                href="#"
-                className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-              >
-                Cookie Policy
-              </Link>
-            </div>
-            
+          <div className="flex flex-col md:flex-row items-center justify-start gap-6">
             {/* Copyright */}
             <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-              <span>© 2024 Curia. Built with</span>
+              <span>© {new Date().getFullYear()} Curia. Built with</span>
               <Heart className="w-4 h-4 text-red-500" />
               <span>for Web3 communities.</span>
             </div>
-            
           </div>
         </div>
       </div>
