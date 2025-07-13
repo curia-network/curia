@@ -76,7 +76,7 @@ export function FeaturesGrid() {
   }
 
   return (
-    <section className="pt-12 pb-20 sm:pt-16 sm:pb-32 no-horizontal-scroll">
+    <section data-section="features" className="pt-12 pb-20 sm:pt-16 sm:pb-32 no-horizontal-scroll">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center space-y-6 mb-16">

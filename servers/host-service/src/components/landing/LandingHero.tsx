@@ -6,13 +6,41 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PreviewModal } from "@/components/configurator/PreviewModal"
 import { ThemeToggle, useTheme } from "@/contexts/ThemeContext"
-import { ArrowRight, Zap, Shield, Globe, Play } from "lucide-react"
+import { ArrowRight, Zap, Shield, Globe, Play, Menu, X } from "lucide-react"
 
 export function LandingHero() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const hostUrl = process.env.NEXT_PUBLIC_HOST_SERVICE_URL || 'https://your-host-url.com'
   const { resolvedTheme } = useTheme()
   
+  // Navigation functions
+  const scrollToFooter = () => {
+    const footer = document.querySelector('footer')
+    if (footer) {
+      footer.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
+  const handleNavClick = (section: string) => {
+    setIsMobileMenuOpen(false) // Close mobile menu
+    
+    switch (section) {
+      case 'demo':
+        setIsModalOpen(true)
+        break
+      case 'community':
+        window.location.href = '/community'
+        break
+      case 'connect':
+        scrollToFooter()
+        break
+      case 'get-started':
+        window.location.href = '/get-started'
+        break
+    }
+  }
+
   // Default configuration for landing page demo - uses current theme
   const defaultConfig = {
     width: '100%',
@@ -20,6 +48,7 @@ export function LandingHero() {
     theme: resolvedTheme as 'light' | 'dark',
     borderRadius: '8px'
   }
+  
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800">
       {/* Background decoration - contained within viewport */}
@@ -39,9 +68,52 @@ export function LandingHero() {
               <span className="text-xl font-bold text-slate-900 dark:text-white">Curia</span>
             </div>
             
-            {/* Theme Toggle */}
-            <ThemeToggle />
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-8">
+              <button
+                onClick={() => handleNavClick('get-started')}
+                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium transition-colors duration-200"
+              >
+                Get Started
+              </button>
+              <button
+                onClick={() => handleNavClick('demo')}
+                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium transition-colors duration-200"
+              >
+                Live Demo
+              </button>
+              <button
+                onClick={() => handleNavClick('community')}
+                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium transition-colors duration-200"
+              >
+                Community
+              </button>
+              <button
+                onClick={() => handleNavClick('connect')}
+                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium transition-colors duration-200"
+              >
+                Connect
+              </button>
+            </nav>
+            
+            {/* Mobile Menu Button + Theme Toggle */}
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
+                aria-label="Toggle mobile menu"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
+          
+
         </header>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 sm:pt-24 sm:pb-32">
@@ -142,6 +214,96 @@ export function LandingHero() {
           </div>
         </div>
       </div>
+
+      {/* Full-Screen Mobile Navigation Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          {/* Overlay Background */}
+          <div className="absolute inset-0 bg-white dark:bg-slate-900" />
+          
+          {/* Navigation Content */}
+          <div className="relative h-full flex flex-col">
+            {/* Top Bar with Close Button */}
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xl font-bold text-slate-900 dark:text-white">Curia</span>
+              </div>
+              
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-3 -m-3 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
+                aria-label="Close menu"
+              >
+                <X className="w-7 h-7" />
+              </button>
+            </div>
+            
+            {/* Navigation Items - Bauhaus Style */}
+            <nav className="flex-1 flex flex-col justify-center px-8 space-y-12">
+              <button
+                onClick={() => handleNavClick('get-started')}
+                className="group text-left"
+              >
+                <div className="text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-2 group-active:scale-95 transition-transform duration-150">
+                  GET STARTED
+                </div>
+                <div className="text-lg text-slate-500 dark:text-slate-400 font-medium">
+                  Configure your forum
+                </div>
+              </button>
+              
+              <button
+                onClick={() => handleNavClick('demo')}
+                className="group text-left"
+              >
+                <div className="text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-2 group-active:scale-95 transition-transform duration-150">
+                  LIVE DEMO
+                </div>
+                <div className="text-lg text-slate-500 dark:text-slate-400 font-medium">
+                  Test the platform
+                </div>
+              </button>
+              
+              <button
+                onClick={() => handleNavClick('community')}
+                className="group text-left"
+              >
+                <div className="text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-2 group-active:scale-95 transition-transform duration-150">
+                  COMMUNITY
+                </div>
+                <div className="text-lg text-slate-500 dark:text-slate-400 font-medium">
+                  Visit our forum
+                </div>
+              </button>
+              
+              <button
+                onClick={() => handleNavClick('connect')}
+                className="group text-left"
+              >
+                <div className="text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-2 group-active:scale-95 transition-transform duration-150">
+                  CONNECT
+                </div>
+                <div className="text-lg text-slate-500 dark:text-slate-400 font-medium">
+                  Get in touch
+                </div>
+              </button>
+            </nav>
+            
+            {/* Bottom Theme Toggle */}
+            <div className="p-8 border-t border-slate-200 dark:border-slate-700">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+                  APPEARANCE
+                </span>
+                <ThemeToggle />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Demo Modal */}
       <PreviewModal 
