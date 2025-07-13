@@ -69,8 +69,7 @@ export function LandingHero() {
                 </h1>
                 
                 <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
-                  Think "Stripe for Forums". Add powerful forum functionality to any website with a single script tag. 
-                  ENS authentication, Universal Profile support, token gating, and real-time discussions—no backend required.
+                  Think "Stripe for Forums". Add powerful forum functionality to any website with a single script tag.
                 </p>
               </div>
               
@@ -98,7 +97,7 @@ export function LandingHero() {
               <div className="flex flex-wrap gap-6 pt-4">
                 <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                   <Shield className="w-5 h-5 text-green-500" />
-                  <span className="font-medium">ENS + UP Auth</span>
+                  <span className="font-medium">ENS + UP</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                   <Zap className="w-5 h-5 text-blue-500" />
@@ -106,7 +105,7 @@ export function LandingHero() {
                 </div>
                 <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                   <Globe className="w-5 h-5 text-indigo-500" />
-                  <span className="font-medium">Works Anywhere</span>
+                  <span className="font-medium">Anywhere</span>
                 </div>
               </div>
             </div>

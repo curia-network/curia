@@ -63,8 +63,9 @@ export function PartnersSection() {
             Built for the decentralized web
           </p>
           
-          {/* Partners Grid */}
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-6 items-center justify-items-center">
+          {/* Partners Row - Horizontal Scroll */}
+          <div className="flex overflow-x-auto gap-6 items-center justify-center md:justify-center pb-2 scrollbar-hide">
+            <div className="flex gap-6 items-center min-w-max px-4 md:px-0">
             {partners.map((partner, index) => (
               <Link
                 key={partner.name}
@@ -95,6 +96,7 @@ export function PartnersSection() {
                 </div>
               </Link>
             ))}
+            </div>
           </div>
           
           {/* Subtitle */}
