@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { EmbedConfigurator } from '@/components/configurator/EmbedConfigurator';
 import { CodeGenerator } from '@/components/configurator/CodeGenerator';
 import { PreviewModal } from '@/components/configurator/PreviewModal';
-import { ArrowLeft, Settings, Code } from 'lucide-react';
+import { ArrowLeft, Settings, Code, Eye } from 'lucide-react';
 
 export interface EmbedConfig {
   width: string;
@@ -90,7 +90,6 @@ export default function GetStartedPage() {
               <EmbedConfigurator 
                 config={config}
                 onChange={handleConfigChange}
-                onPreview={openPreview}
               />
             </div>
 
@@ -100,7 +99,19 @@ export default function GetStartedPage() {
                 <Code className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Implementation</h2>
               </div>
-              <CodeGenerator config={config} />
+              <CodeGenerator 
+                config={config} 
+                previewButton={
+                  <Button 
+                    onClick={openPreview}
+                    size="lg" 
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    <Eye className="w-5 h-5 mr-2" />
+                    Preview Your Forum
+                  </Button>
+                }
+              />
             </div>
           </div>
         </div>

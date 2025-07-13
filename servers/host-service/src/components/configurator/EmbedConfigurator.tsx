@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Eye, Monitor, Sun, Moon, PanelLeft, FileText, Layout, Maximize } from 'lucide-react';
+import { Eye, Monitor, Sun, Moon, PanelLeft, FileText, Layout, Maximize, ChevronDown, ChevronUp } from 'lucide-react';
 
 export interface EmbedConfig {
   width: string;
@@ -16,7 +16,6 @@ export interface EmbedConfig {
 interface EmbedConfiguratorProps {
   config: EmbedConfig;
   onChange: (config: Partial<EmbedConfig>) => void;
-  onPreview: () => void;
 }
 
 interface SizePreset {
@@ -46,9 +45,11 @@ function capToScreenSize(value: string, dimension: 'width' | 'height'): string {
   return numValue > maxValue ? `${maxValue}px` : value;
 }
 
-export function EmbedConfigurator({ config, onChange, onPreview }: EmbedConfiguratorProps) {
+export function EmbedConfigurator({ config, onChange }: EmbedConfiguratorProps) {
   const [customWidth, setCustomWidth] = useState(config.width);
   const [customHeight, setCustomHeight] = useState(config.height);
+  const [backgroundExpanded, setBackgroundExpanded] = useState(false);
+  const [borderRadiusExpanded, setBorderRadiusExpanded] = useState(false);
 
   // Update local state when config changes
   useEffect(() => {
@@ -211,102 +212,126 @@ export function EmbedConfigurator({ config, onChange, onPreview }: EmbedConfigur
 
       {/* Background Color Configuration */}
       <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-slate-200 dark:border-slate-700">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">🎨 Background Color (Optional)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="backgroundColor" className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
-                Custom Background Color
-              </label>
-              <div className="flex items-center gap-3">
-                <input
-                  id="backgroundColor"
-                  type="color"
-                  value={config.backgroundColor || '#ffffff'}
-                  onChange={(e) => handleBackgroundColorChange(e.target.value)}
-                  className="w-12 h-10 border border-slate-300 dark:border-slate-600 rounded cursor-pointer"
-                />
-                <input
-                  type="text"
-                  value={config.backgroundColor || ''}
-                  onChange={(e) => handleBackgroundColorChange(e.target.value)}
-                  placeholder="#ffffff"
-                  className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-                />
-                {config.backgroundColor && (
-                  <button
-                    onClick={() => handleBackgroundColorChange('')}
-                    className="px-3 py-2 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-            </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500">
-              💡 Leave empty to use default theme background. Useful for matching your website's design.
-            </p>
+        <CardHeader 
+          className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+          onClick={() => setBackgroundExpanded(!backgroundExpanded)}
+        >
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
+              🎨 Background Color (Optional)
+            </CardTitle>
+            <Button variant="ghost" size="sm" className="p-1 h-auto">
+              {backgroundExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
           </div>
-        </CardContent>
+        </CardHeader>
+        {backgroundExpanded && (
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="backgroundColor" className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+                  Custom Background Color
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    id="backgroundColor"
+                    type="color"
+                    value={config.backgroundColor || '#ffffff'}
+                    onChange={(e) => handleBackgroundColorChange(e.target.value)}
+                    className="w-12 h-10 border border-slate-300 dark:border-slate-600 rounded cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={config.backgroundColor || ''}
+                    onChange={(e) => handleBackgroundColorChange(e.target.value)}
+                    placeholder="#ffffff"
+                    className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  />
+                  {config.backgroundColor && (
+                    <button
+                      onClick={() => handleBackgroundColorChange('')}
+                      className="px-3 py-2 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                💡 Leave empty to use default theme background. Useful for matching your website's design.
+              </p>
+            </div>
+          </CardContent>
+        )}
       </Card>
 
       {/* Border Radius Configuration */}
       <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-slate-200 dark:border-slate-700">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">📐 Border Radius (Optional)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="borderRadius" className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
-                Corner Roundness
-              </label>
-              <div className="flex items-center gap-3">
-                <input
-                  id="borderRadius"
-                  type="range"
-                  min="0"
-                  max="24"
-                  step="1"
-                  value={parseInt(config.borderRadius || '8')}
-                  onChange={(e) => handleBorderRadiusChange(`${e.target.value}px`)}
-                  className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                />
-                <input
-                  type="text"
-                  value={config.borderRadius || '8px'}
-                  onChange={(e) => handleBorderRadiusChange(e.target.value)}
-                  placeholder="8px"
-                  className="w-20 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-                />
-                {config.borderRadius && config.borderRadius !== '8px' && (
-                  <button
-                    onClick={() => handleBorderRadiusChange('8px')}
-                    className="px-3 py-2 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    Reset
-                  </button>
-                )}
-              </div>
-            </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500">
-              💡 Makes iframe corners match your container's border radius for seamless integration.
-            </p>
+        <CardHeader 
+          className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+          onClick={() => setBorderRadiusExpanded(!borderRadiusExpanded)}
+        >
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
+              📐 Border Radius (Optional)
+            </CardTitle>
+            <Button variant="ghost" size="sm" className="p-1 h-auto">
+              {borderRadiusExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
           </div>
-        </CardContent>
+        </CardHeader>
+        {borderRadiusExpanded && (
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="borderRadius" className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+                  Corner Roundness
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    id="borderRadius"
+                    type="range"
+                    min="0"
+                    max="24"
+                    step="1"
+                    value={parseInt(config.borderRadius || '8')}
+                    onChange={(e) => handleBorderRadiusChange(`${e.target.value}px`)}
+                    className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={config.borderRadius || '8px'}
+                    onChange={(e) => handleBorderRadiusChange(e.target.value)}
+                    placeholder="8px"
+                    className="w-20 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  />
+                  {config.borderRadius && config.borderRadius !== '8px' && (
+                    <button
+                      onClick={() => handleBorderRadiusChange('8px')}
+                      className="px-3 py-2 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                💡 Makes iframe corners match your container's border radius for seamless integration.
+              </p>
+            </div>
+          </CardContent>
+        )}
       </Card>
 
-      {/* Preview Button */}
-      <Button 
-        onClick={onPreview}
-        size="lg" 
-        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-      >
-        <Eye className="w-5 h-5 mr-2" />
-        Preview Your Forum
-      </Button>
+
     </div>
   );
 } 

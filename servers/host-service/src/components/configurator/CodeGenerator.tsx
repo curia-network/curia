@@ -15,9 +15,10 @@ export interface EmbedConfig {
 
 interface CodeGeneratorProps {
   config: EmbedConfig;
+  previewButton?: React.ReactNode;
 }
 
-export function CodeGenerator({ config }: CodeGeneratorProps) {
+export function CodeGenerator({ config, previewButton }: CodeGeneratorProps) {
   const [copied, setCopied] = useState(false);
 
   // Generate the embed code
@@ -63,39 +64,6 @@ export function CodeGenerator({ config }: CodeGeneratorProps) {
 
   return (
     <div className="space-y-6">
-      {/* Configuration Summary - Moved to Top */}
-      <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-slate-200 dark:border-slate-700">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">⚙️ Configuration Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 dark:text-slate-400">Size:</span>
-            <span className="font-medium text-slate-900 dark:text-white">{config.width} × {config.height}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 dark:text-slate-400">Theme:</span>
-            <span className="font-medium capitalize text-slate-900 dark:text-white">{config.theme}</span>
-          </div>
-          {config.backgroundColor && (
-            <div className="flex justify-between items-center">
-              <span className="text-slate-600 dark:text-slate-400">Background:</span>
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-4 h-4 rounded border border-slate-300 dark:border-slate-600" 
-                  style={{ backgroundColor: config.backgroundColor }}
-                ></div>
-                <span className="font-medium font-mono text-slate-900 dark:text-white">{config.backgroundColor}</span>
-              </div>
-            </div>
-          )}
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 dark:text-slate-400">Container ID:</span>
-            <span className="font-medium font-mono text-slate-900 dark:text-white">curia-forum</span>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Generated Code with Gradient Magic */}
       <div className="relative">
         {/* Animated gradient background */}
@@ -140,6 +108,13 @@ export function CodeGenerator({ config }: CodeGeneratorProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Preview Button */}
+      {previewButton && (
+        <div>
+          {previewButton}
+        </div>
+      )}
 
       {/* Instructions */}
       <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-slate-200 dark:border-slate-700">

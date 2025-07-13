@@ -73,15 +73,17 @@ export class InternalPluginHost {
   private config: EmbedConfig;
   private authContext: InternalAuthContext | null = null;
   private currentIframe: HTMLIFrameElement | null = null;
-  private currentIframeUid: string | null = null;
+  private myUid: string; // Instance-specific UID (not singleton)
   private hostServiceUrl: string;
   private forumUrl: string;
+  private messageListener: ((event: MessageEvent) => void) | null = null;
 
   constructor(container: HTMLElement, config: EmbedConfig, hostServiceUrl: string, forumUrl: string) {
     this.container = container;
     this.config = config;
     this.hostServiceUrl = hostServiceUrl;
     this.forumUrl = forumUrl;
+    this.myUid = this.generateIframeUid(); // Generate instance-specific UID
     
     this.setupMessageListener();
     this.initializeAuthPhase();
@@ -121,9 +123,13 @@ export class InternalPluginHost {
    * Set up message listener for all plugin communication
    */
   private setupMessageListener(): void {
-    window.addEventListener('message', (event: MessageEvent) => {
+    // Store listener reference for proper cleanup
+    this.messageListener = (event: MessageEvent) => {
       this.handleMessage(event);
-    });
+    };
+    
+    window.addEventListener('message', this.messageListener);
+    console.log('[InternalPluginHost] Message listener attached for UID:', this.myUid);
   }
 
   /**
@@ -184,8 +190,7 @@ export class InternalPluginHost {
       return;
     }
 
-    // Generate unique iframe UID for forum
-    this.currentIframeUid = this.generateIframeUid();
+    // Use our instance UID for forum communication
     
     // Build forum URL with parameters
     const forumUrl = new URL(this.forumUrl);
@@ -222,7 +227,7 @@ export class InternalPluginHost {
     if (this.config.backgroundColor) {
       forumUrl.searchParams.set('cg_bg_color', this.config.backgroundColor);
     }
-    forumUrl.searchParams.set('iframeUid', this.currentIframeUid);
+    forumUrl.searchParams.set('iframeUid', this.myUid);
     
     console.log('[InternalPluginHost] Forum URL:', forumUrl.toString());
     
@@ -260,9 +265,10 @@ export class InternalPluginHost {
         throw new Error('No authentication context available');
       }
 
-      // Validate iframe UID
-      if (!this.currentIframeUid || message.iframeUid !== this.currentIframeUid) {
-        throw new Error('Invalid iframe UID');
+      // Instance-based UID filtering - only handle our own messages
+      if (message.iframeUid !== this.myUid) {
+        // Silently ignore messages from other embed instances
+        return;
       }
 
       // Determine API endpoint
@@ -354,15 +360,24 @@ export class InternalPluginHost {
    * Cleanup when embed is destroyed
    */
   public destroy(): void {
+    // Remove iframe
     if (this.currentIframe && this.currentIframe.parentElement) {
       this.currentIframe.parentElement.removeChild(this.currentIframe);
     }
     
-    this.currentIframe = null;
-    this.currentIframeUid = null;
-    this.authContext = null;
+    // Remove message listener to prevent stale listeners
+    if (this.messageListener) {
+      window.removeEventListener('message', this.messageListener);
+      this.messageListener = null;
+      console.log('[InternalPluginHost] Message listener removed');
+    }
     
-    console.log('[InternalPluginHost] Destroyed');
+    // Clear state
+    this.currentIframe = null;
+    this.authContext = null;
+    // myUid stays - it's not nullable and helps identify this instance in logs
+    
+    console.log('[InternalPluginHost] Destroyed instance with UID:', this.myUid);
   }
 }
 
@@ -396,9 +411,10 @@ export function generateInternalPluginHostCode(urls: { hostUrl: string; forumUrl
         this.config = config;
         this.authContext = null;
         this.currentIframe = null;
-        this.currentIframeUid = null;
+        this.myUid = this.generateIframeUid(); // Instance-specific UID
         this.hostServiceUrl = hostServiceUrl;
         this.forumUrl = forumUrl;
+        this.messageListener = null;
         
         this.setupMessageListener();
         this.initializeAuthPhase();
@@ -430,9 +446,13 @@ export function generateInternalPluginHostCode(urls: { hostUrl: string; forumUrl
       }
 
       setupMessageListener() {
-        window.addEventListener('message', (event) => {
+        // Store listener reference for proper cleanup
+        this.messageListener = (event) => {
           this.handleMessage(event);
-        });
+        };
+        
+        window.addEventListener('message', this.messageListener);
+        console.log('[InternalPluginHost] Message listener attached for UID:', this.myUid);
       }
 
       async handleMessage(event) {
@@ -482,7 +502,7 @@ export function generateInternalPluginHostCode(urls: { hostUrl: string; forumUrl
           return;
         }
 
-        this.currentIframeUid = this.generateIframeUid();
+        // Use our instance UID for forum communication
         
         const forumUrl = new URL(this.forumUrl);
         forumUrl.searchParams.set('mod', 'standalone');
@@ -518,7 +538,7 @@ export function generateInternalPluginHostCode(urls: { hostUrl: string; forumUrl
         if (this.config.backgroundColor) {
           forumUrl.searchParams.set('cg_bg_color', this.config.backgroundColor);
         }
-        forumUrl.searchParams.set('iframeUid', this.currentIframeUid);
+        forumUrl.searchParams.set('iframeUid', this.myUid);
         
         console.log('[InternalPluginHost] Forum URL:', forumUrl.toString());
         
@@ -549,8 +569,10 @@ export function generateInternalPluginHostCode(urls: { hostUrl: string; forumUrl
             throw new Error('No authentication context available');
           }
 
-          if (!this.currentIframeUid || message.iframeUid !== this.currentIframeUid) {
-            throw new Error('Invalid iframe UID');
+          // Instance-based UID filtering - only handle our own messages
+          if (message.iframeUid !== this.myUid) {
+            // Silently ignore messages from other embed instances
+            return;
           }
 
           let apiEndpoint;
@@ -627,15 +649,24 @@ export function generateInternalPluginHostCode(urls: { hostUrl: string; forumUrl
       }
 
       destroy() {
+        // Remove iframe
         if (this.currentIframe && this.currentIframe.parentElement) {
           this.currentIframe.parentElement.removeChild(this.currentIframe);
         }
         
-        this.currentIframe = null;
-        this.currentIframeUid = null;
-        this.authContext = null;
+        // Remove message listener to prevent stale listeners
+        if (this.messageListener) {
+          window.removeEventListener('message', this.messageListener);
+          this.messageListener = null;
+          console.log('[InternalPluginHost] Message listener removed');
+        }
         
-        console.log('[InternalPluginHost] Destroyed');
+        // Clear state
+        this.currentIframe = null;
+        this.authContext = null;
+        // myUid stays - it's not nullable and helps identify this instance in logs
+        
+        console.log('[InternalPluginHost] Destroyed instance with UID:', this.myUid);
       }
     }
   `;
