@@ -1,12 +1,10 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { 
   Globe, 
   Twitter, 
   Github, 
-  Mail, 
   MessageSquare,
   ExternalLink,
   Users,
@@ -21,7 +19,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
         <div className="py-16 sm:py-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
             
             {/* Company Info */}
             <div className="space-y-6">
@@ -53,22 +51,34 @@ export function Footer() {
                 </h4>
                 <div className="flex items-center gap-3">
                   <a 
-                    href="#" 
+                    href="https://x.com/curia_network" 
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-9 h-9 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-800 transition-colors"
                   >
                     <Twitter className="w-4 h-4" />
                   </a>
                   <a 
-                    href="#" 
+                    href="https://github.com/flotob/curia" 
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-9 h-9 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-800 transition-colors"
                   >
                     <Github className="w-4 h-4" />
                   </a>
                   <a 
-                    href="#" 
+                    href="https://app.cg/c/curia/" 
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-9 h-9 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-800 transition-colors"
                   >
-                    <Mail className="w-4 h-4" />
+                    <Image 
+                      src="/cg.svg" 
+                      alt="Common Ground" 
+                      width={16} 
+                      height={16} 
+                      className="w-4 h-4"
+                    />
                   </a>
                 </div>
               </div>
@@ -148,32 +158,7 @@ export function Footer() {
               </div>
             </div>
             
-            {/* Newsletter */}
-            <div className="space-y-6">
-              <h4 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">
-                Stay Updated
-              </h4>
-              <div className="space-y-4">
-                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-                  Get the latest updates on Web3 community features, integration guides, and platform news.
-                </p>
-                <div className="space-y-3">
-                  <Input 
-                    type="email" 
-                    placeholder="Enter your email"
-                    className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400"
-                  />
-                  <Button 
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-sm hover:shadow-md transition-all duration-200"
-                  >
-                    Subscribe
-                  </Button>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  No spam, unsubscribe at any time.
-                </p>
-              </div>
-            </div>
+
             
           </div>
         </div>

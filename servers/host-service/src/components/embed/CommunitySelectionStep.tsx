@@ -125,7 +125,9 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
             
             // Auto-trigger join after a brief moment to show loading state
             setTimeout(() => {
-              handleJoinCommunity(config.community);
+              if (config.community) {
+                handleJoinCommunity(config.community);
+              }
             }, 1000);
           } else {
             // Community doesn't exist → show info toast and normal UI (only once)
@@ -151,33 +153,25 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
     fetchCommunities();
   }, [sessionToken, config.community]);
 
-  const handleCommunitySelect = (communityId: string) => {
-    setSelectedCommunity(communityId);
-  };
-
-  const handleJoinCommunity = async (communityId?: string) => {
-    const targetCommunity = communityId || selectedCommunity;
-    if (!targetCommunity) return;
+  const handleJoinCommunity = async (communityId: string) => {
+    if (!communityId) return;
     
     setIsJoining(true);
     
     try {
       // TODO: Join community API call
-      console.log(`[Embed] Joining community: ${targetCommunity}`);
+      console.log(`[Embed] Joining community: ${communityId}`);
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Pass the selected community ID to the parent
-      onCommunitySelected(targetCommunity);
+      onCommunitySelected(communityId);
     } catch (error) {
       console.error('[Embed] Error joining community:', error);
       setIsJoining(false);
     }
   };
-
-  // Check if selected community is from user's communities
-  const selectedFromUser = userCommunities.find(c => c.id === selectedCommunity);
 
   // Show auto-loading state for direct community access
   if (autoLoadingCommunity) {
@@ -294,20 +288,11 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
                   </div>
                   <div className="grid gap-3">
                     {userCommunities.map((community: Community) => (
-                      <Card 
-                        key={community.id}
-                        className={cn(
-                          "cursor-pointer transition-all duration-200 hover:shadow-lg community-card",
-                          selectedCommunity === community.id 
-                            ? "ring-2 ring-green-500 ring-offset-2 dark:ring-offset-gray-900" 
-                            : "hover:border-green-300 dark:hover:border-green-700"
-                        )}
-                        onClick={() => handleCommunitySelect(community.id)}
-                      >
+                      <Card key={community.id} className="auth-option-card">
                         <CardContent className="p-4">
                           <div className="flex items-center space-x-3">
                             {/* Community Icon */}
-                            <div className={cn("community-icon", community.logoUrl ? "" : community.gradientClass)}>
+                            <div className={cn("auth-option-icon", community.logoUrl ? "" : community.gradientClass)}>
                               {community.logoUrl ? (
                                 <img 
                                   src={community.logoUrl} 
@@ -339,16 +324,23 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
                               </div>
                             </div>
 
-                            {/* Selection Indicator */}
-                            <div className="flex items-center flex-shrink-0">
-                              {selectedCommunity === community.id ? (
-                                <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                                  <div className="w-2 h-2 rounded-full bg-white"></div>
-                                </div>
-                              ) : (
-                                <div className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600"></div>
+                            {/* Action Button */}
+                            <Button
+                              onClick={() => {
+                                setSelectedCommunity(community.id);
+                                handleJoinCommunity(community.id);
+                              }}
+                              disabled={isJoining && selectedCommunity === community.id}
+                              className={cn(
+                                "auth-option-button btn-gradient-green-blue"
                               )}
-                            </div>
+                            >
+                              {isJoining && selectedCommunity === community.id ? (
+                                <div className="loading-spinner border-white" />
+                              ) : (
+                                <ArrowRight className="w-4 h-4" />
+                              )}
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -417,20 +409,11 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
                   
                   <div className="grid gap-4">
                     {filteredAndSortedCommunities.map((community: Community) => (
-                      <Card 
-                        key={community.id}
-                        className={cn(
-                          "cursor-pointer transition-all duration-200 hover:shadow-lg community-card",
-                          selectedCommunity === community.id 
-                            ? "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-900" 
-                            : "hover:border-blue-300 dark:hover:border-blue-700"
-                        )}
-                        onClick={() => handleCommunitySelect(community.id)}
-                      >
+                      <Card key={community.id} className="auth-option-card">
                         <CardContent className="p-5">
                           <div className="flex items-center space-x-4">
                             {/* Community Icon */}
-                            <div className={cn("community-icon", community.logoUrl ? "" : community.gradientClass)}>
+                            <div className={cn("auth-option-icon", community.logoUrl ? "" : community.gradientClass)}>
                               {community.logoUrl ? (
                                 <img 
                                   src={community.logoUrl} 
@@ -473,16 +456,23 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
                               </div>
                             </div>
 
-                            {/* Selection Indicator */}
-                            <div className="flex items-center flex-shrink-0">
-                              {selectedCommunity === community.id ? (
-                                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                                  <div className="w-3 h-3 rounded-full bg-white"></div>
-                                </div>
-                              ) : (
-                                <div className="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600"></div>
+                            {/* Action Button */}
+                            <Button
+                              onClick={() => {
+                                setSelectedCommunity(community.id);
+                                handleJoinCommunity(community.id);
+                              }}
+                              disabled={isJoining && selectedCommunity === community.id}
+                              className={cn(
+                                "auth-option-button btn-gradient-blue-cyan"
                               )}
-                            </div>
+                            >
+                              {isJoining && selectedCommunity === community.id ? (
+                                <div className="loading-spinner border-white" />
+                              ) : (
+                                <ArrowRight className="w-4 h-4" />
+                              )}
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -506,47 +496,7 @@ export const CommunitySelectionStep: React.FC<CommunitySelectionStepProps> = ({
                 </div>
               )}
 
-              {/* Action Button - Only show when communities are available */}
-              {(userCommunities.length > 0 || filteredAndSortedCommunities.length > 0) && (
-                <>
-                  <div className="flex justify-center">
-                    <Button
-                      onClick={() => handleJoinCommunity()}
-                      disabled={!selectedCommunity || isJoining}
-                      className={cn(
-                        "btn-gradient-purple-pink min-w-[200px]",
-                        (!selectedCommunity || isJoining) && "opacity-50 cursor-not-allowed"
-                      )}
-                    >
-                      {isJoining ? (
-                        <>
-                          <div className="loading-spinner border-white mr-2" />
-                          {selectedFromUser ? 'Entering...' : 'Joining...'}
-                        </>
-                      ) : (
-                        <>
-                          {selectedFromUser ? 'Continue to Community' : 'Join Community'}
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </>
-                      )}
-                    </Button>
-                  </div>
 
-                  {/* Help Text */}
-                  <div className="text-center mt-4">
-                    <p className="text-xs text-muted-foreground">
-                      {selectedCommunity 
-                        ? selectedFromUser 
-                          ? "Ready to continue! Click the button above to enter your community." 
-                          : "Ready to join! Click the button above to join this community."
-                        : userCommunities.length > 0 
-                          ? "Select a community above to continue or explore new ones." 
-                          : "Select a community above to get started."
-                      }
-                    </p>
-                  </div>
-                </>
-              )}
             </>
           )}
         </CardContent>
