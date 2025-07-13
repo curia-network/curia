@@ -41,6 +41,7 @@ export function LiveDemo() {
       script.setAttribute('data-theme', 'auto')
       script.setAttribute('data-height', '500px')
       script.setAttribute('data-border-radius', '8px')
+      script.setAttribute('data-background-color', '#0F172A')
       
       document.head.appendChild(script)
       scriptRef.current = script
