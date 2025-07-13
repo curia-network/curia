@@ -72,9 +72,9 @@ export function EmbedUserWidget({ profileData, onDisconnect }: EmbedUserWidgetPr
   };
 
   return (
-    <div className="flex items-center gap-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2">
+    <div className="flex items-center gap-2 embed-user-widget backdrop-blur-sm rounded-lg px-3 py-2">
       {/* User Avatar/Icon */}
-      <div className="w-6 h-6 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+      <div className="w-6 h-6 rounded-full overflow-hidden embed-avatar-bg flex items-center justify-center">
         {profileData.avatar ? (
           <img 
             src={profileData.avatar} 
@@ -88,10 +88,10 @@ export function EmbedUserWidget({ profileData, onDisconnect }: EmbedUserWidgetPr
       
       {/* User Info */}
       <div className="flex flex-col min-w-0">
-        <div className="text-xs font-medium text-slate-900 dark:text-white truncate">
+        <div className="text-xs embed-user-name truncate">
           {getDisplayName()}
         </div>
-        <div className="text-xs text-slate-500 dark:text-slate-400">
+        <div className="text-xs embed-user-type">
           {getUserTypeLabel()}
         </div>
       </div>
@@ -101,7 +101,7 @@ export function EmbedUserWidget({ profileData, onDisconnect }: EmbedUserWidgetPr
         variant="ghost"
         size="sm"
         onClick={handleDisconnect}
-        className="h-6 w-6 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400"
+        className="h-6 w-6 p-0 embed-disconnect-btn"
         title="Disconnect and start fresh"
       >
         <LogOut className="w-3 h-3" />

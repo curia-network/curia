@@ -618,6 +618,107 @@ button[data-rk]:not([class*="bg-"]):not([style*="background"]):hover {
     color: hsl(var(--foreground));
   }
 
+  .embed-top-bar {
+    background: rgba(255, 255, 255, 0.9);
+    border-bottom: 1px solid hsl(240 5.9% 90%);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .embed-top-bar {
+    background: rgba(15, 23, 42, 0.9);
+    border-bottom: 1px solid hsl(240 3.7% 15.9%);
+  }
+
+  /* Progress bar styling */
+  .embed-progress-track {
+    background: hsl(240 4.8% 95.9%);
+    border: 1px solid hsl(240 5.9% 90%);
+  }
+
+  .dark .embed-progress-track {
+    background: hsl(240 3.7% 15.9%);
+    border: 1px solid hsl(240 3.7% 15.9%);
+  }
+
+  /* Top bar text styling */
+  .embed-text-primary {
+    color: hsl(240 10% 3.9%);
+    font-weight: 500;
+  }
+
+  .dark .embed-text-primary {
+    color: hsl(0 0% 98%);
+  }
+
+  .embed-text-secondary {
+    color: hsl(240 3.8% 46.1%);
+    font-weight: 500;
+  }
+
+  .dark .embed-text-secondary {
+    color: hsl(240 5% 64.9%);
+  }
+
+  /* User widget styling */
+  .embed-user-widget {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid hsl(240 5.9% 90%);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .embed-user-widget {
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid hsl(240 3.7% 15.9%);
+  }
+
+  .embed-avatar-bg {
+    background: hsl(240 4.8% 95.9%);
+  }
+
+  .dark .embed-avatar-bg {
+    background: hsl(240 3.7% 15.9%);
+  }
+
+  .embed-user-name {
+    color: hsl(240 10% 3.9%);
+    font-weight: 600;
+  }
+
+  .dark .embed-user-name {
+    color: hsl(0 0% 98%);
+  }
+
+  .embed-user-type {
+    color: hsl(240 3.8% 46.1%);
+    font-weight: 500;
+  }
+
+  .dark .embed-user-type {
+    color: hsl(240 5% 64.9%);
+  }
+
+  /* Disconnect button styling */
+  .embed-disconnect-btn {
+    background: transparent;
+    color: hsl(240 3.8% 46.1%);
+    transition: all 0.2s ease;
+  }
+
+  .embed-disconnect-btn:hover {
+    background: hsl(0 84.2% 60.2% / 0.1);
+    color: hsl(0 84.2% 60.2%);
+  }
+
+  .dark .embed-disconnect-btn {
+    color: hsl(240 5% 64.9%);
+  }
+
+  .dark .embed-disconnect-btn:hover {
+    background: hsl(0 62.8% 30.6% / 0.2);
+    color: hsl(0 84.2% 60.2%);
+  }
+
   .embed-step {
     min-height: 100vh;
     display: flex;

@@ -43,14 +43,14 @@ export function EmbedTopBar({ currentStep, profileData, onDisconnect }: EmbedTop
     ((currentStepIndex + 1) / USER_FACING_STEPS.length) * 100;
 
   return (
-    <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700 px-4 py-3">
+    <div className="embed-top-bar px-4 py-3">
       {/* Integrated Progress Bar and User Widget */}
       <div className="flex items-center justify-between gap-4">
         {/* Progress Section (takes up most of the space) */}
         <div className="flex-1 min-w-0">
           {/* Progress Bar */}
           <div className="mb-2">
-            <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div className="h-2 embed-progress-track rounded-full overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-700 ease-out"
                 style={{ width: `${progressPercentage}%` }}
@@ -61,15 +61,15 @@ export function EmbedTopBar({ currentStep, profileData, onDisconnect }: EmbedTop
           {/* Step Info */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="text-sm font-medium text-slate-900 dark:text-white">
+              <div className="text-sm embed-text-primary">
                 {displayStepData?.label || 'Unknown'}
               </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">
+              <div className="text-xs embed-text-secondary">
                 {displayStepData?.description || ''}
               </div>
             </div>
             
-            <div className="text-xs text-slate-500 dark:text-slate-400">
+            <div className="text-xs embed-text-secondary">
               Step {displayStepIndex} of {USER_FACING_STEPS.length}
             </div>
           </div>
