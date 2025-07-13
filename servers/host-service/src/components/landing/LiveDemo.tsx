@@ -106,6 +106,7 @@ export function LiveDemo() {
               <Button 
                 size="lg"
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                onClick={() => window.location.href = '/get-started'}
               >
                 🚀 Get Your Own Forum
               </Button>

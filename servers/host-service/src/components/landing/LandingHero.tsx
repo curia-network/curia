@@ -42,7 +42,11 @@ export function LandingHero() {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="group text-base px-8 py-6 bg-blue-600 hover:bg-blue-700">
+                <Button 
+                  size="lg" 
+                  className="group text-base px-8 py-6 bg-blue-600 hover:bg-blue-700"
+                  onClick={() => window.location.href = '/get-started'}
+                >
                   Get Started
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
