@@ -9,6 +9,7 @@ import { ArrowRight, Zap, Shield, Globe, Play } from "lucide-react"
 
 export function LandingHero() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const hostUrl = process.env.NEXT_PUBLIC_HOST_SERVICE_URL || 'https://your-host-url.com'
   
   // Default configuration for landing page demo - Full Container preset with matching border radius
   const defaultConfig = {
@@ -96,7 +97,7 @@ export function LandingHero() {
                     </div>
                     <div className="bg-slate-900 dark:bg-slate-950 rounded-lg p-4 text-green-400 font-mono text-sm overflow-x-auto">
                       <div>{`<div id="my-forum"></div>`}</div>
-                      <div className="mt-2">{`<script src="https://curia.host/embed.js"`}</div>
+                      <div className="mt-2">{`<script src="${hostUrl}/embed.js"`}</div>
                       <div className="ml-8">{`data-community="my-dao"`}</div>
                       <div className="ml-8">{`data-theme="light"`}</div>
                       <div className="ml-8">{`async>`}</div>

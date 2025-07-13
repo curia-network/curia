@@ -32,7 +32,7 @@ export function Footer() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                      Curia Host
+                      Curia
                     </h3>
                     <p className="text-sm text-slate-600 dark:text-slate-400">
                       Web3 Forum Platform
@@ -206,7 +206,7 @@ export function Footer() {
             
             {/* Copyright */}
             <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-              <span>© 2024 Curia Host. Built with</span>
+              <span>© 2024 Curia. Built with</span>
               <Heart className="w-4 h-4 text-red-500" />
               <span>for Web3 communities.</span>
             </div>

@@ -15,14 +15,14 @@ import {
   Settings
 } from "lucide-react"
 
-const codeExamples = {
+const getCodeExamples = (hostUrl: string) => ({
   basic: {
     title: "Basic Integration",
     description: "Minimal setup for any website",
     code: `<!-- Add to your website -->
 <div id="my-forum"></div>
 <script 
-  src="https://curia.host/embed.js"
+  src="${hostUrl}/embed.js"
   data-community="my-community"
   data-theme="light"
   async>
@@ -34,7 +34,7 @@ const codeExamples = {
     code: `<!-- Customized configuration -->
 <div id="community-forum"></div>
 <script 
-  src="https://curia.host/embed.js"
+  src="${hostUrl}/embed.js"
   data-container="community-forum"
   data-community="my-dao"
   data-theme="dark"
@@ -51,7 +51,7 @@ import { useEffect } from 'react';
 export function CommunityForum() {
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = 'https://curia.host/embed.js';
+    script.src = '${hostUrl}/embed.js';
     script.setAttribute('data-community', 'my-dao');
     script.setAttribute('data-theme', 'light');
     script.async = true;
@@ -63,9 +63,11 @@ export function CommunityForum() {
   return <div id="forum-container" />;
 }`
   }
-}
+})
 
 export function CodeExample() {
+  const hostUrl = process.env.NEXT_PUBLIC_HOST_SERVICE_URL || 'https://your-host-url.com'
+  const codeExamples = getCodeExamples(hostUrl)
   const [activeTab, setActiveTab] = useState<keyof typeof codeExamples>('basic')
   const [copied, setCopied] = useState(false)
   
