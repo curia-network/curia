@@ -65,10 +65,10 @@ const features = [
 export function FeaturesGrid() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   
-  // Default configuration for features demo modal - full width, good height, auto theme
+  // Default configuration for features demo modal - Full Container preset
   const defaultConfig = {
     width: '100%',
-    height: '700px',
+    height: '100%',
     theme: 'auto' as const
   }
 

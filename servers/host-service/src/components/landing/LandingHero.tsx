@@ -10,10 +10,10 @@ import { ArrowRight, Zap, Shield, Globe, Play } from "lucide-react"
 export function LandingHero() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   
-  // Default configuration for landing page demo - full width, good height, auto theme
+  // Default configuration for landing page demo - Full Container preset
   const defaultConfig = {
     width: '100%',
-    height: '700px',
+    height: '100%',
     theme: 'auto' as const
   }
   return (
