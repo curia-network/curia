@@ -2,7 +2,8 @@ import {
   LandingHero, 
   FeaturesGrid, 
   CodeExample, 
-  LiveDemo 
+  LiveDemo,
+  Footer 
 } from "@/components/landing"
 
 /**
@@ -17,6 +18,7 @@ export default function HomePage() {
       <FeaturesGrid />
       <CodeExample />
       <LiveDemo />
+      <Footer />
     </main>
   );
 } 

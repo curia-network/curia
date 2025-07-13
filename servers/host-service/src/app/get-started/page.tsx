@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { EmbedConfigurator } from '@/components/configurator/EmbedConfigurator';
 import { CodeGenerator } from '@/components/configurator/CodeGenerator';
 import { PreviewModal } from '@/components/configurator/PreviewModal';
+import { Footer } from '@/components/landing/Footer';
 import { ArrowLeft, Settings, Code, Eye } from 'lucide-react';
 
 export interface EmbedConfig {
@@ -123,6 +124,8 @@ export default function GetStartedPage() {
         onClose={() => setIsPreviewModalOpen(false)}
         config={config}
       />
+      
+      <Footer />
     </main>
   );
 } 
