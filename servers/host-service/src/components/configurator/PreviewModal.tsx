@@ -53,7 +53,6 @@ export function PreviewModal({ isOpen, onClose, config }: PreviewModalProps) {
     script.src = '/embed.js';
     script.async = true;
     script.setAttribute('data-container', containerId);
-    script.setAttribute('data-community', 'test-community');
     script.setAttribute('data-theme', config.theme);
     script.setAttribute('data-width', config.width);
     script.setAttribute('data-height', config.height);

@@ -19,10 +19,10 @@ export default function DemoPage() {
     script.src = '/embed.js';
     script.async = true;
     script.setAttribute('data-container', 'curia-forum');
-    script.setAttribute('data-community', 'test-community');
     script.setAttribute('data-theme', resolvedTheme); // Use current theme
     script.setAttribute('data-width', '100%');
     script.setAttribute('data-height', '100%');
+    script.setAttribute('data-background-color', resolvedTheme === 'dark' ? '#0F172A' : '#FFFFFF');
     
     document.head.appendChild(script);
 

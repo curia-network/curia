@@ -46,7 +46,8 @@ export function LandingHero() {
     width: '100%',
     height: '100%',
     theme: resolvedTheme as 'light' | 'dark',
-    borderRadius: '8px'
+    borderRadius: '8px',
+    backgroundColor: resolvedTheme === 'dark' ? '#0F172A' : '#FFFFFF'
   }
   
   return (

@@ -24,6 +24,7 @@ export default function CommunityPage() {
     script.setAttribute('data-theme', resolvedTheme); // Use current theme
     script.setAttribute('data-width', '100%');
     script.setAttribute('data-height', '100%');
+    script.setAttribute('data-background-color', resolvedTheme === 'dark' ? '#0F172A' : '#FFFFFF');
     
     // Use environment variable for community ID
     if (communityId) {

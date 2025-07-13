@@ -40,7 +40,6 @@ export function LiveDemo() {
       script.src = '/embed.js'
       script.async = true
       script.setAttribute('data-container', 'curia-live-demo')
-      script.setAttribute('data-community', 'test-community')
       script.setAttribute('data-theme', resolvedTheme) // Use current theme
       script.setAttribute('data-height', '500px')
       script.setAttribute('data-border-radius', '8px')
