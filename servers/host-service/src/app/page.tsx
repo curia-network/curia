@@ -1,5 +1,6 @@
 import { 
   LandingHero, 
+  PartnersSection,
   FeaturesGrid, 
   CodeExample, 
   LiveDemo,
@@ -15,6 +16,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-white dark:bg-slate-900 no-horizontal-scroll">
       <LandingHero />
+      <PartnersSection />
       <FeaturesGrid />
       <CodeExample />
       <LiveDemo />

@@ -47,10 +47,16 @@ export function LandingHero() {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Hero Content */}
             <div className="space-y-8">
-              <Badge className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800">
-                <Zap className="w-4 h-4" />
-                Production Ready
-              </Badge>
+              <div className="flex flex-wrap gap-3">
+                <Badge className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800">
+                  <Zap className="w-4 h-4" />
+                  Open Beta
+                </Badge>
+                <Badge className="inline-flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
+                  <Shield className="w-4 h-4" />
+                  Open Source
+                </Badge>
+              </div>
               
               <div className="space-y-6">
                 <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -62,8 +68,8 @@ export function LandingHero() {
                 </h1>
                 
                 <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
-                  Add sophisticated blockchain-based community features to any website with a single script tag. 
-                  Universal Profile authentication, token gating, and real-time forums—no backend required.
+                  Think "Stripe for Forums". Add powerful forum functionality to any website with a single script tag. 
+                  ENS authentication, Universal Profile support, token gating, and real-time discussions—no backend required.
                 </p>
               </div>
               
@@ -91,7 +97,7 @@ export function LandingHero() {
               <div className="flex flex-wrap gap-6 pt-4">
                 <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                   <Shield className="w-5 h-5 text-green-500" />
-                  <span className="font-medium">Blockchain Auth</span>
+                  <span className="font-medium">ENS + UP Auth</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                   <Zap className="w-5 h-5 text-blue-500" />
