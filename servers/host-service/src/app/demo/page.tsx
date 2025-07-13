@@ -8,8 +8,11 @@
 
 import { useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function DemoPage() {
+  const { resolvedTheme } = useTheme();
+
   useEffect(() => {
     // Load the embed script for full-screen experience
     const script = document.createElement('script');
@@ -17,7 +20,7 @@ export default function DemoPage() {
     script.async = true;
     script.setAttribute('data-container', 'curia-forum');
     script.setAttribute('data-community', 'test-community');
-    script.setAttribute('data-theme', 'light');
+    script.setAttribute('data-theme', resolvedTheme); // Use current theme
     script.setAttribute('data-width', '100%');
     script.setAttribute('data-height', '100%');
     
@@ -37,31 +40,31 @@ export default function DemoPage() {
         delete window.curiaEmbed;
       }
     };
-  }, []);
+  }, [resolvedTheme]);
 
   const handleBack = () => {
     window.location.href = '/';
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-background">
       {/* Subtle Top Bar */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center shadow-sm flex-shrink-0">
+      <div className="bg-background border-b border-border px-4 py-3 flex items-center shadow-sm flex-shrink-0">
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 font-medium"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Home
         </button>
         
-        <div className="ml-auto text-sm text-gray-500">
+        <div className="ml-auto text-sm text-muted-foreground">
           Full Page Demo
         </div>
       </div>
 
       {/* Full Screen Embed Container */}
-      <div className="flex-1 bg-white min-h-0 overflow-hidden">
+      <div className="flex-1 bg-background min-h-0 overflow-hidden">
         <div 
           id="curia-forum" 
           className="w-full h-full"
