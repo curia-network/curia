@@ -16,22 +16,22 @@ import { InternalPluginHost } from './plugin-host/InternalPluginHost';
 declare const CURIA_HOST_URL: string;
 declare const CURIA_FORUM_URL: string;
 
+// Capture script element during initial execution when document.currentScript works
+const EMBED_SCRIPT_ELEMENT = document.currentScript as HTMLScriptElement;
+
+// Validate that we have the script element
+if (!EMBED_SCRIPT_ELEMENT) {
+  console.error('[Embed] Failed to capture script element during initialization');
+}
+
 // Main embed initialization function
 function initializeEmbed() {
   console.log('[Embed] Initializing Curia embed script...');
 
-  // Find the script tag that loaded this embed
-  const scripts = document.querySelectorAll('script[src*="embed.js"]');
-  const embedScript = scripts[scripts.length - 1] as HTMLScriptElement;
-  
-  if (!embedScript) {
-    console.error('[Embed] Could not find embed script tag');
-    return;
-  }
-
   try {
-    // Parse configuration from script attributes  
-    const config = parseEmbedConfig();
+    // Parse configuration from script attributes using captured script element
+    // If capture failed, parseEmbedConfig will try document.currentScript as fallback
+    const config = parseEmbedConfig(EMBED_SCRIPT_ELEMENT);
     console.log('[Embed] Parsed config:', config);
 
     // Find or create target container
@@ -42,7 +42,14 @@ function initializeEmbed() {
       console.log(`[Embed] Container "${containerId}" not found, creating it`);
       container = document.createElement('div');
       container.id = containerId;
-      embedScript.parentNode?.insertBefore(container, embedScript.nextSibling);
+      
+      // Try to insert next to script element, otherwise append to body
+      if (EMBED_SCRIPT_ELEMENT?.parentNode) {
+        EMBED_SCRIPT_ELEMENT.parentNode.insertBefore(container, EMBED_SCRIPT_ELEMENT.nextSibling);
+      } else {
+        console.warn('[Embed] No script element available, appending container to body');
+        document.body.appendChild(container);
+      }
     }
 
     // Clean up any existing embed instance

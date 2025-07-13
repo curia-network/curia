@@ -9,9 +9,9 @@ import { EmbedConfig } from '../types/EmbedTypes';
 /**
  * Parse configuration from script data attributes
  */
-export function parseEmbedConfig(): EmbedConfig {
-  // Get the script element that loaded this code
-  const script = document.currentScript as HTMLScriptElement;
+export function parseEmbedConfig(scriptElement?: HTMLScriptElement): EmbedConfig {
+  // Get the script element - either passed in or from document.currentScript
+  const script = scriptElement || (document.currentScript as HTMLScriptElement);
   if (!script) {
     throw new Error('[Curia] Could not find script element');
   }
