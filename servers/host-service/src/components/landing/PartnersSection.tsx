@@ -40,6 +40,18 @@ export function PartnersSection() {
       description: "Messaging Platform",
       logo: "/telegram.svg",
       url: "https://telegram.org"
+    },
+    {
+      name: "Hats Protocol",
+      description: "Onchain Roles & Permissions",
+      logo: "/hats.webp",
+      url: "https://www.hatsprotocol.xyz/"
+    },
+    {
+      name: "Circles",
+      description: "Basic Income Protocol",
+      logo: "/circles.svg",
+      url: "https://aboutcircles.com"
     }
   ]
 
@@ -52,7 +64,7 @@ export function PartnersSection() {
           </p>
           
           {/* Partners Grid */}
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-8 items-center justify-items-center">
+          <div className="grid grid-cols-4 md:grid-cols-8 gap-6 items-center justify-items-center">
             {partners.map((partner, index) => (
               <Link
                 key={partner.name}
