@@ -44,9 +44,9 @@ export function PartnersSection() {
   ]
 
   return (
-    <section className="py-16 sm:py-20 bg-slate-50/50 dark:bg-slate-900/30 no-horizontal-scroll">
+    <section className="py-8 sm:py-12 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800 no-horizontal-scroll">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center space-y-8">
+        <div className="text-center space-y-6">
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
             Built for the decentralized web
           </p>
@@ -86,7 +86,7 @@ export function PartnersSection() {
           </div>
           
           {/* Subtitle */}
-          <p className="text-sm text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+          <p className="text-sm text-slate-500 dark:text-slate-500 max-w-2xl mx-auto">
             Seamlessly integrates with the tools and protocols your users already know and love
           </p>
         </div>
