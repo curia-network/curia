@@ -5,18 +5,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PreviewModal } from "@/components/configurator/PreviewModal"
-import { ThemeToggle } from "@/contexts/ThemeContext"
+import { ThemeToggle, useTheme } from "@/contexts/ThemeContext"
 import { ArrowRight, Zap, Shield, Globe, Play } from "lucide-react"
 
 export function LandingHero() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const hostUrl = process.env.NEXT_PUBLIC_HOST_SERVICE_URL || 'https://your-host-url.com'
+  const { resolvedTheme } = useTheme()
   
-  // Default configuration for landing page demo - Full Container preset with matching border radius
+  // Default configuration for landing page demo - uses current theme
   const defaultConfig = {
     width: '100%',
     height: '100%',
-    theme: 'auto' as const,
+    theme: resolvedTheme as 'light' | 'dark',
     borderRadius: '8px'
   }
   return (

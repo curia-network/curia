@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PreviewModal } from "@/components/configurator/PreviewModal"
+import { useTheme } from "@/contexts/ThemeContext"
 import { 
   Wallet, 
   Users, 
@@ -64,12 +65,13 @@ const features = [
 
 export function FeaturesGrid() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const { resolvedTheme } = useTheme()
   
-  // Default configuration for features demo modal - Full Container preset with matching border radius
+  // Default configuration for features demo modal - uses current theme
   const defaultConfig = {
     width: '100%',
     height: '100%',
-    theme: 'auto' as const,
+    theme: resolvedTheme as 'light' | 'dark',
     borderRadius: '8px'
   }
 

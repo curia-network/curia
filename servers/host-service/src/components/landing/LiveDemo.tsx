@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PreviewModal } from "@/components/configurator/PreviewModal"
+import { useTheme } from "@/contexts/ThemeContext"
 import { 
   Play, 
   ExternalLink, 
@@ -19,14 +20,15 @@ export function LiveDemo() {
   const [isEmbedLoaded, setIsEmbedLoaded] = useState(false)
   const embedRef = useRef<HTMLDivElement>(null)
   const scriptRef = useRef<HTMLScriptElement | null>(null)
+  const { resolvedTheme } = useTheme()
 
-  // Default configuration for live demo modal - Full Container preset with matching border radius
+  // Default configuration for live demo modal - uses current theme
   const defaultConfig = {
     width: '100%',
     height: '100%',
-    theme: 'auto' as const,
+    theme: resolvedTheme as 'light' | 'dark',
     borderRadius: '8px',
-    backgroundColor: '#0F172A'
+    backgroundColor: resolvedTheme === 'dark' ? '#0F172A' : '#FFFFFF'
   }
 
   const handleStartDemo = () => {
@@ -39,10 +41,10 @@ export function LiveDemo() {
       script.async = true
       script.setAttribute('data-container', 'curia-live-demo')
       script.setAttribute('data-community', 'test-community')
-      script.setAttribute('data-theme', 'auto')
+      script.setAttribute('data-theme', resolvedTheme) // Use current theme
       script.setAttribute('data-height', '500px')
       script.setAttribute('data-border-radius', '8px')
-      script.setAttribute('data-background-color', '#0F172A')
+      script.setAttribute('data-background-color', resolvedTheme === 'dark' ? '#0F172A' : '#FFFFFF')
       
       document.head.appendChild(script)
       scriptRef.current = script
