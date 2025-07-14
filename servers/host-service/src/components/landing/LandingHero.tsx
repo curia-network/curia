@@ -149,7 +149,7 @@ export function LandingHero() {
                 </h1>
                 
                 <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
-                  Think "Stripe for Forums". Add powerful forum functionality to any website with a single script tag.
+                 Add powerful forum functionality to any website with a single script tag. It's never been easier to build a forum.
                 </p>
               </div>
               
