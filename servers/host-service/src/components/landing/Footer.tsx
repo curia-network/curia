@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { useTheme } from '@/contexts/ThemeContext'
 import { 
   Globe, 
@@ -13,7 +14,8 @@ import {
   Users,
   Shield,
   Zap,
-  Heart
+  Heart,
+  MessageCircle
 } from 'lucide-react'
 
 export function Footer() {
@@ -24,7 +26,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
         <div className="py-16 sm:py-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
             
             {/* Company Info */}
             <div className="space-y-6">
@@ -119,6 +121,28 @@ export function Footer() {
                   <MessageSquare className="w-4 h-4" />
                   Visit Our Community
                 </Link>
+              </div>
+            </div>
+            
+            {/* Newsletter/Updates */}
+            <div className="space-y-6">
+              <h4 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">
+                Stay Updated
+              </h4>
+              <div className="space-y-4">
+                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                  Join our Telegram community for the latest updates on network launch and more.
+                </p>
+                <Button 
+                  onClick={() => window.open('https://t.me/+Es1lVbpmrJZmMjY6', '_blank')}
+                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-300"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Join Telegram Community
+                </Button>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Get notified about the whitepaper and node launch
+                </p>
               </div>
             </div>
             

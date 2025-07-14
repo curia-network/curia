@@ -6,6 +6,7 @@ import {
   CodeExample, 
   LiveDemo,
   Testimonials,
+  UpcomingSection,
   Footer 
 } from "@/components/landing"
 
@@ -24,6 +25,7 @@ export default function HomePage() {
       <Testimonials />
       <LiveDemo />
       <CodeExample />
+      <UpcomingSection />
       <Footer />
     </main>
   );
