@@ -105,6 +105,10 @@ export class InternalPluginHost {
       authUrl.searchParams.set('community', this.config.community);
       console.log('[InternalPluginHost] Adding community parameter to auth iframe:', this.config.community);
     }
+    if (this.config.mode) {
+      authUrl.searchParams.set('mode', this.config.mode);
+      console.log('[InternalPluginHost] Adding mode parameter to auth iframe:', this.config.mode);
+    }
     
     // Create auth iframe
     const iframe = document.createElement('iframe');
@@ -179,7 +183,15 @@ export class InternalPluginHost {
     
     console.log('[InternalPluginHost] Auth context set:', this.authContext);
     
-    // Switch to forum phase
+    // Check for auth-only mode
+    if (authData.mode === 'auth-only') {
+      console.log('[InternalPluginHost] 🎯 Auth-only mode detected - NOT switching to forum');
+      console.log('[InternalPluginHost] Auth-only flow complete - embed stays on auth-complete step');
+      return; // Don't switch to forum in auth-only mode
+    }
+    
+    // Normal flow: switch to forum phase
+    console.log('[InternalPluginHost] Normal mode - switching to forum');
     await this.switchToForum();
   }
 

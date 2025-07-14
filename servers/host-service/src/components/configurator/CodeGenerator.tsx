@@ -11,6 +11,7 @@ export interface EmbedConfig {
   theme: 'light' | 'dark' | 'auto';
   backgroundColor?: string;
   borderRadius?: string;
+  selectedCommunityId?: string | null;
 }
 
 interface CodeGeneratorProps {
@@ -31,7 +32,7 @@ export function CodeGenerator({ config, previewButton }: CodeGeneratorProps) {
       `data-height="${config.height}"`,
       `data-theme="${config.theme}"`,
       `data-container="curia-forum"`,
-      `data-community="your-community-id"`
+      `data-community="${config.selectedCommunityId || 'your-community-id'}"`
     ];
 
     // Add background color if specified
@@ -52,6 +53,9 @@ export function CodeGenerator({ config, previewButton }: CodeGeneratorProps) {
 
   const embedCode = generateEmbedCode();
 
+  // Check if we have a real community selected
+  const hasRealCommunity = config.selectedCommunityId && config.selectedCommunityId !== 'your-community-id';
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(embedCode);
@@ -62,45 +66,64 @@ export function CodeGenerator({ config, previewButton }: CodeGeneratorProps) {
     }
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Generated Code with Gradient Magic */}
-      <div className="relative">
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-lg opacity-75 blur-sm animate-pulse"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-lg opacity-90 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-        
-        <Card className="relative bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-0 shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold flex items-center justify-between text-slate-900 dark:text-white">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-purple-500" />
-                🔗 Your Embed Code
+        return (
+        <div className="space-y-6">
+          {/* Community Status Indicator */}
+          {!hasRealCommunity && (
+            <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-white text-xs font-bold">!</span>
+                </div>
+                <div>
+                  <div className="font-medium text-amber-900 dark:text-amber-100 mb-1">
+                    Community Selection Required
+                  </div>
+                  <div className="text-sm text-amber-700 dark:text-amber-300">
+                    Select a community above to generate your final embed code. The placeholder will be replaced with your community's ID.
+                  </div>
+                </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopy}
-                className={`flex items-center gap-2 transition-all duration-200 ${
-                  copied 
-                    ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400' 
-                    : 'hover:bg-blue-50 dark:hover:bg-blue-900/20'
-                }`}
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4" />
-                    Copy Code
-                  </>
-                )}
-              </Button>
-            </CardTitle>
-          </CardHeader>
+            </div>
+          )}
+
+          {/* Generated Code with Gradient Magic */}
+          <div className="relative">
+            {/* Animated gradient background */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-lg opacity-75 blur-sm animate-pulse"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-lg opacity-90 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+            
+            <Card className="relative bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-0 shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold flex items-center justify-between text-slate-900 dark:text-white">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-purple-500" />
+                    {hasRealCommunity ? '🔗 Your Embed Code' : '📝 Preview Embed Code'}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopy}
+                    className={`flex items-center gap-2 transition-all duration-200 ${
+                      copied 
+                        ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400' 
+                        : 'hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                    }`}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        Copy Code
+                      </>
+                    )}
+                  </Button>
+                </CardTitle>
+              </CardHeader>
           <CardContent>
             <div className="bg-slate-900 dark:bg-slate-950 text-green-400 p-6 rounded-lg font-mono text-sm overflow-x-auto border border-slate-700">
               <pre className="whitespace-pre-wrap">{embedCode}</pre>

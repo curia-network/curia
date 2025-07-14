@@ -43,6 +43,7 @@ const EmbedContent: React.FC = () => {
     community: searchParams.get('community') || undefined,
     theme: (searchParams.get('theme') as 'light' | 'dark' | 'auto') || 'light',
     backgroundColor: searchParams.get('background_color') || undefined,
+    mode: (searchParams.get('mode') as 'full' | 'auth-only') || 'full',
   };
 
   // Check for legacy flow parameter (for backwards compatibility)
@@ -57,6 +58,7 @@ const EmbedContent: React.FC = () => {
   const sendAuthCompleteMessage = useCallback((userId: string, communityId: string, sessionToken?: string) => {
     const message = {
       type: 'curia-auth-complete',
+      mode: config.mode || 'full',
       userId,
       communityId,
       sessionToken,
@@ -76,7 +78,7 @@ const EmbedContent: React.FC = () => {
     } else {
       console.log('[Embed] DEBUG - WARNING: No parent window or same window, cannot send message');
     }
-  }, []);
+  }, [config.mode]);
 
   // Step transition handlers
   const handleLoadingComplete = useCallback(() => {
@@ -162,6 +164,7 @@ const EmbedContent: React.FC = () => {
     if (communityId) {
       setSelectedCommunityId(communityId);
       console.log('[Embed] Community selected:', communityId);
+      console.log('[Embed] Mode:', config.mode || 'full');
       console.log('[Embed] DEBUG - profileData state:', profileData);
       console.log('[Embed] DEBUG - currentStep:', currentStep);
       
@@ -192,12 +195,21 @@ const EmbedContent: React.FC = () => {
       // Send auth complete message to parent
       sendAuthCompleteMessage(userId, communityId, sessionToken);
       
-      // Show completion step
+      // Check for auth-only mode
+      if (config.mode === 'auth-only') {
+        console.log('[Embed] 🎯 Auth-only mode detected - staying on auth-complete step');
+        setCurrentStep('auth-complete');
+        // In auth-only mode, we stop here and don't transition to forum
+        return;
+      }
+      
+      // Normal flow: show completion step (will transition to forum later)
+      console.log('[Embed] Normal mode - proceeding to auth-complete step');
       setCurrentStep('auth-complete');
     } else {
       console.log('[Embed] DEBUG - No communityId provided to handleCommunitySelected');
     }
-  }, [profileData, sendAuthCompleteMessage, currentStep]);
+  }, [profileData, sendAuthCompleteMessage, currentStep, config.mode]);
 
   // Handle user disconnect (clear session and reset)
   const handleDisconnect = useCallback(() => {

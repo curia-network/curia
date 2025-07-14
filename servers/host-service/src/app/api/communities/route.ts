@@ -18,6 +18,14 @@ interface CommunityRow {
   member_count: string;
 }
 
+// Request body interface for community creation
+interface CreateCommunityRequest {
+  name: string;
+  community_short_id: string;
+  is_public?: boolean;
+  requires_approval?: boolean;
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Get request origin for CORS
@@ -216,6 +224,178 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function POST(request: NextRequest) {
+  try {
+    // Get request origin for CORS
+    const origin = request.headers.get('origin') || '';
+    
+    const client = await pool.connect();
+    
+    try {
+      // Check for authentication
+      const authHeader = request.headers.get('authorization');
+      let userId: string | null = null;
+      
+      if (authHeader?.startsWith('Bearer ')) {
+        const sessionToken = authHeader.substring(7);
+        
+        // Validate session and get user ID
+        const sessionQuery = `
+          SELECT s.user_id 
+          FROM authentication_sessions s
+          WHERE s.session_token = $1 
+            AND s.is_active = true 
+            AND s.expires_at > NOW()
+        `;
+        
+        const sessionResult = await client.query(sessionQuery, [sessionToken]);
+        if (sessionResult.rows.length > 0) {
+          userId = sessionResult.rows[0].user_id;
+          console.log('[communities] Authenticated POST request for user:', userId);
+        }
+      }
+
+      if (!userId) {
+        const errorResponse = NextResponse.json(
+          { error: 'Authentication required' },
+          { status: 401 }
+        );
+        errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*');
+        errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        return errorResponse;
+      }
+
+      // Parse request body
+      const body: CreateCommunityRequest = await request.json();
+      
+      // Validate required fields
+      if (!body.name || !body.community_short_id) {
+        const errorResponse = NextResponse.json(
+          { error: 'Name and community_short_id are required' },
+          { status: 400 }
+        );
+        errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*');
+        errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        return errorResponse;
+      }
+
+      // Validate community_short_id format (alphanumeric + hyphens, no spaces)
+      const shortIdRegex = /^[a-zA-Z0-9-_]+$/;
+      if (!shortIdRegex.test(body.community_short_id)) {
+        const errorResponse = NextResponse.json(
+          { error: 'Community short ID can only contain letters, numbers, hyphens, and underscores' },
+          { status: 400 }
+        );
+        errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*');
+        errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        return errorResponse;
+      }
+
+      // Check if community_short_id is already taken
+      const existingCommunity = await client.query(
+        'SELECT id FROM communities WHERE community_short_id = $1',
+        [body.community_short_id]
+      );
+
+      if (existingCommunity.rows.length > 0) {
+        const errorResponse = NextResponse.json(
+          { error: 'Community short ID is already taken' },
+          { status: 409 }
+        );
+        errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*');
+        errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        return errorResponse;
+      }
+
+      // Create the community
+      const result = await client.query(
+        `INSERT INTO communities (name, community_short_id, owner_user_id, is_public, requires_approval, plugin_id, settings)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING id, name, created_at, updated_at, community_short_id, plugin_id, is_public, requires_approval, settings, logo_url`,
+        [
+          body.name,
+          body.community_short_id,
+          userId,
+          body.is_public ?? true,
+          body.requires_approval ?? false,
+          body.community_short_id, // Initially set plugin_id = community_short_id
+          '{}'
+        ]
+      );
+
+      if (result.rows.length === 0) {
+        const errorResponse = NextResponse.json(
+          { error: 'Failed to create community' },
+          { status: 500 }
+        );
+        errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*');
+        errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        return errorResponse;
+      }
+
+      // Add user as owner in user_communities table
+      await client.query(
+        `INSERT INTO user_communities (user_id, community_id, role, status, first_visited_at, last_visited_at)
+         VALUES ($1, $2, 'owner', 'active', NOW(), NOW())`,
+        [userId, result.rows[0].id]
+      );
+
+      const newCommunity = result.rows[0];
+      
+      // Format response to match the GET endpoint structure
+      const responseData = {
+        id: newCommunity.id,
+        name: newCommunity.name,
+        description: `Continue to ${newCommunity.name}`,
+        memberCount: 1, // Creator is the first member
+        isPublic: newCommunity.is_public,
+        gradientClass: getGradientClass(newCommunity.name),
+        icon: getIconForCommunity(newCommunity.name),
+        logoUrl: newCommunity.logo_url,
+        requiresApproval: newCommunity.requires_approval,
+        userRole: 'owner',
+        isMember: true,
+        createdAt: newCommunity.created_at.toISOString(),
+        communityShortId: newCommunity.community_short_id,
+        pluginId: newCommunity.plugin_id
+      };
+
+      console.log('[communities] Community created successfully:', newCommunity.id);
+      
+      const response = NextResponse.json(responseData, { status: 201 });
+      
+      // Add CORS headers
+      response.headers.set('Access-Control-Allow-Origin', origin || '*');
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      
+      return response;
+
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('[communities] Error creating community:', error);
+    const errorResponse = NextResponse.json(
+      { error: 'Failed to create community' },
+      { status: 500 }
+    );
+    
+    // Add CORS headers to error response
+    const origin = request.headers.get('origin') || '';
+    errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*');
+    errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    return errorResponse;
+  }
+}
+
 // Handle OPTIONS requests for CORS
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin') || '';
@@ -224,7 +404,7 @@ export async function OPTIONS(request: NextRequest) {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': origin || '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Access-Control-Max-Age': '86400',
     },

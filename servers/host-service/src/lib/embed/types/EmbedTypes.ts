@@ -10,6 +10,7 @@ export interface EmbedConfig {
   container: string | null;
   height: string;
   width: string;
+  mode?: 'full' | 'auth-only';
 }
 
 export interface EmbedState {

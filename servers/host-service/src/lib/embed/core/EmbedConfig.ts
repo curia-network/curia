@@ -24,7 +24,8 @@ export function parseEmbedConfig(scriptElement?: HTMLScriptElement): EmbedConfig
     borderRadius: script.getAttribute('data-border-radius') || undefined,
     container: script.getAttribute('data-container') || null,
     height: script.getAttribute('data-height') || '600px',
-    width: script.getAttribute('data-width') || '100%'
+    width: script.getAttribute('data-width') || '100%',
+    mode: (script.getAttribute('data-mode') as 'full' | 'auth-only') || 'full'
   };
 
   console.log('[Curia] Parsed embed config:', config);

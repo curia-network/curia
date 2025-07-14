@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Eye, Monitor, Sun, Moon, PanelLeft, FileText, Layout, Maximize, ChevronDown, ChevronUp } from 'lucide-react';
+import { CommunitySelector } from './CommunitySelector';
 
 export interface EmbedConfig {
   width: string;
@@ -11,11 +12,14 @@ export interface EmbedConfig {
   theme: 'light' | 'dark' | 'auto';
   backgroundColor?: string;
   borderRadius?: string;
+  selectedCommunityId?: string | null;
 }
 
 interface EmbedConfiguratorProps {
   config: EmbedConfig;
   onChange: (config: Partial<EmbedConfig>) => void;
+  isAuthenticated?: boolean;
+  onAuthRequired?: () => void;
 }
 
 interface SizePreset {
@@ -45,7 +49,12 @@ function capToScreenSize(value: string, dimension: 'width' | 'height'): string {
   return numValue > maxValue ? `${maxValue}px` : value;
 }
 
-export function EmbedConfigurator({ config, onChange }: EmbedConfiguratorProps) {
+export function EmbedConfigurator({ 
+  config, 
+  onChange,
+  isAuthenticated = false,
+  onAuthRequired = () => {}
+}: EmbedConfiguratorProps) {
   const [customWidth, setCustomWidth] = useState(config.width);
   const [customHeight, setCustomHeight] = useState(config.height);
   const [backgroundExpanded, setBackgroundExpanded] = useState(false);
@@ -89,8 +98,27 @@ export function EmbedConfigurator({ config, onChange }: EmbedConfiguratorProps) 
     onChange({ borderRadius: borderRadius || undefined });
   };
 
+  const handleCommunitySelect = (communityId: string) => {
+    onChange({ selectedCommunityId: communityId });
+  };
+
   return (
     <div className="space-y-6">
+      {/* Community Selection - First and most important */}
+      <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-slate-200 dark:border-slate-700">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">🏘️ Community Selection</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CommunitySelector
+            selectedCommunityId={config.selectedCommunityId || null}
+            onCommunitySelect={handleCommunitySelect}
+            isAuthenticated={isAuthenticated}
+            onAuthRequired={onAuthRequired}
+          />
+        </CardContent>
+      </Card>
+
       {/* Size Configuration */}
       <Card className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-slate-200 dark:border-slate-700">
         <CardHeader>

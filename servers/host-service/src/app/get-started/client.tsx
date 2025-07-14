@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,7 @@ export interface EmbedConfig {
   theme: 'light' | 'dark' | 'auto';
   backgroundColor?: string;
   borderRadius?: string;
+  selectedCommunityId?: string | null;
 }
 
 export function GetStartedPageClient() {
@@ -23,13 +24,98 @@ export function GetStartedPageClient() {
     width: '100%',
     height: '100%',
     theme: 'auto',
-    borderRadius: '8px'
+    borderRadius: '8px',
+    selectedCommunityId: null
   });
   
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authToken, setAuthToken] = useState<string | null>(null);
+
+  // Check authentication status on mount
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      setAuthToken(token);
+      setIsAuthenticated(true);
+    }
+
+    // Listen for auth completion from embedded auth-only modal
+    const handleAuthComplete = (event: MessageEvent) => {
+      if (event.data?.type === 'curia-auth-complete' && event.data?.mode === 'auth-only') {
+        const { sessionToken, userId } = event.data;
+        if (sessionToken) {
+          localStorage.setItem('authToken', sessionToken);
+          setAuthToken(sessionToken);
+          setIsAuthenticated(true);
+          console.log('Authentication completed for user:', userId);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleAuthComplete);
+    return () => window.removeEventListener('message', handleAuthComplete);
+  }, []);
 
   const handleConfigChange = (newConfig: Partial<EmbedConfig>) => {
     setConfig(prev => ({ ...prev, ...newConfig }));
+  };
+
+  const handleAuthRequired = () => {
+    // Open auth-only embed modal for authentication
+    const authUrl = `/embed?mode=auth-only&redirectTo=${encodeURIComponent(window.location.href)}`;
+    
+    // Create modal iframe for authentication
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+    
+    const iframe = document.createElement('iframe');
+    iframe.src = authUrl;
+    iframe.style.cssText = `
+      width: 90vw;
+      max-width: 500px;
+      height: 80vh;
+      max-height: 600px;
+      border: none;
+      border-radius: 12px;
+      background: white;
+    `;
+    
+    modal.appendChild(iframe);
+    document.body.appendChild(modal);
+    
+    // Clean up on auth complete
+    const cleanup = () => {
+      document.body.removeChild(modal);
+    };
+    
+    const handleAuthMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'curia-auth-complete') {
+        cleanup();
+        window.removeEventListener('message', handleAuthMessage);
+      }
+    };
+    
+    window.addEventListener('message', handleAuthMessage);
+    
+    // Allow clicking outside to close
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        cleanup();
+        window.removeEventListener('message', handleAuthMessage);
+      }
+    });
   };
 
   const openPreview = () => {
@@ -57,10 +143,17 @@ export function GetStartedPageClient() {
                 Back to Home
               </Link>
               
-              <Badge className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800">
-                <Settings className="w-3 h-3 mr-1" />
-                Configuration Tool
-              </Badge>
+              <div className="flex items-center gap-3">
+                <Badge className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800">
+                  <Settings className="w-3 h-3 mr-1" />
+                  Configuration Tool
+                </Badge>
+                {isAuthenticated && (
+                  <Badge className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
+                    ✓ Authenticated
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -75,8 +168,8 @@ export function GetStartedPageClient() {
               </span>
             </h1>
             <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">
-              Customize your embed size and appearance, then get the code to add to your website. 
-              No signup required—just configure and deploy.
+              Choose your community, customize your embed size and appearance, then get the code to add to your website. 
+              {!isAuthenticated && ' Sign in to access your communities and create new ones.'}
             </p>
           </div>
 
@@ -91,6 +184,8 @@ export function GetStartedPageClient() {
               <EmbedConfigurator 
                 config={config}
                 onChange={handleConfigChange}
+                isAuthenticated={isAuthenticated}
+                onAuthRequired={handleAuthRequired}
               />
             </div>
 
@@ -107,9 +202,10 @@ export function GetStartedPageClient() {
                     onClick={openPreview}
                     size="lg" 
                     className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                    disabled={!config.selectedCommunityId}
                   >
                     <Eye className="w-5 h-5 mr-2" />
-                    Preview Your Forum
+                    {config.selectedCommunityId ? 'Preview Your Forum' : 'Select Community to Preview'}
                   </Button>
                 }
               />
