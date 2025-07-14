@@ -6,89 +6,68 @@ import { ChevronLeft, ChevronRight, Users, MessageSquare, TrendingUp, ExternalLi
 const communityStories = [
   {
     id: 1,
-    name: "DeFi Builders Collective",
+    name: "StakingVerse",
     category: "DeFi Community",
-    image: "/placeholder-community-1.jpg", // placeholder
-    members: "12.5K",
-    engagement: "+340%",
+    image: "/customers/stakingverse.jpg",
     description: "Transformed their Discord-heavy community into an engaging Web3 forum with token-gated discussions and seamless ENS authentication.",
     quote: "Curia helped us create meaningful conversations instead of endless Discord scrolling. Our engagement is through the roof!",
     author: "Sarah Chen",
-    role: "Community Lead",
-    metrics: {
-      posts: "2.8K",
-      activeUsers: "890",
-      retention: "78%"
-    }
+    role: "Community Lead"
   },
   {
     id: 2,
-    name: "MetaDAO Governance",
-    category: "DAO Governance",
-    image: "/placeholder-community-2.jpg", // placeholder
-    members: "8.2K",
-    engagement: "+156%",
+    name: "LUKSO",
+    category: "Blockchain Community",
+    image: "/customers/lukso.png",
     description: "Streamlined their governance discussions with Universal Profile integration and sophisticated token-gating for proposal access.",
     quote: "Finally, a platform that understands Web3 governance. Our proposals now get proper discussion instead of getting lost in channels.",
     author: "Alex Rodriguez",
-    role: "DAO Coordinator",
-    metrics: {
-      posts: "1.2K",
-      activeUsers: "520",
-      retention: "85%"
-    }
+    role: "DAO Coordinator"
   },
   {
     id: 3,
-    name: "NFT Creators Hub",
+    name: "0xSoul",
     category: "Creator Community",
-    image: "/placeholder-community-3.jpg", // placeholder
-    members: "25.1K",
-    engagement: "+287%",
+    image: "/customers/0xsoul.png",
     description: "Built a thriving creator economy with NFT-gated access tiers and embedded forums that showcase member portfolios seamlessly.",
     quote: "The embed integration is chef's kiss. Our creators can showcase work and get feedback without leaving our ecosystem.",
     author: "Maya Patel",
-    role: "Founder",
-    metrics: {
-      posts: "5.6K",
-      activeUsers: "1.8K",
-      retention: "72%"
-    }
+    role: "Founder"
   }
 ];
 
 const tweetTestimonials = [
   {
     id: 1,
-    author: "Vitalik Buterin",
-    handle: "@VitalikButerin",
-    avatar: "/placeholder-avatar-1.jpg",
+    author: "Jordy",
+    handle: "@jordy_web3",
+    avatar: "/customers/jordy.jpg",
     content: "Really impressed with how @curia_network handles Web3 authentication flows. This is how forum software should work in 2024.",
-    likes: 1247,
-    retweets: 312,
-    replies: 89,
+    likes: 42,
+    retweets: 8,
+    replies: 5,
     timestamp: "2h"
   },
   {
     id: 2,
-    author: "Hayden Adams",
-    handle: "@haydenzadams",
-    avatar: "/placeholder-avatar-2.jpg", 
+    author: "Craig",
+    handle: "@craig_builder",
+    avatar: "/customers/craig.jpg", 
     content: "Just integrated Curia into our community site. The Universal Profile support is seamless - exactly what we needed for our governance discussions.",
-    likes: 892,
-    retweets: 156,
-    replies: 43,
+    likes: 28,
+    retweets: 6,
+    replies: 3,
     timestamp: "6h"
   },
   {
     id: 3,
-    author: "Linda Xie",
-    handle: "@ljxie",
-    avatar: "/placeholder-avatar-3.jpg",
+    author: "Feindura",
+    handle: "@feindura",
+    avatar: "/customers/feindura.jpg",
     content: "Love seeing infrastructure that just works. @curia_network's embed approach is brilliant - Web3 forums without the complexity.",
-    likes: 654,
-    retweets: 98,
-    replies: 27,
+    likes: 67,
+    retweets: 12,
+    replies: 8,
     timestamp: "12h"
   }
 ];
@@ -117,9 +96,7 @@ function CommunityCard({ story, index }: { story: typeof communityStories[0], in
                 <Users className="w-8 h-8 text-blue-600 dark:text-blue-400" />
               </div>
             )}
-            <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-              {story.engagement}
-            </div>
+            
           </div>
           
           <div className="flex-1">
@@ -129,16 +106,7 @@ function CommunityCard({ story, index }: { story: typeof communityStories[0], in
             <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
               {story.category}
             </p>
-            <div className="flex items-center gap-4 mt-2 text-sm text-slate-600 dark:text-slate-400">
-              <span className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                {story.members}
-              </span>
-              <span className="flex items-center gap-1">
-                <MessageSquare className="w-4 h-4" />
-                {story.metrics.posts}
-              </span>
-            </div>
+            
           </div>
         </div>
 
@@ -157,33 +125,7 @@ function CommunityCard({ story, index }: { story: typeof communityStories[0], in
           </footer>
         </blockquote>
 
-        {/* Metrics */}
-        <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-          <div className="text-center">
-            <div className="text-lg font-bold text-slate-900 dark:text-white">
-              {story.metrics.activeUsers}
-            </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400">
-              Active Users
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-slate-900 dark:text-white">
-              {story.metrics.retention}
-            </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400">
-              Retention
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-green-600 dark:text-green-400">
-              {story.engagement}
-            </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400">
-              Growth
-            </div>
-          </div>
-        </div>
+        
       </div>
     </div>
   );
