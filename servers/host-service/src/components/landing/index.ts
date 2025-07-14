@@ -1,5 +1,6 @@
 export { LandingHero } from './LandingHero'
 export { FeaturesGrid } from './FeaturesGrid'
+export { ScalesToAllSizes } from './ScalesToAllSizes'
 export { CodeExample } from './CodeExample'
 export { LiveDemo } from './LiveDemo'
 export { Testimonials } from './Testimonials'

@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server';
 export const runtime = 'edge';
 
 // Template Components
-function LandingTemplate({ title, description }: { title: string; description: string }) {
+function LandingTemplate({ title, description, baseUrl }: { title: string; description: string; baseUrl?: string }) {
   return (
     <div
       style={{
@@ -39,20 +39,32 @@ function LandingTemplate({ title, description }: { title: string; description: s
             gap: 16,
           }}
         >
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              background: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: 16,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 32,
-            }}
-          >
-            ⚡
-          </div>
+          {baseUrl ? (
+            <img
+              src={`${baseUrl}/web-app-manifest-512x512.png`}
+              alt="Curia Logo"
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 16,
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                background: 'rgba(255, 255, 255, 0.2)',
+                borderRadius: 16,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 32,
+              }}
+            >
+              ⚡
+            </div>
+          )}
           Curia
         </div>
 
@@ -457,11 +469,14 @@ export async function GET(req: NextRequest) {
     const type = searchParams.get('type') || 'default';
     const title = searchParams.get('title') || getDefaultTitle(type);
     const description = searchParams.get('description') || getDefaultDescription(type);
+    
+    // Get the base URL for the logo image
+    const baseUrl = new URL(req.url).origin;
 
     let template;
     switch (type) {
       case 'landing':
-        template = <LandingTemplate title={title} description={description} />;
+        template = <LandingTemplate title={title} description={description} baseUrl={baseUrl} />;
         break;
       case 'get-started':
         template = <GetStartedTemplate title={title} description={description} />;
@@ -473,7 +488,7 @@ export async function GET(req: NextRequest) {
         template = <DemoTemplate title={title} description={description} />;
         break;
       default:
-        template = <LandingTemplate title={title} description={description} />;
+        template = <LandingTemplate title={title} description={description} baseUrl={baseUrl} />;
     }
 
     return new ImageResponse(template, {

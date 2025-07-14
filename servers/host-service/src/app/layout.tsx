@@ -8,6 +8,25 @@ export const metadata: Metadata = {
   title: "Curia - Web3 Forum Embeds",
   description: "Embed beautiful Web3 forums with advanced gating and community features. Perfect for Discord, websites, and Web3 apps.",
   metadataBase: new URL(baseUrl),
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/favicon.ico', sizes: '32x32' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      { rel: 'mask-icon', url: '/favicon.svg', color: '#3b82f6' },
+    ],
+  },
+  manifest: '/site.webmanifest',
+  appleWebApp: {
+    title: 'Curia',
+    statusBarStyle: 'default',
+    capable: true,
+  },
   openGraph: {
     title: "Curia - Web3 Forum Embeds",
     description: "Embed beautiful Web3 forums with advanced gating and community features. Perfect for Discord, websites, and Web3 apps.",

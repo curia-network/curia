@@ -2,6 +2,7 @@ import {
   LandingHero, 
   PartnersSection,
   FeaturesGrid, 
+  ScalesToAllSizes,
   CodeExample, 
   LiveDemo,
   Testimonials,
@@ -19,9 +20,10 @@ export default function HomePage() {
       <LandingHero />
       <PartnersSection />
       <FeaturesGrid />
-      <CodeExample />
+      <ScalesToAllSizes />
       <Testimonials />
       <LiveDemo />
+      <CodeExample />
       <Footer />
     </main>
   );

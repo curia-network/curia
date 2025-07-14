@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { PreviewModal } from "@/components/configurator/PreviewModal"
 import { ThemeToggle, useTheme } from "@/contexts/ThemeContext"
 import { ArrowRight, Zap, Shield, Globe, Play, Menu, X } from "lucide-react"
+import Image from "next/image"
 
 export function LandingHero() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -63,8 +64,14 @@ export function LandingHero() {
           <div className="flex items-center justify-between">
             {/* Logo/Brand */}
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 rounded-lg overflow-hidden">
+                <Image 
+                  src="/web-app-manifest-512x512.png" 
+                  alt="Curia Logo" 
+                  width={32} 
+                  height={32} 
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="text-xl font-bold text-slate-900 dark:text-white">Curia</span>
             </div>
@@ -227,8 +234,14 @@ export function LandingHero() {
             {/* Top Bar with Close Button */}
             <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-white" />
+                <div className="w-8 h-8 rounded-lg overflow-hidden">
+                  <Image 
+                    src="/web-app-manifest-512x512.png" 
+                    alt="Curia Logo" 
+                    width={32} 
+                    height={32} 
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <span className="text-xl font-bold text-slate-900 dark:text-white">Curia</span>
               </div>
