@@ -92,15 +92,36 @@ export function PreviewModal({ isOpen, onClose, config }: PreviewModalProps) {
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/30 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-[60] bg-black/40 dark:bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
         }
       }}
+      style={{
+        // Force consistent positioning regardless of page context
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        margin: 0,
+        // Ensure backdrop works over complex backgrounds
+        backdropFilter: 'blur(12px) saturate(120%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(120%)'
+      }}
     >
       {/* Safari-style Browser Window - Slightly smaller to show context */}
-      <div className="bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 w-[90vw] h-[90vh] flex flex-col rounded-lg shadow-2xl overflow-hidden">
+      <div 
+        className="bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 w-[90vw] h-[90vh] flex flex-col rounded-lg shadow-2xl overflow-hidden"
+        style={{
+          // Ensure consistent sizing regardless of viewport context
+          maxWidth: 'calc(100vw - 32px)', // Account for p-4 padding
+          maxHeight: 'calc(100vh - 32px)', // Account for p-4 padding
+          width: '90vw',
+          height: '90vh'
+        }}
+      >
         {/* Browser Header Bar */}
         <div className="px-4 py-3 bg-slate-100 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
           {/* Traffic lights only - no navigation buttons */}
