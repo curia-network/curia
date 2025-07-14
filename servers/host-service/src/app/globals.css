@@ -1161,6 +1161,8 @@ button[data-rk]:not([class*="bg-"]):not([style*="background"]):hover {
   }
 }
 
+
+
 /* Mobile-First Responsive Breakpoints */
 /* These override Tailwind's defaults to be more mobile-focused */
 @media (max-width: 374px) {
