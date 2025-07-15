@@ -11,6 +11,7 @@ import { CreateCommunityModal } from '@/components/configurator/CreateCommunityM
 import { Footer } from '@/components/landing/Footer';
 import { ArrowLeft, Settings, Code, Eye } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export interface EmbedConfig {
   width: string;
@@ -22,10 +23,12 @@ export interface EmbedConfig {
 }
 
 export function GetStartedPageClient() {
+  const { resolvedTheme } = useTheme();
+  
   const [config, setConfig] = useState<EmbedConfig>({
     width: '100%',
     height: '100%',
-    theme: 'auto',
+    theme: resolvedTheme, // Use current theme instead of 'auto'
     borderRadius: '8px',
     selectedCommunityId: null
   });
@@ -35,6 +38,14 @@ export function GetStartedPageClient() {
   const [pendingCreateCommunity, setPendingCreateCommunity] = useState(false);
 
   const { isAuthenticated } = useAuth();
+
+  // Update theme in config when user changes theme
+  useEffect(() => {
+    setConfig(prev => ({
+      ...prev,
+      theme: resolvedTheme
+    }));
+  }, [resolvedTheme]);
 
   // Listen for auth completion from embedded auth-only modal
   useEffect(() => {
