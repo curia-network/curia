@@ -43,7 +43,7 @@ const EmbedContent: React.FC = () => {
     community: searchParams.get('community') || undefined,
     theme: (searchParams.get('theme') as 'light' | 'dark' | 'auto') || 'light',
     backgroundColor: searchParams.get('background_color') || undefined,
-    mode: (searchParams.get('mode') as 'full' | 'auth-only') || 'full',
+    mode: (searchParams.get('mode') as 'full' | 'auth-only' | 'secure-auth') || 'full',
   };
 
   // Check for legacy flow parameter (for backwards compatibility)
@@ -55,13 +55,14 @@ const EmbedContent: React.FC = () => {
   }, [searchParams]);
 
   // Send auth completion message to parent
-  const sendAuthCompleteMessage = useCallback((userId: string, communityId: string, sessionToken?: string) => {
+  const sendAuthCompleteMessage = useCallback((userId: string, communityId: string, sessionToken?: string, identityType?: string) => {
     const message = {
       type: 'curia-auth-complete',
       mode: config.mode || 'full',
       userId,
       communityId,
       sessionToken,
+      identityType,
       timestamp: new Date().toISOString()
     };
     
@@ -107,11 +108,11 @@ const EmbedContent: React.FC = () => {
       setProfileData(sessionProfileData);
       console.log('[Embed] Profile data populated from session:', sessionProfileData);
       
-      // Check for auth-only mode - skip community selection entirely
-      if (config.mode === 'auth-only') {
-        console.log('[Embed] Auth-only mode: sending auth-complete for existing session');
+      // Check for auth-only or secure-auth mode - skip community selection entirely
+      if (config.mode === 'auth-only' || config.mode === 'secure-auth') {
+        console.log(`[Embed] ${config.mode} mode: sending auth-complete for existing session`);
         const userId = sessionProfileData.userId || sessionProfileData.address || `fallback_${Date.now()}`;
-        sendAuthCompleteMessage(userId, 'auth-only-no-community', sessionProfileData.sessionToken);
+        sendAuthCompleteMessage(userId, 'auth-only-no-community', sessionProfileData.sessionToken, sessionProfileData.type);
         setCurrentStep('auth-complete');
         return;
       }
@@ -133,11 +134,11 @@ const EmbedContent: React.FC = () => {
   const handleAuthenticated = useCallback((data: ProfileData) => {
     setProfileData(data);
     
-    // Check for auth-only mode - skip community selection entirely
-    if (config.mode === 'auth-only') {
-      console.log('[Embed] Auth-only mode: sending auth-complete immediately');
+    // Check for auth-only or secure-auth mode - skip community selection entirely
+    if (config.mode === 'auth-only' || config.mode === 'secure-auth') {
+      console.log(`[Embed] ${config.mode} mode: sending auth-complete immediately`);
       const userId = data.userId || data.address || `fallback_${Date.now()}`;
-      sendAuthCompleteMessage(userId, 'auth-only-no-community', data.sessionToken);
+      sendAuthCompleteMessage(userId, 'auth-only-no-community', data.sessionToken, data.type);
       setCurrentStep('auth-complete');
       return;
     }
@@ -161,12 +162,12 @@ const EmbedContent: React.FC = () => {
       setProfileData(updatedProfileData);
     }
     
-    // Check for auth-only mode - skip community selection entirely
-    if (config.mode === 'auth-only') {
-      console.log('[Embed] Auth-only mode: sending auth-complete after profile preview');
+    // Check for auth-only or secure-auth mode - skip community selection entirely
+    if (config.mode === 'auth-only' || config.mode === 'secure-auth') {
+      console.log(`[Embed] ${config.mode} mode: sending auth-complete after profile preview`);
       const finalProfileData = updatedProfileData || profileData;
       const userId = finalProfileData?.userId || finalProfileData?.address || `fallback_${Date.now()}`;
-      sendAuthCompleteMessage(userId, 'auth-only-no-community', finalProfileData?.sessionToken);
+      sendAuthCompleteMessage(userId, 'auth-only-no-community', finalProfileData?.sessionToken, finalProfileData?.type);
       setCurrentStep('auth-complete');
       return;
     }
@@ -222,13 +223,13 @@ const EmbedContent: React.FC = () => {
       console.log('[Embed] DEBUG - Sending auth complete with userId:', userId);
       
       // Send auth complete message to parent
-      sendAuthCompleteMessage(userId, communityId, sessionToken);
+      sendAuthCompleteMessage(userId, communityId, sessionToken, profileData?.type);
       
-      // Check for auth-only mode
-      if (config.mode === 'auth-only') {
-        console.log('[Embed] 🎯 Auth-only mode detected - staying on auth-complete step');
+      // Check for auth-only or secure-auth mode
+      if (config.mode === 'auth-only' || config.mode === 'secure-auth') {
+        console.log(`[Embed] 🎯 ${config.mode} mode detected - staying on auth-complete step`);
         setCurrentStep('auth-complete');
-        // In auth-only mode, we stop here and don't transition to forum
+        // In auth-only or secure-auth mode, we stop here and don't transition to forum
         return;
       }
       

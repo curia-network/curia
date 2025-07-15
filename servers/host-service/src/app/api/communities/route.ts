@@ -267,6 +267,39 @@ export async function POST(request: NextRequest) {
         return errorResponse;
       }
 
+      // Check user identity type - community creation requires secure identity
+      const userQuery = `
+        SELECT identity_type 
+        FROM users 
+        WHERE user_id = $1
+      `;
+      
+      const userResult = await client.query(userQuery, [userId]);
+      if (userResult.rows.length === 0) {
+        const errorResponse = NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        );
+        errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*');
+        errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        return errorResponse;
+      }
+
+      const identityType = userResult.rows[0].identity_type;
+      if (identityType === 'anonymous') {
+        const errorResponse = NextResponse.json(
+          { error: 'Community creation requires ENS or Universal Profile authentication' },
+          { status: 403 }
+        );
+        errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*');
+        errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        return errorResponse;
+      }
+
+      console.log('[communities] User identity type verified:', identityType, 'for user:', userId);
+
       // Parse request body
       const body: CreateCommunityRequest = await request.json();
       

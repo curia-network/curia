@@ -6,7 +6,7 @@ export interface EmbedConfig {
   community?: string;
   theme: 'light' | 'dark' | 'auto';
   backgroundColor?: string;
-  mode?: 'full' | 'auth-only';
+  mode?: 'full' | 'auth-only' | 'secure-auth';
 }
 
 export type EmbedStep = 

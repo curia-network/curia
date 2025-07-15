@@ -159,35 +159,46 @@ export const AuthenticationStep: React.FC<AuthenticationStepProps> = ({
     setConnectionType(null);
   }, []);
 
-  const authOptions: AuthOption[] = [
-    {
-      id: 'ens',
-      title: 'ENS Domain',
-      description: 'Connect with your Ethereum Name Service domain',
-      icon: <Globe className="w-6 h-6" />,
-      gradientClass: 'gradient-blue-cyan',
-      buttonClass: 'btn-gradient-blue-cyan',
-      action: () => handleAuth('ens')
-    },
-    {
-      id: 'universal_profile',
-      title: 'Universal Profile',
-      description: 'Connect with your LUKSO Universal Profile',
-      icon: <Zap className="w-6 h-6" />,
-      gradientClass: 'gradient-emerald-teal',
-      buttonClass: 'btn-gradient-emerald-teal',
-      action: () => handleAuth('universal_profile')
-    },
-    {
-      id: 'anonymous',
-      title: 'Continue as Guest',
-      description: 'Browse without connecting a wallet',
-      icon: <User className="w-6 h-6" />,
-      gradientClass: 'gradient-gray-slate',
-      buttonClass: 'btn-gradient-gray-slate',
-      action: () => handleAuth('anonymous')
+  const getAuthOptions = (): AuthOption[] => {
+    const allOptions = [
+      {
+        id: 'ens',
+        title: 'ENS Domain',
+        description: 'Connect with your Ethereum Name Service domain',
+        icon: <Globe className="w-6 h-6" />,
+        gradientClass: 'gradient-blue-cyan',
+        buttonClass: 'btn-gradient-blue-cyan',
+        action: () => handleAuth('ens')
+      },
+      {
+        id: 'universal_profile',
+        title: 'Universal Profile',
+        description: 'Connect with your LUKSO Universal Profile',
+        icon: <Zap className="w-6 h-6" />,
+        gradientClass: 'gradient-emerald-teal',
+        buttonClass: 'btn-gradient-emerald-teal',
+        action: () => handleAuth('universal_profile')
+      },
+      {
+        id: 'anonymous',
+        title: 'Continue as Guest',
+        description: 'Browse without connecting a wallet',
+        icon: <User className="w-6 h-6" />,
+        gradientClass: 'gradient-gray-slate',
+        buttonClass: 'btn-gradient-gray-slate',
+        action: () => handleAuth('anonymous')
+      }
+    ];
+
+    // Filter out anonymous option in secure-auth mode
+    if (config.mode === 'secure-auth') {
+      return allOptions.filter(option => option.id !== 'anonymous');
     }
-  ];
+
+    return allOptions;
+  };
+
+  const authOptions = getAuthOptions();
 
   // Show connection flow for specific wallet type
   if (connectionType === 'universal_profile') {

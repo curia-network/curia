@@ -19,7 +19,7 @@ interface EmbedConfiguratorProps {
   config: EmbedConfig;
   onChange: (config: Partial<EmbedConfig>) => void;
   isAuthenticated?: boolean;
-  onAuthRequired?: () => void;
+  onAuthRequired?: (mode?: string) => void;
   pendingCreateCommunity?: boolean;
   onClearPendingCreate?: () => void;
 }
@@ -55,7 +55,7 @@ export function EmbedConfigurator({
   config, 
   onChange,
   isAuthenticated = false,
-  onAuthRequired = () => {},
+  onAuthRequired = (mode?: string) => {},
   pendingCreateCommunity = false,
   onClearPendingCreate = () => {}
 }: EmbedConfiguratorProps) {

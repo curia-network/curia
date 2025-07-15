@@ -12,7 +12,7 @@ interface CommunitySelectorProps {
   selectedCommunityId: string | null;
   onCommunitySelect: (communityId: string) => void;
   isAuthenticated: boolean;
-  onAuthRequired: () => void;
+  onAuthRequired: (mode?: string) => void;
   pendingCreateCommunity?: boolean;
   onClearPendingCreate?: () => void;
 }
@@ -51,10 +51,14 @@ export function CommunitySelector({
   }, [isAuthenticated, pendingCreateCommunity, onClearPendingCreate]);
 
   const handleCreateCommunity = () => {
-    if (!isAuthenticated) {
-      onAuthRequired();
+    const identityType = localStorage.getItem('curia_identity_type');
+    
+    if (!isAuthenticated || identityType === 'anonymous') {
+      // Force re-auth with secure-auth mode for non-anonymous identity
+      onAuthRequired('secure-auth');
       return;
     }
+    
     setCreateModalOpen(true);
   };
 

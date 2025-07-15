@@ -41,17 +41,21 @@ export function GetStartedPageClient() {
     if (token) {
       setAuthToken(token);
       setIsAuthenticated(true);
+      // Note: identity type is already stored from previous auth
     }
 
     // Listen for auth completion from embedded auth-only modal
     const handleAuthComplete = (event: MessageEvent) => {
-      if (event.data?.type === 'curia-auth-complete' && event.data?.mode === 'auth-only') {
-        const { sessionToken, userId, communityId } = event.data;
+      if (event.data?.type === 'curia-auth-complete' && (event.data?.mode === 'auth-only' || event.data?.mode === 'secure-auth')) {
+        const { sessionToken, userId, communityId, identityType } = event.data;
         if (sessionToken) {
           localStorage.setItem('curia_session_token', sessionToken);
+          if (identityType) {
+            localStorage.setItem('curia_identity_type', identityType);
+          }
           setAuthToken(sessionToken);
           setIsAuthenticated(true);
-          console.log('Authentication completed for user:', userId);
+          console.log('Authentication completed for user:', userId, 'with identity type:', identityType);
           
           // If this was for community creation (no real community selected), set pending create intent
           if (communityId === 'auth-only-no-community') {
@@ -74,9 +78,9 @@ export function GetStartedPageClient() {
     setPendingCreateCommunity(false);
   };
 
-  const handleAuthRequired = () => {
-    // Open auth-only embed modal for authentication
-    const authUrl = `/embed?mode=auth-only&redirectTo=${encodeURIComponent(window.location.href)}`;
+  const handleAuthRequired = (mode: string = 'auth-only') => {
+    // Open embed modal for authentication with specified mode
+    const authUrl = `/embed?mode=${mode}&redirectTo=${encodeURIComponent(window.location.href)}`;
     
     // Create modal iframe for authentication
     const modal = document.createElement('div');
@@ -115,6 +119,10 @@ export function GetStartedPageClient() {
     
     const handleAuthMessage = (event: MessageEvent) => {
       if (event.data?.type === 'curia-auth-complete') {
+        // Store identity type if provided
+        if (event.data.identityType) {
+          localStorage.setItem('curia_identity_type', event.data.identityType);
+        }
         cleanup();
         window.removeEventListener('message', handleAuthMessage);
       }
