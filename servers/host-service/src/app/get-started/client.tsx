@@ -34,7 +34,7 @@ export function GetStartedPageClient() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [pendingCreateCommunity, setPendingCreateCommunity] = useState(false);
 
-  const { isAuthenticated, canCreateCommunity, isValidating } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   // Listen for auth completion from embedded auth-only modal
   useEffect(() => {

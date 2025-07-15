@@ -6,7 +6,7 @@ import { Plus, Search, Building, Users, Loader2 } from 'lucide-react';
 import { CreateCommunityModal } from './CreateCommunityModal';
 import { SearchCommunitiesModal } from './SearchCommunitiesModal';
 import { useCommunities } from '@/hooks/useCommunities';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, validateIdentityForCommunityCreation } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface Community {
@@ -43,9 +43,10 @@ export function CommunitySelector({
 }: CommunitySelectorProps) {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [isValidatingIdentity, setIsValidatingIdentity] = useState(false);
   
   const queryClient = useQueryClient();
-  const { isAuthenticated, canCreateCommunity, isValidating } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { data: communitiesData, isLoading } = useCommunities(isAuthenticated);
   
   const userCommunities = communitiesData?.userCommunities || [];
@@ -61,45 +62,41 @@ export function CommunitySelector({
 
   // Handle pending create community intent after authentication
   useEffect(() => {
-    if (canCreateCommunity && pendingCreateCommunity) {
-      setCreateModalOpen(true);
+    if (isAuthenticated && pendingCreateCommunity) {
+      handleCreateCommunity();
       onClearPendingCreate();
     }
-  }, [canCreateCommunity, pendingCreateCommunity, onClearPendingCreate]);
+  }, [isAuthenticated, pendingCreateCommunity, onClearPendingCreate]);
 
-  const handleCreateCommunity = () => {
+  const handleCreateCommunity = async () => {
     if (!isAuthenticated) {
       onAuthRequired('secure-auth');
       return;
     }
     
-    if (!canCreateCommunity) {
-      // User is authenticated but anonymous - treat as if not authenticated
+    // Validate identity type for community creation
+    setIsValidatingIdentity(true);
+    try {
+      const canCreateCommunity = await validateIdentityForCommunityCreation();
+      
+      if (!canCreateCommunity) {
+        // User is authenticated but anonymous - treat as if not authenticated
+        onAuthRequired('secure-auth');
+        return;
+      }
+      
+      setCreateModalOpen(true);
+    } catch (error) {
+      console.error('Error validating identity for community creation:', error);
       onAuthRequired('secure-auth');
-      return;
+    } finally {
+      setIsValidatingIdentity(false);
     }
-    
-    setCreateModalOpen(true);
   };
 
   const handleSearchCommunities = () => {
-    if (!isAuthenticated) {
-      onAuthRequired('auth-only');
-      return;
-    }
-    
     setSearchModalOpen(true);
   };
-
-  // Show loading state while validating authentication
-  if (isValidating) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
-        <span className="ml-2 text-sm text-slate-500">Checking authentication...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -124,10 +121,20 @@ export function CommunitySelector({
       <div className="flex gap-2">
         <Button
           onClick={handleCreateCommunity}
+          disabled={isValidatingIdentity}
           className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Create Community
+          {isValidatingIdentity ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Checking...
+            </>
+          ) : (
+            <>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Community
+            </>
+          )}
         </Button>
         
         <Button
@@ -145,6 +152,10 @@ export function CommunitySelector({
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onCommunityCreated={(community: Community) => {
+          // Invalidate communities cache to refresh the list
+          queryClient.invalidateQueries({ queryKey: ['communities', isAuthenticated] });
+          queryClient.invalidateQueries({ queryKey: ['communities', false] }); // Also invalidate unauthenticated cache
+          
           onCommunitySelect(community.id);
           setCreateModalOpen(false);
         }}
