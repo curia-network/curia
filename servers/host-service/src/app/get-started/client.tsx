@@ -184,22 +184,24 @@ export function GetStartedPageClient() {
 
           {/* Right: Generated Code */}
           <div className="space-y-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Code className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Generated Code</h2>
-              </div>
-              <Button
-                onClick={() => setIsPreviewModalOpen(true)}
-                variant="outline"
-                size="sm"
-                className="text-slate-600 dark:text-slate-400"
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                Preview
-              </Button>
+            <div className="flex items-center gap-2 mb-4">
+              <Code className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Implementation</h2>
             </div>
-            <CodeGenerator config={config} />
+            <CodeGenerator 
+              config={config} 
+              previewButton={
+                <Button
+                  onClick={() => setIsPreviewModalOpen(true)}
+                  size="lg" 
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                  disabled={!config.selectedCommunityId}
+                >
+                  <Eye className="w-5 h-5 mr-2" />
+                  {config.selectedCommunityId ? 'Preview Your Forum' : 'Select Community to Preview'}
+                </Button>
+              }
+            />
           </div>
         </div>
       </div>
