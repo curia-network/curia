@@ -108,9 +108,28 @@ const EmbedContent: React.FC = () => {
       setProfileData(sessionProfileData);
       console.log('[Embed] Profile data populated from session:', sessionProfileData);
       
-      // Check for auth-only or secure-auth mode - skip community selection entirely
-      if (config.mode === 'auth-only' || config.mode === 'secure-auth') {
+      // Check for auth-only mode - skip community selection entirely
+      if (config.mode === 'auth-only') {
         console.log(`[Embed] ${config.mode} mode: sending auth-complete for existing session`);
+        const userId = sessionProfileData.userId || sessionProfileData.address || `fallback_${Date.now()}`;
+        sendAuthCompleteMessage(userId, 'auth-only-no-community', sessionProfileData.sessionToken, sessionProfileData.type);
+        setCurrentStep('auth-complete');
+        return;
+      }
+
+      // Check for secure-auth mode - handle based on identity type
+      if (config.mode === 'secure-auth') {
+        // For anonymous: can complete immediately
+        if (sessionProfileData.type === 'anonymous') {
+          console.log(`[Embed] ${config.mode} mode: sending auth-complete for existing anonymous session`);
+          const userId = sessionProfileData.userId || sessionProfileData.address || `fallback_${Date.now()}`;
+          sendAuthCompleteMessage(userId, 'auth-only-no-community', sessionProfileData.sessionToken, sessionProfileData.type);
+          setCurrentStep('auth-complete');
+          return;
+        }
+        
+        // For ENS/UP: existing session should be valid, complete immediately
+        console.log(`[Embed] ${config.mode} mode: sending auth-complete for existing ${sessionProfileData.type} session`);
         const userId = sessionProfileData.userId || sessionProfileData.address || `fallback_${Date.now()}`;
         sendAuthCompleteMessage(userId, 'auth-only-no-community', sessionProfileData.sessionToken, sessionProfileData.type);
         setCurrentStep('auth-complete');
@@ -134,12 +153,29 @@ const EmbedContent: React.FC = () => {
   const handleAuthenticated = useCallback((data: ProfileData) => {
     setProfileData(data);
     
-    // Check for auth-only or secure-auth mode - skip community selection entirely
-    if (config.mode === 'auth-only' || config.mode === 'secure-auth') {
+    // Check for auth-only mode - skip community selection entirely
+    if (config.mode === 'auth-only') {
       console.log(`[Embed] ${config.mode} mode: sending auth-complete immediately`);
       const userId = data.userId || data.address || `fallback_${Date.now()}`;
       sendAuthCompleteMessage(userId, 'auth-only-no-community', data.sessionToken, data.type);
       setCurrentStep('auth-complete');
+      return;
+    }
+
+    // Check for secure-auth mode - handle based on auth type
+    if (config.mode === 'secure-auth') {
+      // For anonymous: session token is available immediately
+      if (data.type === 'anonymous') {
+        console.log(`[Embed] ${config.mode} mode: sending auth-complete immediately for anonymous`);
+        const userId = data.userId || data.address || `fallback_${Date.now()}`;
+        sendAuthCompleteMessage(userId, 'auth-only-no-community', data.sessionToken, data.type);
+        setCurrentStep('auth-complete');
+        return;
+      }
+      
+      // For ENS/UP: continue to profile preview (session token set there)
+      console.log(`[Embed] ${config.mode} mode: continuing to profile preview for ${data.type}`);
+      setCurrentStep('profile-preview');
       return;
     }
     
@@ -162,9 +198,19 @@ const EmbedContent: React.FC = () => {
       setProfileData(updatedProfileData);
     }
     
-    // Check for auth-only or secure-auth mode - skip community selection entirely
-    if (config.mode === 'auth-only' || config.mode === 'secure-auth') {
+    // Check for auth-only mode - skip community selection entirely  
+    if (config.mode === 'auth-only') {
       console.log(`[Embed] ${config.mode} mode: sending auth-complete after profile preview`);
+      const finalProfileData = updatedProfileData || profileData;
+      const userId = finalProfileData?.userId || finalProfileData?.address || `fallback_${Date.now()}`;
+      sendAuthCompleteMessage(userId, 'auth-only-no-community', finalProfileData?.sessionToken, finalProfileData?.type);
+      setCurrentStep('auth-complete');
+      return;
+    }
+
+    // Check for secure-auth mode - complete auth flow with session token
+    if (config.mode === 'secure-auth') {
+      console.log(`[Embed] ${config.mode} mode: sending auth-complete after profile preview with session token`);
       const finalProfileData = updatedProfileData || profileData;
       const userId = finalProfileData?.userId || finalProfileData?.address || `fallback_${Date.now()}`;
       sendAuthCompleteMessage(userId, 'auth-only-no-community', finalProfileData?.sessionToken, finalProfileData?.type);
