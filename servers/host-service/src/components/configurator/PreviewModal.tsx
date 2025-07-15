@@ -8,6 +8,7 @@ export interface EmbedConfig {
   theme: 'light' | 'dark' | 'auto';
   backgroundColor?: string;
   borderRadius?: string;
+  selectedCommunityId?: string | null;
 }
 
 interface PreviewModalProps {
@@ -56,6 +57,11 @@ export function PreviewModal({ isOpen, onClose, config }: PreviewModalProps) {
     script.setAttribute('data-theme', config.theme);
     script.setAttribute('data-width', config.width);
     script.setAttribute('data-height', config.height);
+    
+    // Set community ID if specified
+    if (config.selectedCommunityId) {
+      script.setAttribute('data-community', config.selectedCommunityId);
+    }
     
     // Only set background color if specified
     if (config.backgroundColor) {
