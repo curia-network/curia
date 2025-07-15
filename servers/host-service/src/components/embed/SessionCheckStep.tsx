@@ -8,6 +8,7 @@ import { Shield } from 'lucide-react';
 import { SessionCheckStepProps } from '@/types/embed';
 
 export const SessionCheckStep: React.FC<SessionCheckStepProps> = ({ 
+  config,
   onSessionResult 
 }) => {
   useEffect(() => {
@@ -29,6 +30,14 @@ export const SessionCheckStep: React.FC<SessionCheckStepProps> = ({
         if (response.ok) {
           const data = await response.json();
           if (data.isValid && data.user) {
+            // In secure-auth mode, ignore anonymous sessions
+            if (config.mode === 'secure-auth' && data.user.identity_type === 'anonymous') {
+              console.log('[Session Check] Ignoring anonymous session in secure-auth mode');
+              localStorage.removeItem('curia_session_token');
+              onSessionResult(false);
+              return;
+            }
+            
             localStorage.setItem('curia_session_token', data.token);
             // Pass both session validity AND user data
             onSessionResult(true, data.user);

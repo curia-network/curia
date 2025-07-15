@@ -18,7 +18,6 @@ export interface EmbedConfig {
 interface EmbedConfiguratorProps {
   config: EmbedConfig;
   onChange: (config: Partial<EmbedConfig>) => void;
-  isAuthenticated?: boolean;
   onAuthRequired?: (mode?: string) => void;
   pendingCreateCommunity?: boolean;
   onClearPendingCreate?: () => void;
@@ -51,11 +50,10 @@ function capToScreenSize(value: string, dimension: 'width' | 'height'): string {
   return numValue > maxValue ? `${maxValue}px` : value;
 }
 
-export function EmbedConfigurator({ 
-  config, 
+export function EmbedConfigurator({
+  config,
   onChange,
-  isAuthenticated = false,
-  onAuthRequired = (mode?: string) => {},
+  onAuthRequired = () => {},
   pendingCreateCommunity = false,
   onClearPendingCreate = () => {}
 }: EmbedConfiguratorProps) {
@@ -117,7 +115,6 @@ export function EmbedConfigurator({
           <CommunitySelector
             selectedCommunityId={config.selectedCommunityId || null}
             onCommunitySelect={handleCommunitySelect}
-            isAuthenticated={isAuthenticated}
             onAuthRequired={onAuthRequired}
             pendingCreateCommunity={pendingCreateCommunity}
             onClearPendingCreate={onClearPendingCreate}

@@ -10,6 +10,7 @@ import { PreviewModal } from '@/components/configurator/PreviewModal';
 import { CreateCommunityModal } from '@/components/configurator/CreateCommunityModal';
 import { Footer } from '@/components/landing/Footer';
 import { ArrowLeft, Settings, Code, Eye } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface EmbedConfig {
   width: string;
@@ -30,38 +31,38 @@ export function GetStartedPageClient() {
   });
   
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authToken, setAuthToken] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [pendingCreateCommunity, setPendingCreateCommunity] = useState(false);
 
-  // Check authentication status on mount
-  useEffect(() => {
-    const token = localStorage.getItem('curia_session_token');
-    if (token) {
-      setAuthToken(token);
-      setIsAuthenticated(true);
-      // Note: identity type is already stored from previous auth
-    }
+  const { isAuthenticated, canCreateCommunity, isValidating } = useAuth();
 
-    // Listen for auth completion from embedded auth-only modal
+  // Listen for auth completion from embedded auth-only modal
+  useEffect(() => {
     const handleAuthComplete = (event: MessageEvent) => {
       if (event.data?.type === 'curia-auth-complete' && (event.data?.mode === 'auth-only' || event.data?.mode === 'secure-auth')) {
-        const { sessionToken, userId, communityId, identityType } = event.data;
+        const { sessionToken, userId, communityId } = event.data;
+        
+        console.log('[GetStartedPageClient] Auth completed:', {
+          sessionToken: sessionToken ? 'present' : 'missing',
+          userId,
+          communityId,
+          mode: event.data.mode
+        });
+        
+        // Store the session token
         if (sessionToken) {
           localStorage.setItem('curia_session_token', sessionToken);
-          if (identityType) {
-            localStorage.setItem('curia_identity_type', identityType);
-          }
-          setAuthToken(sessionToken);
-          setIsAuthenticated(true);
-          console.log('Authentication completed for user:', userId, 'with identity type:', identityType);
-          
-          // If this was for community creation (no real community selected), set pending create intent
-          if (communityId === 'auth-only-no-community') {
-            console.log('Auth completed for community creation - setting pending create intent');
-            setPendingCreateCommunity(true);
-          }
+        }
+        
+        // Handle different community selection scenarios
+        if (communityId && communityId !== 'auth-only-no-community') {
+          // User selected existing community
+          console.log('[GetStartedPageClient] User selected existing community:', communityId);
+          handleConfigChange({ selectedCommunityId: communityId });
+        } else if (communityId === 'auth-only-no-community') {
+          // User wants to create community after auth
+          console.log('[GetStartedPageClient] User wants to create community after auth');
+          setPendingCreateCommunity(true);
         }
       }
     };
@@ -74,14 +75,17 @@ export function GetStartedPageClient() {
     setConfig(prev => ({ ...prev, ...newConfig }));
   };
 
-  const handleClearPendingCreate = () => {
-    setPendingCreateCommunity(false);
-  };
-
   const handleAuthRequired = (mode: string = 'auth-only') => {
-    // Open embed modal for authentication with specified mode
-    const authUrl = `/embed?mode=${mode}&redirectTo=${encodeURIComponent(window.location.href)}`;
+    console.log('[GetStartedPageClient] Auth required, mode:', mode);
     
+    // Clear any existing auth state
+    localStorage.removeItem('curia_session_token');
+    
+    // Determine the embed URL based on mode
+    const embedUrl = mode === 'secure-auth' 
+      ? `/embed?mode=secure-auth&communityId=${config.selectedCommunityId || 'new'}`
+      : `/embed?mode=auth-only&communityId=${config.selectedCommunityId || 'new'}`;
+
     // Create modal iframe for authentication
     const modal = document.createElement('div');
     modal.style.cssText = `
@@ -98,7 +102,7 @@ export function GetStartedPageClient() {
     `;
     
     const iframe = document.createElement('iframe');
-    iframe.src = authUrl;
+    iframe.src = embedUrl;
     iframe.style.cssText = `
       width: 90vw;
       max-width: 500px;
@@ -119,10 +123,6 @@ export function GetStartedPageClient() {
     
     const handleAuthMessage = (event: MessageEvent) => {
       if (event.data?.type === 'curia-auth-complete') {
-        // Store identity type if provided
-        if (event.data.identityType) {
-          localStorage.setItem('curia_identity_type', event.data.identityType);
-        }
         cleanup();
         window.removeEventListener('message', handleAuthMessage);
       }
@@ -139,122 +139,90 @@ export function GetStartedPageClient() {
     });
   };
 
-  const openPreview = () => {
-    setIsPreviewModalOpen(true);
+  const handleClearPendingCreate = () => {
+    setPendingCreateCommunity(false);
   };
 
   return (
-    <main className="bg-white dark:bg-slate-900">
-      {/* Background decorations matching main theme */}
-      <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800 -z-10" />
-      <div className="fixed inset-0 bg-grid-slate-900/[0.04] dark:bg-grid-slate-400/[0.05] bg-[size:20px_20px] -z-10" />
-      <div className="fixed -top-24 -right-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -z-10" />
-      <div className="fixed -bottom-24 -left-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl -z-10" />
-
-      <div className="relative z-10">
-        {/* Navigation Header */}
-        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <Link 
-                href="/"
-                className="flex items-center gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Home
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      {/* Header */}
+      <div className="border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                <ArrowLeft className="w-5 h-5" />
               </Link>
-              
-              <div className="flex items-center gap-3">
-                <Badge className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800">
-                  <Settings className="w-3 h-3 mr-1" />
-                  Configuration Tool
-                </Badge>
-                {isAuthenticated && (
-                  <Badge className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
-                    ✓ Authenticated
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Hero Section */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <div className="text-center space-y-6 mb-12">
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Configure Your{" "}
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Web3 Forum
-              </span>
-            </h1>
-            <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">
-              Choose your community, customize your embed size and appearance, then get the code to add to your website. 
-              {!isAuthenticated && ' Sign in to access your communities and create new ones.'}
-            </p>
-          </div>
-
-          {/* Main Content */}
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Left: Configurator */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Settings className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Configure</h2>
-              </div>
-              <EmbedConfigurator 
-                config={config}
-                onChange={handleConfigChange}
-                isAuthenticated={isAuthenticated}
-                onAuthRequired={handleAuthRequired}
-                pendingCreateCommunity={pendingCreateCommunity}
-                onClearPendingCreate={handleClearPendingCreate}
-              />
-            </div>
-
-            {/* Right: Generated Code */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Code className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Implementation</h2>
-              </div>
-              <CodeGenerator 
-                config={config} 
-                previewButton={
-                  <Button 
-                    onClick={openPreview}
-                    size="lg" 
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-                    disabled={!config.selectedCommunityId}
-                  >
-                    <Eye className="w-5 h-5 mr-2" />
-                    {config.selectedCommunityId ? 'Preview Your Forum' : 'Select Community to Preview'}
-                  </Button>
-                }
-              />
+              <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
+                Embed Configurator
+              </h1>
+              <Badge variant="secondary" className="text-xs">
+                Beta
+              </Badge>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Preview Modal */}
-      <PreviewModal 
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Left: Configuration */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Settings className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Configure</h2>
+            </div>
+            <EmbedConfigurator 
+              config={config}
+              onChange={handleConfigChange}
+              onAuthRequired={handleAuthRequired}
+              pendingCreateCommunity={pendingCreateCommunity}
+              onClearPendingCreate={handleClearPendingCreate}
+            />
+          </div>
+
+          {/* Right: Generated Code */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Code className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Generated Code</h2>
+              </div>
+              <Button
+                onClick={() => setIsPreviewModalOpen(true)}
+                variant="outline"
+                size="sm"
+                className="text-slate-600 dark:text-slate-400"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Preview
+              </Button>
+            </div>
+            <CodeGenerator config={config} />
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <Footer />
+
+      {/* Modals */}
+      <PreviewModal
         isOpen={isPreviewModalOpen}
         onClose={() => setIsPreviewModalOpen(false)}
         config={config}
       />
-
-      {/* Create Community Modal */}
-      <CreateCommunityModal 
+      
+      <CreateCommunityModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        onCommunityCreated={(newCommunity) => {
-          handleConfigChange({ selectedCommunityId: newCommunity.id });
+        onCommunityCreated={(community) => {
+          handleConfigChange({ selectedCommunityId: community.id });
           setCreateModalOpen(false);
+          setPendingCreateCommunity(false);
         }}
       />
-      
-      <Footer />
-    </main>
+    </div>
   );
 } 
