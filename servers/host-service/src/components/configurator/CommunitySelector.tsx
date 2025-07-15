@@ -2,16 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Plus, ChevronDown, Search, Building, Users } from 'lucide-react';
+import { Plus, Search, Building, Users } from 'lucide-react';
 import { CreateCommunityModal } from './CreateCommunityModal';
 import { SearchCommunitiesModal } from './SearchCommunitiesModal';
 import { useCommunities } from '@/hooks/useCommunities';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface CommunitySelectorProps {
   selectedCommunityId: string | null;
@@ -29,6 +24,7 @@ export function CommunitySelector({
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   
+  const queryClient = useQueryClient();
   const { data: communitiesData, isLoading } = useCommunities(isAuthenticated);
   
   const userCommunities = communitiesData?.userCommunities || [];
@@ -51,6 +47,8 @@ export function CommunitySelector({
   };
 
   const handleCommunityCreated = (newCommunity: any) => {
+    // Invalidate communities cache to refresh the UI
+    queryClient.invalidateQueries({ queryKey: ['communities', isAuthenticated] });
     onCommunitySelect(newCommunity.id);
     setCreateModalOpen(false);
   };
@@ -67,46 +65,6 @@ export function CommunitySelector({
           <Plus className="w-4 h-4 mr-2" />
           Create Community
         </Button>
-
-        {/* My Communities Dropdown - Conditional */}
-        {isAuthenticated && userCommunities.length > 0 && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="flex-1 min-w-0 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800"
-              >
-                <Building className="w-4 h-4 mr-2" />
-                My Communities
-                <ChevronDown className="w-4 h-4 ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-80">
-              {userCommunities.map((community) => (
-                <DropdownMenuItem 
-                  key={community.id}
-                  onClick={() => onCommunitySelect(community.id)}
-                  className="flex items-center gap-3 p-3 cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{community.icon}</span>
-                    <div>
-                      <div className="font-medium text-slate-900 dark:text-white">
-                        {community.name}
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">
-                        {community.memberCount} members · {community.userRole}
-                      </div>
-                    </div>
-                  </div>
-                  {selectedCommunityId === community.id && (
-                    <div className="ml-auto w-2 h-2 bg-blue-500 rounded-full" />
-                  )}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
 
         {/* Search Communities Button */}
         <Button

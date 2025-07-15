@@ -33,7 +33,7 @@ export function useCommunities(isAuthenticated: boolean) {
 
       // Add auth header if available
       if (typeof window !== 'undefined' && isAuthenticated) {
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('curia_session_token');
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
         }

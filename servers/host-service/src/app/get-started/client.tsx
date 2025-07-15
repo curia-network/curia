@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { EmbedConfigurator } from '@/components/configurator/EmbedConfigurator';
 import { CodeGenerator } from '@/components/configurator/CodeGenerator';
 import { PreviewModal } from '@/components/configurator/PreviewModal';
+import { CreateCommunityModal } from '@/components/configurator/CreateCommunityModal';
 import { Footer } from '@/components/landing/Footer';
 import { ArrowLeft, Settings, Code, Eye } from 'lucide-react';
 
@@ -31,10 +32,11 @@ export function GetStartedPageClient() {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authToken, setAuthToken] = useState<string | null>(null);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   // Check authentication status on mount
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('curia_session_token');
     if (token) {
       setAuthToken(token);
       setIsAuthenticated(true);
@@ -43,12 +45,21 @@ export function GetStartedPageClient() {
     // Listen for auth completion from embedded auth-only modal
     const handleAuthComplete = (event: MessageEvent) => {
       if (event.data?.type === 'curia-auth-complete' && event.data?.mode === 'auth-only') {
-        const { sessionToken, userId } = event.data;
+        const { sessionToken, userId, communityId } = event.data;
         if (sessionToken) {
-          localStorage.setItem('authToken', sessionToken);
+          localStorage.setItem('curia_session_token', sessionToken);
           setAuthToken(sessionToken);
           setIsAuthenticated(true);
           console.log('Authentication completed for user:', userId);
+          
+          // If this was for community creation (no real community selected), open create modal
+          if (communityId === 'auth-only-no-community') {
+            console.log('Auth completed for community creation - opening create modal');
+            // Small delay to ensure state has updated
+            setTimeout(() => {
+              setCreateModalOpen(true);
+            }, 100);
+          }
         }
       }
     };
@@ -219,6 +230,16 @@ export function GetStartedPageClient() {
         isOpen={isPreviewModalOpen}
         onClose={() => setIsPreviewModalOpen(false)}
         config={config}
+      />
+
+      {/* Create Community Modal */}
+      <CreateCommunityModal 
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCommunityCreated={(newCommunity) => {
+          handleConfigChange({ selectedCommunityId: newCommunity.id });
+          setCreateModalOpen(false);
+        }}
       />
       
       <Footer />

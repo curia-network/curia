@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
+import { randomUUID } from 'crypto';
 
 // Database connection (same pattern as verify-signature)
 const pool = new Pool({
@@ -312,11 +313,13 @@ export async function POST(request: NextRequest) {
       }
 
       // Create the community
+      const communityId = randomUUID();
       const result = await client.query(
-        `INSERT INTO communities (name, community_short_id, owner_user_id, is_public, requires_approval, plugin_id, settings)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `INSERT INTO communities (id, name, community_short_id, owner_user_id, is_public, requires_approval, plugin_id, settings)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING id, name, created_at, updated_at, community_short_id, plugin_id, is_public, requires_approval, settings, logo_url`,
         [
+          communityId,
           body.name,
           body.community_short_id,
           userId,

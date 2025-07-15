@@ -52,7 +52,7 @@ export function CreateCommunityModal({
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('curia_session_token');
       const response = await fetch('/api/communities', {
         method: 'POST',
         headers: {

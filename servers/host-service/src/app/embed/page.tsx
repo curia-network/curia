@@ -107,7 +107,16 @@ const EmbedContent: React.FC = () => {
       setProfileData(sessionProfileData);
       console.log('[Embed] Profile data populated from session:', sessionProfileData);
       
-      // Check if embed has a specific community target
+      // Check for auth-only mode - skip community selection entirely
+      if (config.mode === 'auth-only') {
+        console.log('[Embed] Auth-only mode: sending auth-complete for existing session');
+        const userId = sessionProfileData.userId || sessionProfileData.address || `fallback_${Date.now()}`;
+        sendAuthCompleteMessage(userId, 'auth-only-no-community', sessionProfileData.sessionToken);
+        setCurrentStep('auth-complete');
+        return;
+      }
+      
+      // Normal flow: Check if embed has a specific community target
       if (config.community) {
         setSelectedCommunityId(config.community);
         setCurrentStep('community-selection');
@@ -119,12 +128,21 @@ const EmbedContent: React.FC = () => {
       // No session → show authentication
       setCurrentStep('authentication');
     }
-  }, [config.community]);
+  }, [config.community, config.mode, sendAuthCompleteMessage]);
 
   const handleAuthenticated = useCallback((data: ProfileData) => {
     setProfileData(data);
     
-    // Always show proper flow progression
+    // Check for auth-only mode - skip community selection entirely
+    if (config.mode === 'auth-only') {
+      console.log('[Embed] Auth-only mode: sending auth-complete immediately');
+      const userId = data.userId || data.address || `fallback_${Date.now()}`;
+      sendAuthCompleteMessage(userId, 'auth-only-no-community', data.sessionToken);
+      setCurrentStep('auth-complete');
+      return;
+    }
+    
+    // Normal flow progression
     if (data.type === 'anonymous') {
       // Skip profile preview and signature for anonymous users
       console.log('[Embed] Anonymous user: proceeding to community selection');
@@ -134,7 +152,7 @@ const EmbedContent: React.FC = () => {
       console.log('[Embed] Wallet connected: showing profile preview');
       setCurrentStep('profile-preview');
     }
-  }, []);
+  }, [config.mode, sendAuthCompleteMessage]);
 
   const handleProfileContinue = useCallback((updatedProfileData?: ProfileData) => {
     // Update ProfileData with database user information if provided from signing
@@ -142,9 +160,20 @@ const EmbedContent: React.FC = () => {
       console.log('[Embed] ProfileData updated from profile preview signing:', updatedProfileData);
       setProfileData(updatedProfileData);
     }
-    // Skip signature verification - signing happens in profile preview
+    
+    // Check for auth-only mode - skip community selection entirely
+    if (config.mode === 'auth-only') {
+      console.log('[Embed] Auth-only mode: sending auth-complete after profile preview');
+      const finalProfileData = updatedProfileData || profileData;
+      const userId = finalProfileData?.userId || finalProfileData?.address || `fallback_${Date.now()}`;
+      sendAuthCompleteMessage(userId, 'auth-only-no-community', finalProfileData?.sessionToken);
+      setCurrentStep('auth-complete');
+      return;
+    }
+    
+    // Normal flow: Skip signature verification - signing happens in profile preview
     setCurrentStep('community-selection');
-  }, []);
+  }, [config.mode, profileData, sendAuthCompleteMessage]);
 
   const handleSwitchAccount = useCallback(() => {
     setProfileData(null);
