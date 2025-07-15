@@ -13,13 +13,17 @@ interface CommunitySelectorProps {
   onCommunitySelect: (communityId: string) => void;
   isAuthenticated: boolean;
   onAuthRequired: () => void;
+  pendingCreateCommunity?: boolean;
+  onClearPendingCreate?: () => void;
 }
 
 export function CommunitySelector({
   selectedCommunityId,
   onCommunitySelect,
   isAuthenticated,
-  onAuthRequired
+  onAuthRequired,
+  pendingCreateCommunity = false,
+  onClearPendingCreate = () => {}
 }: CommunitySelectorProps) {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
@@ -37,6 +41,14 @@ export function CommunitySelector({
       onCommunitySelect(userCommunities[0].id);
     }
   }, [selectedCommunityId, userCommunities, onCommunitySelect]);
+
+  // Handle pending create community intent after authentication
+  useEffect(() => {
+    if (isAuthenticated && pendingCreateCommunity) {
+      setCreateModalOpen(true);
+      onClearPendingCreate();
+    }
+  }, [isAuthenticated, pendingCreateCommunity, onClearPendingCreate]);
 
   const handleCreateCommunity = () => {
     if (!isAuthenticated) {

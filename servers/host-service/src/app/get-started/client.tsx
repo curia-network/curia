@@ -33,6 +33,7 @@ export function GetStartedPageClient() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [pendingCreateCommunity, setPendingCreateCommunity] = useState(false);
 
   // Check authentication status on mount
   useEffect(() => {
@@ -52,13 +53,10 @@ export function GetStartedPageClient() {
           setIsAuthenticated(true);
           console.log('Authentication completed for user:', userId);
           
-          // If this was for community creation (no real community selected), open create modal
+          // If this was for community creation (no real community selected), set pending create intent
           if (communityId === 'auth-only-no-community') {
-            console.log('Auth completed for community creation - opening create modal');
-            // Small delay to ensure state has updated
-            setTimeout(() => {
-              setCreateModalOpen(true);
-            }, 100);
+            console.log('Auth completed for community creation - setting pending create intent');
+            setPendingCreateCommunity(true);
           }
         }
       }
@@ -70,6 +68,10 @@ export function GetStartedPageClient() {
 
   const handleConfigChange = (newConfig: Partial<EmbedConfig>) => {
     setConfig(prev => ({ ...prev, ...newConfig }));
+  };
+
+  const handleClearPendingCreate = () => {
+    setPendingCreateCommunity(false);
   };
 
   const handleAuthRequired = () => {
@@ -197,6 +199,8 @@ export function GetStartedPageClient() {
                 onChange={handleConfigChange}
                 isAuthenticated={isAuthenticated}
                 onAuthRequired={handleAuthRequired}
+                pendingCreateCommunity={pendingCreateCommunity}
+                onClearPendingCreate={handleClearPendingCreate}
               />
             </div>
 

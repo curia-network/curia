@@ -20,6 +20,8 @@ interface EmbedConfiguratorProps {
   onChange: (config: Partial<EmbedConfig>) => void;
   isAuthenticated?: boolean;
   onAuthRequired?: () => void;
+  pendingCreateCommunity?: boolean;
+  onClearPendingCreate?: () => void;
 }
 
 interface SizePreset {
@@ -53,7 +55,9 @@ export function EmbedConfigurator({
   config, 
   onChange,
   isAuthenticated = false,
-  onAuthRequired = () => {}
+  onAuthRequired = () => {},
+  pendingCreateCommunity = false,
+  onClearPendingCreate = () => {}
 }: EmbedConfiguratorProps) {
   const [customWidth, setCustomWidth] = useState(config.width);
   const [customHeight, setCustomHeight] = useState(config.height);
@@ -115,6 +119,8 @@ export function EmbedConfigurator({
             onCommunitySelect={handleCommunitySelect}
             isAuthenticated={isAuthenticated}
             onAuthRequired={onAuthRequired}
+            pendingCreateCommunity={pendingCreateCommunity}
+            onClearPendingCreate={onClearPendingCreate}
           />
         </CardContent>
       </Card>
