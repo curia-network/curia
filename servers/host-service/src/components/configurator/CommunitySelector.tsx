@@ -47,8 +47,24 @@ export function CommunitySelector({
   };
 
   const handleCommunityCreated = (newCommunity: any) => {
-    // Invalidate communities cache to refresh the UI
-    queryClient.invalidateQueries({ queryKey: ['communities', isAuthenticated] });
+    // Optimistically update cache with new community data (already confirmed in DB)
+    // Update BOTH cache keys since SearchCommunitiesModal uses different key
+    queryClient.setQueryData(['communities', true], (oldData: any) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        userCommunities: [...oldData.userCommunities, newCommunity]
+      };
+    });
+    
+    queryClient.setQueryData(['communities', false], (oldData: any) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        userCommunities: [...oldData.userCommunities, newCommunity]
+      };
+    });
+    
     onCommunitySelect(newCommunity.id);
     setCreateModalOpen(false);
   };
