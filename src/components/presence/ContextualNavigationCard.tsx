@@ -31,6 +31,7 @@ import { authFetchJson } from '@/utils/authFetch';
 import { BoardVerificationApiResponse } from '@/types/boardVerification';
 import { buildExternalShareUrl } from '@/utils/urlBuilder';
 import { ApiCommunity } from '@/app/api/communities/[communityId]/route';
+import { useCommunityData } from '@/hooks/useCommunityData';
 
 // Navigation context interface
 interface NavigationContext {
@@ -61,6 +62,9 @@ export const ContextualNavigationCard: React.FC<ContextualNavigationCardProps> =
   const searchParams = useSearchParams();
   const { navigationContext, currentBoard, currentPost, commentCount = 0 } = data;
   const { token, user } = useAuth();
+  
+  // Fetch community data for hosting URL
+  const { data: communityData } = useCommunityData();
   
   // Get real-time typing count based on current context
   const activeTypers = useActiveTypingCount(
@@ -174,7 +178,9 @@ export const ContextualNavigationCard: React.FC<ContextualNavigationCardProps> =
         communityShortId || undefined,
         pluginId || undefined,
         currentPost.title,
-        currentBoard.name
+        currentBoard.name,
+        true, // useSemanticUrl
+        (communityData?.settings as any)?.hosting?.domain
       );
       
       console.log(`[ContextualNavigationCard] Successfully created semantic URL: ${generatedShareUrl}`);

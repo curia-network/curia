@@ -165,12 +165,14 @@ export async function buildExternalShareUrl(
   pluginId?: string,
   postTitle?: string,
   boardName?: string,
-  useSemanticUrl: boolean = true
+  useSemanticUrl: boolean = true,
+  communityHostingUrl?: string
 ): Promise<string> {
-  const pluginBaseUrl = process.env.NEXT_PUBLIC_PLUGIN_BASE_URL;
+  // Prioritize community hosting URL over env var
+  const baseUrl = communityHostingUrl || process.env.NEXT_PUBLIC_PLUGIN_BASE_URL;
   
-  if (!pluginBaseUrl) {
-    console.warn('NEXT_PUBLIC_PLUGIN_BASE_URL not configured, falling back to internal URL');
+  if (!baseUrl) {
+    console.warn('[buildExternalShareUrl] No hosting URL configured (community or env var), falling back to internal URL');
     return buildPostUrl(postId, boardId, false);
   }
   
@@ -194,7 +196,8 @@ export async function buildExternalShareUrl(
           boardName,
           shareSource: 'direct_share',
           communityShortId,
-          pluginId
+          pluginId,
+          communityHostingUrl: baseUrl
         }),
       });
       
@@ -208,7 +211,7 @@ export async function buildExternalShareUrl(
   
   // Fallback to legacy URL generation
   console.log(`[buildExternalShareUrl] Using legacy URL for post ${postId}`);
-  return buildLegacyExternalShareUrl(postId, boardId, communityShortId, pluginId);
+  return buildLegacyExternalShareUrl(postId, boardId, communityShortId, pluginId, baseUrl);
 }
 
 /**
@@ -223,12 +226,14 @@ export function buildLegacyExternalShareUrl(
   postId: number, 
   boardId: number, 
   communityShortId?: string, 
-  pluginId?: string
+  pluginId?: string,
+  hostingUrl?: string
 ): string {
-  const pluginBaseUrl = process.env.NEXT_PUBLIC_PLUGIN_BASE_URL;
+  // Prioritize community hosting URL over env var
+  const pluginBaseUrl = hostingUrl || process.env.NEXT_PUBLIC_PLUGIN_BASE_URL;
   
   if (!pluginBaseUrl) {
-    console.warn('NEXT_PUBLIC_PLUGIN_BASE_URL not configured, falling back to internal URL');
+    console.warn('[buildLegacyExternalShareUrl] No hosting URL configured (community or env var), falling back to internal URL');
     return buildPostUrl(postId, boardId, false);
   }
   

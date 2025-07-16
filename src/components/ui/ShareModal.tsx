@@ -18,6 +18,8 @@ interface ShareModalProps {
   postTitle: string;
   isGenerating?: boolean;
   isWebShareFallback?: boolean;
+  hasError?: boolean;
+  errorMessage?: string;
 }
 
 export const ShareModal: React.FC<ShareModalProps> = ({
@@ -27,6 +29,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   postTitle,
   isGenerating = false,
   isWebShareFallback = false,
+  hasError = false,
+  errorMessage = '',
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
@@ -101,6 +105,11 @@ export const ShareModal: React.FC<ShareModalProps> = ({
               <strong>📱 Mobile Share Note:</strong> Direct sharing isn&apos;t available in this context. Copy the link below to share manually.
             </div>
           )}
+          {hasError && (
+            <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded-md border border-red-200 dark:border-red-800 mt-2">
+              <strong>⚠️ Configuration Required:</strong> {errorMessage || 'The admin of this community has to enable link sharing in the Community Settings by configuring the Community Hosting URL.'}
+            </div>
+          )}
         </DialogHeader>
         
         <div className="space-y-4">
@@ -112,11 +121,12 @@ export const ShareModal: React.FC<ShareModalProps> = ({
               <Input
                 id="share-url"
                 ref={inputRef}
-                value={isGenerating ? '' : shareUrl}
+                value={isGenerating ? '' : (hasError ? '' : shareUrl)}
                 readOnly
-                onClick={handleInputClick}
+                onClick={!hasError ? handleInputClick : undefined}
                 className="font-mono text-sm"
-                placeholder={isGenerating ? "Generating share link..." : "Share URL"}
+                placeholder={isGenerating ? "Generating share link..." : (hasError ? "Share URL unavailable" : "Share URL")}
+                disabled={hasError}
               />
               <Button
                 size="sm"
@@ -124,6 +134,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                 onClick={handleCopyClick}
                 className="px-3 min-w-[80px]"
                 title={copied ? "Copied!" : "Copy to clipboard"}
+                disabled={hasError || isGenerating}
               >
                 {copied ? (
                   <>

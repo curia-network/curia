@@ -20,7 +20,8 @@ async function createSemanticUrl(req: AuthenticatedRequest) {
       expiresIn,
       customSlug,
       communityShortId: overrideCommunityShortId,
-      pluginId: overridePluginId
+      pluginId: overridePluginId,
+      communityHostingUrl
     } = body;
 
     // Validate required fields
@@ -70,7 +71,7 @@ async function createSemanticUrl(req: AuthenticatedRequest) {
     console.log(`[API] Creating/updating semantic URL for post ${postId} with community ${communityShortId}`);
 
     const semanticUrl = await SemanticUrlService.createOrUpdate(semanticUrlParams);
-    const fullUrl = SemanticUrlService.buildFullUrl(semanticUrl);
+    const fullUrl = SemanticUrlService.buildFullUrl(semanticUrl, communityHostingUrl);
 
     // Check if this was a migration by comparing community short IDs
     const wasMigration = semanticUrl.communityShortIdHistory.length > 1;

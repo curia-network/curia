@@ -40,6 +40,7 @@ import { SettingsUtils } from '@/types/settings';
 import { getUPDisplayName } from '@/lib/upProfile';
 import { buildExternalShareUrl, preserveCgParams } from '@/utils/urlBuilder';
 import { ShareModal } from '@/components/ui/ShareModal';
+import { useCommunityData } from '@/hooks/useCommunityData';
 import { ReactionBar } from '../reactions/ReactionBar';
 import { UserProfilePopover } from '../mentions/UserProfilePopover';
 import { Card } from '@/components/ui/card';
@@ -90,6 +91,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, showBoardContext = fal
   const [shareUrl, setShareUrl] = useState('');
   const [isGeneratingShareUrl, setIsGeneratingShareUrl] = useState(false);
   const [isWebShareFallback, setIsWebShareFallback] = useState(false);
+  const [shareError, setShareError] = useState(false);
   const [isAuthorPopoverOpen, setIsAuthorPopoverOpen] = useState(false);
   
   // UP profile names for follower requirements (address -> display name)
@@ -100,6 +102,9 @@ export const PostCard: React.FC<PostCardProps> = ({ post, showBoardContext = fal
   const router = useRouter();
   const searchParams = useSearchParams();
   const timeSinceText = useTimeSince(post.created_at);
+
+  // Fetch community data for hosting URL
+  const { data: communityData } = useCommunityData();
 
   // Calculate interaction levels
   const isInteractive = !isPreviewMode;
@@ -267,6 +272,15 @@ export const PostCard: React.FC<PostCardProps> = ({ post, showBoardContext = fal
       return;
     }
 
+    // Check if community hosting URL is configured
+    const communityHostingUrl = (communityData?.settings as any)?.hosting?.domain;
+    if (!communityHostingUrl && !process.env.NEXT_PUBLIC_PLUGIN_BASE_URL) {
+      console.warn('[PostCard] No hosting URL configured, showing error modal');
+      setShareError(true);
+      setShowShareModal(true);
+      return;
+    }
+
     // Prevent multiple concurrent share operations
     if (isGeneratingShareUrl) {
       console.log('[PostCard] Share URL generation already in progress');
@@ -274,6 +288,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, showBoardContext = fal
     }
 
     setIsGeneratingShareUrl(true);
+    setShareError(false); // Reset error state
 
     let generatedShareUrl: string;
     
@@ -322,7 +337,9 @@ export const PostCard: React.FC<PostCardProps> = ({ post, showBoardContext = fal
         communityShortId || undefined,
         pluginId || undefined,
         post.title,
-        post.board_name
+        post.board_name,
+        true, // useSemanticUrl
+        (communityData?.settings as any)?.hosting?.domain
       );
       
       console.log(`[PostCard] Successfully created semantic URL: ${generatedShareUrl}`);
@@ -1004,11 +1021,13 @@ export const PostCard: React.FC<PostCardProps> = ({ post, showBoardContext = fal
           onClose={() => {
             setShowShareModal(false);
             setIsWebShareFallback(false);
+            setShareError(false);
           }}
           shareUrl={shareUrl}
           postTitle={post.title}
           isGenerating={isGeneratingShareUrl}
           isWebShareFallback={isWebShareFallback}
+          hasError={shareError}
         />
       )}
     </Card>
