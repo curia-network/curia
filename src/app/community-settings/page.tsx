@@ -28,6 +28,8 @@ import { CommunityAccessForm } from '@/components/CommunityAccessForm';
 import { TelegramGroupsSection } from '@/components/settings/TelegramGroupsSection';
 import { CommunityBackgroundSettings } from '@/components/settings/CommunityBackgroundSettings';
 import { CommunityAIAutoModerationSettings } from '@/components/settings/CommunityAIAutoModerationSettings';
+import { CommunityHostingSettings } from '@/components/settings/CommunityHostingSettings';
+import { AnonymousPermissionsSettings } from '@/components/settings/AnonymousPermissionsSettings';
 import { useEffectiveTheme } from '@/hooks/useEffectiveTheme';
 // Removed server-side import - now using API endpoint
 
@@ -521,6 +523,26 @@ export default function CommunitySettingsPage() {
           {/* AI Auto-Moderation Settings */}
           <div className="mb-6">
             <CommunityAIAutoModerationSettings 
+              currentSettings={communitySettings?.settings || {}}
+              onSettingsChange={(settings: CommunitySettings) => updateCommunityMutation.mutate(settings)}
+              isLoading={updateCommunityMutation.isPending}
+              theme={theme}
+            />
+          </div>
+
+          {/* Community Hosting Settings */}
+          <div className="mb-6">
+            <CommunityHostingSettings 
+              currentSettings={communitySettings?.settings || {}}
+              onSettingsChange={(settings: CommunitySettings) => updateCommunityMutation.mutate(settings)}
+              isLoading={updateCommunityMutation.isPending}
+              theme={theme}
+            />
+          </div>
+
+          {/* Anonymous User Permissions Settings */}
+          <div className="mb-6">
+            <AnonymousPermissionsSettings 
               currentSettings={communitySettings?.settings || {}}
               onSettingsChange={(settings: CommunitySettings) => updateCommunityMutation.mutate(settings)}
               isLoading={updateCommunityMutation.isPending}

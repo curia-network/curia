@@ -37,6 +37,21 @@ export interface CommunitySettings {
     
     // Future AI features can be added here as needed
   };
+
+  // Community hosting configuration
+  hosting?: {
+    domain: string; // Domain where this community's forum is hosted (e.g., "https://mycommunity.com")
+    // Future: subdomain?: string; customPath?: string;
+  };
+
+  // Anonymous user permissions
+  anonymousPermissions?: {
+    canPost: boolean;        // Can anonymous users create posts?
+    canComment: boolean;     // Can anonymous users comment?
+    canUpvote: boolean;      // Can anonymous users upvote posts?
+    canReact: boolean;       // Can anonymous users add reactions?
+    // Future: canShare?: boolean; rateLimiting?: { postsPerHour: number };
+  };
   
   // Future community-wide settings:
   // branding?: { customTheme: string; logoOverride: string };
