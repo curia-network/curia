@@ -56,7 +56,7 @@ async function generateCommunityRSSXML(
   community: RSSCommunity,
   posts: (ApiPost & { board_name: string })[]
 ): Promise<string> {
-  const pluginBaseUrl = process.env.NEXT_PUBLIC_PLUGIN_BASE_URL || '';
+  const pluginBaseUrl = process.env.NEXT_PUBLIC_RSS_BASE_URL || '';
   const communityUrl = `${pluginBaseUrl}/?communityId=${community.id}`;
   const currentDate = new Date().toUTCString();
 
@@ -330,7 +330,7 @@ export async function GET(
   <channel>
     <title>${escapeXML(community.name)} - Recent Discussions</title>
     <description>Latest posts from all boards in ${escapeXML(community.name)}</description>
-    <link>${process.env.NEXT_PUBLIC_PLUGIN_BASE_URL}/?communityId=${communityId}</link>
+    <link>${process.env.NEXT_PUBLIC_RSS_BASE_URL}/?communityId=${communityId}</link>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <generator>CommonGround RSS Generator v2.0 (Community Feed)</generator>
     <language>en-us</language>

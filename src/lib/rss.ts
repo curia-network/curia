@@ -96,9 +96,9 @@ export function convertMarkdownToHTML(
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match: string, text: string, url: string) => {
     // Convert internal links to external URLs
          if (url.startsWith('/')) {
-       const baseUrl = 'NEXT_PUBLIC_PLUGIN_BASE_URL' in (typeof globalThis !== 'undefined' ? globalThis : {}) 
-         ? (globalThis as any).NEXT_PUBLIC_PLUGIN_BASE_URL 
-         : '';
+           const baseUrl = 'NEXT_PUBLIC_RSS_BASE_URL' in (typeof globalThis !== 'undefined' ? globalThis : {}) 
+      ? (globalThis as any).NEXT_PUBLIC_RSS_BASE_URL 
+      : '';
        const externalUrl = `${baseUrl}${url}`;
        return `<a href="${externalUrl}" target="_blank" rel="noopener noreferrer">${text}</a>`;
      }
@@ -133,7 +133,7 @@ export function generateRSSXML(
   community: RSSCommunity,
   posts: ApiPost[]
 ): string {
-  const pluginBaseUrl = process.env.NEXT_PUBLIC_PLUGIN_BASE_URL || '';
+  const pluginBaseUrl = process.env.NEXT_PUBLIC_RSS_BASE_URL || '';
   const boardUrl = `${pluginBaseUrl}/?boardId=${board.id}`;
   const currentDate = new Date().toUTCString();
 
@@ -203,7 +203,7 @@ export function escapeXML(text: string): string {
  * Gets RSS feed URL for a board
  */
 export function getRSSFeedUrl(boardId: number): string {
-  const baseUrl = process.env.NEXT_PUBLIC_PLUGIN_BASE_URL || '';
+  const baseUrl = process.env.NEXT_PUBLIC_RSS_BASE_URL || '';
   return `${baseUrl}/api/boards/${boardId}/rss`;
 }
 
@@ -211,7 +211,7 @@ export function getRSSFeedUrl(boardId: number): string {
  * Gets RSS feed URL for a community (home feed)
  */
 export function getCommunityRSSFeedUrl(communityId: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_PLUGIN_BASE_URL || '';
+  const baseUrl = process.env.NEXT_PUBLIC_RSS_BASE_URL || '';
   return `${baseUrl}/api/communities/${communityId}/rss`;
 }
 

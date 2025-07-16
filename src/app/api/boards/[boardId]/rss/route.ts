@@ -24,7 +24,7 @@ async function generateSemanticRSSXML(
   },
   posts: ApiPost[]
 ): Promise<string> {
-  const pluginBaseUrl = process.env.NEXT_PUBLIC_PLUGIN_BASE_URL || '';
+  const pluginBaseUrl = process.env.NEXT_PUBLIC_RSS_BASE_URL || '';
   const boardUrl = `${pluginBaseUrl}/?boardId=${board.id}`;
   const currentDate = new Date().toUTCString();
 
