@@ -738,9 +738,23 @@ export class SemanticUrlService {
    * @returns Complete semantic URL string
    */
   static buildFullUrl(semanticUrlData: SemanticUrlData, baseUrl?: string): string {
-    const base = baseUrl || process.env.NEXT_PUBLIC_PLUGIN_BASE_URL || '';
-    const path = `/c/${semanticUrlData.communityShortId}/${semanticUrlData.boardSlug}/${semanticUrlData.slug}`;
+    const envBaseUrl = process.env.NEXT_PUBLIC_PLUGIN_BASE_URL || '';
     
-    return base ? `${base.replace(/\/$/, '')}${path}` : path;
+    if (baseUrl) {
+      // Community hosting URL: use query parameters for embedded forum
+      const params = new URLSearchParams();
+      params.set('curia_community', semanticUrlData.communityShortId);
+      params.set('curia_board', semanticUrlData.boardSlug);
+      params.set('curia_post', semanticUrlData.slug);
+      
+      return `${baseUrl.replace(/\/$/, '')}?${params.toString()}`;
+    } else if (envBaseUrl) {
+      // Environment variable URL: use path-based approach (fallback)
+      const path = `/c/${semanticUrlData.communityShortId}/${semanticUrlData.boardSlug}/${semanticUrlData.slug}`;
+      return `${envBaseUrl.replace(/\/$/, '')}${path}`;
+    } else {
+      // No base URL: return path only
+      return `/c/${semanticUrlData.communityShortId}/${semanticUrlData.boardSlug}/${semanticUrlData.slug}`;
+    }
   }
 } 
