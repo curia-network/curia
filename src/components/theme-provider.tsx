@@ -148,7 +148,8 @@ function CgThemeSynchronizer() {
       }
     }
     // CRITICAL: Remove setTheme from dependencies to prevent infinite loop
-  }, [cgTheme, cgBgColor, cgFgColor, backgroundForcedTheme, theme]);
+    // Also remove 'theme' since we're setting it inside the effect (would cause infinite loop)
+  }, [cgTheme, cgBgColor, cgFgColor, backgroundForcedTheme]);
 
   return null; // This component does not render anything itself
 }
