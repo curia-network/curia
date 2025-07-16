@@ -342,6 +342,7 @@ export async function POST(req: NextRequest) {
     let isUserAdmin = false;
     const adminRoleTitleEnvVar = process.env.NEXT_PUBLIC_ADMIN_ROLE_IDS;
 
+    // Check 1: Role-based admin status
     if (adminRoleTitleEnvVar && userRoleIds && userRoleIds.length > 0 && communityRoles && communityRoles.length > 0) {
       const adminTitlesFromEnv = adminRoleTitleEnvVar.split(',').map(roleTitle => roleTitle.trim().toLowerCase());
       
@@ -355,7 +356,30 @@ export async function POST(req: NextRequest) {
 
       isUserAdmin = userTitles.some(userRoleTitle => adminTitlesFromEnv.includes(userRoleTitle));
     }
-    console.log(`[/api/auth/session] Determined admin status based on role titles and env var: ${isUserAdmin}`);
+    console.log(`[/api/auth/session] Determined admin status based on role titles: ${isUserAdmin}`);
+
+    // Check 2: Community owner status
+    if (!isUserAdmin) {
+      try {
+        const ownerCheckResult = await query(
+          'SELECT owner_user_id FROM communities WHERE id = $1',
+          [communityId]
+        );
+        
+        if (ownerCheckResult.rows.length > 0) {
+          const ownerUserId = ownerCheckResult.rows[0].owner_user_id;
+          if (ownerUserId === userId) {
+            isUserAdmin = true;
+            console.log(`[/api/auth/session] User ${userId} is community owner for ${communityId}`);
+          }
+        }
+      } catch (ownerCheckError) {
+        console.error(`[/api/auth/session] Error checking community owner status:`, ownerCheckError);
+        // Non-critical error, continue with existing admin status
+      }
+    }
+
+    console.log(`[/api/auth/session] Final admin status (role + owner check): ${isUserAdmin}`);
 
     const payloadToSign: TokenSignPayload = {
       sub: userId,
