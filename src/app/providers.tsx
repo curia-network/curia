@@ -8,6 +8,7 @@ import { SocketProvider } from '@/contexts/SocketContext';
 import { GlobalSearchProvider } from '@/contexts/GlobalSearchContext';
 import { ConditionalUniversalProfileProvider } from '@/contexts/ConditionalUniversalProfileProvider';
 import { AppInitializer } from '@/components/AppInitializer';
+import { ExternalParamsProvider } from '@/contexts/ExternalParamsContext';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -55,7 +56,9 @@ export function Providers({ children }: ProvidersProps) {
             <WalletProviders>
               <SocketProvider>
                 <AppInitializer />
-                {children}
+                <ExternalParamsProvider>
+                  {children}
+                </ExternalParamsProvider>
               </SocketProvider>
             </WalletProviders>
           </GlobalSearchProvider>
