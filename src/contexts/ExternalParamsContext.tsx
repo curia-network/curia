@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ExternalParamsContextType {
@@ -25,8 +25,17 @@ interface ExternalParamsProviderProps {
   children: ReactNode;
 }
 
+// Interface for resolved navigation target
+interface ResolvedNavigationTarget {
+  boardId: number;
+  postId?: number;
+  communityShortId: string;
+  pluginId: string;
+}
+
 export function ExternalParamsProvider({ children }: ExternalParamsProviderProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { user, token } = useAuth();
   const [externalParams, setExternalParams] = useState<Record<string, string>>({});
   const [processedParams, setProcessedParams] = useState<string[]>([]);
@@ -89,16 +98,62 @@ export function ExternalParamsProvider({ children }: ExternalParamsProviderProps
 
   }, [externalParams, user, token, processedParams]);
 
+  // Resolution function using links table
+  const resolveNavigationTarget = async (
+    communityShortId: string,
+    boardSlug: string,
+    postSlug?: string
+  ): Promise<ResolvedNavigationTarget | null> => {
+    try {
+      console.log(`🔧 [EXT_PARAMS] Resolving navigation target: community=${communityShortId}, board=${boardSlug}, post=${postSlug}`);
+      
+      // Build semantic URL path for resolution
+      const semanticPath = postSlug 
+        ? `/c/${communityShortId}/${boardSlug}/${postSlug}`
+        : `/c/${communityShortId}/${boardSlug}`;
+      
+      // Use the semantic URL resolution endpoint (public endpoint, no auth needed)
+      const response = await fetch(`/api/links/resolve?path=${encodeURIComponent(semanticPath)}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      return {
+        boardId: data.boardId,
+        postId: data.postId,
+        communityShortId: data.communityShortId,
+        pluginId: data.pluginId
+      };
+      
+    } catch (error) {
+      console.error('🔧 [EXT_PARAMS] Failed to resolve navigation target:', error);
+      return null;
+    }
+  };
+
   // Main processing function for external parameters
-  const processExternalParam = (key: string, value: string, userContext: typeof user, tokenContext: string) => {
+  const processExternalParam = async (key: string, value: string, userContext: typeof user, tokenContext: string) => {
     console.log(`🔧 [EXT_PARAMS] Processing: ${key} = "${value}"`);
     
     // Add your processing logic here based on parameter type
     switch (key) {
+      case 'ext_community':
+      case 'ext_board':
+      case 'ext_post':
+        // Handle navigation parameters - trigger navigation attempt
+        // Use setTimeout to let all parameters be processed first
+        setTimeout(() => {
+          handleNavigation();
+        }, 100);
+        break;
+      
       case 'ext_navigate':
         console.log(`🔧 [EXT_PARAMS] Navigation requested: ${value}`);
         console.log(`🔧 [EXT_PARAMS] User context available:`, !!userContext);
-        // TODO: Implement navigation logic
+        // TODO: Implement legacy navigation logic for ext_navigate parameter
         break;
       
       case 'ext_highlight':
@@ -125,6 +180,46 @@ export function ExternalParamsProvider({ children }: ExternalParamsProviderProps
         console.log(`🔧 [EXT_PARAMS] User context available:`, !!userContext);
         // TODO: Handle unknown parameter types
         break;
+    }
+  };
+
+  // Handle navigation when community/board/post parameters are available
+  const handleNavigation = async () => {
+    const communityId = getParam('ext_community');
+    const boardId = getParam('ext_board');
+    const postId = getParam('ext_post');
+    
+    if (!communityId || !boardId) {
+      console.log('🔧 [EXT_PARAMS] Insufficient navigation parameters - need at least community and board');
+      return;
+    }
+
+    console.log(`🔧 [EXT_PARAMS] Attempting navigation with params: community=${communityId}, board=${boardId}, post=${postId}`);
+
+    try {
+      // Resolve navigation target using links table
+      const resolved = await resolveNavigationTarget(communityId, boardId, postId);
+      
+      if (!resolved) {
+        console.error('🔧 [EXT_PARAMS] Failed to resolve navigation target');
+        return;
+      }
+
+      console.log(`🔧 [EXT_PARAMS] Resolved navigation target:`, resolved);
+
+      // Navigate to the resolved target
+      if (resolved.postId) {
+        const postUrl = `/board/${resolved.boardId}/post/${resolved.postId}`;
+        console.log(`🔧 [EXT_PARAMS] Navigating to post: ${postUrl}`);
+        router.push(postUrl);
+      } else {
+        const boardUrl = `/?boardId=${resolved.boardId}`;
+        console.log(`🔧 [EXT_PARAMS] Navigating to board: ${boardUrl}`);
+        router.push(boardUrl);
+      }
+
+    } catch (error) {
+      console.error('🔧 [EXT_PARAMS] Navigation failed:', error);
     }
   };
 
