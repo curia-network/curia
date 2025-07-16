@@ -42,9 +42,12 @@ export const CommunityHostingSettings: React.FC<CommunityHostingSettingsProps> =
   };
 
   const handleSave = () => {
+    // Normalize the domain by removing trailing slashes
+    const normalizedDomain = localDomain.trim().replace(/\/+$/, '');
+    
     const newSettings: CommunitySettings = {
       ...currentSettings,
-      hosting: localDomain.trim() ? { domain: localDomain.trim() } : undefined
+      hosting: normalizedDomain ? { domain: normalizedDomain } : undefined
     };
     
     onSettingsChange(newSettings);
@@ -76,7 +79,7 @@ export const CommunityHostingSettings: React.FC<CommunityHostingSettingsProps> =
             <div>
               <CardTitle className="text-lg">Community Hosting</CardTitle>
               <CardDescription>
-                Configure the domain where your forum is hosted
+                Configure the URL where your forum is hosted
               </CardDescription>
             </div>
           </div>
@@ -93,21 +96,22 @@ export const CommunityHostingSettings: React.FC<CommunityHostingSettingsProps> =
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              This domain will be used for generating shareable links and RSS feeds. 
-              If not set, the system will use the default environment configuration.
+              This is the exact URL where your forum is hosted (with our embed script included). 
+              It will be used for generating shareable links to posts and other content. 
+              This URL must include the embed script for parameter pass-through to work properly.
             </AlertDescription>
           </Alert>
 
           <div className="space-y-4">
             <div>
               <Label htmlFor="domain" className="text-sm font-medium">
-                Community Domain
+                Community Hosting URL
               </Label>
               <div className="mt-1">
                 <Input
                   id="domain"
                   type="url"
-                  placeholder="https://mycommunity.com"
+                  placeholder="https://mycommunity.com/forum"
                   value={localDomain}
                   onChange={(e) => handleDomainChange(e.target.value)}
                   className={cn(
@@ -124,7 +128,7 @@ export const CommunityHostingSettings: React.FC<CommunityHostingSettingsProps> =
                   "text-xs mt-1",
                   theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
                 )}>
-                  Include the protocol (https://) and domain where your forum is embedded
+                  The complete URL where your forum is hosted (e.g., https://mycommunity.com/forum). Trailing slashes will be automatically handled.
                 </p>
               </div>
             </div>
