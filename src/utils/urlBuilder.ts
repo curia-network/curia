@@ -18,6 +18,71 @@ interface CreateSemanticUrlResponse {
 }
 
 /**
+ * Gets the parent window URL for sharing fallback
+ * This is used when community hosting URL is not configured
+ * @returns The parent window URL or null if not available
+ */
+function getParentWindowUrl(): string | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  
+  // 1. PRIORITY: Check for cg_parent_url query parameter (from embed script)
+  const parentUrl = new URLSearchParams(window.location.search).get('cg_parent_url');
+  if (parentUrl) {
+    try {
+      const decoded = decodeURIComponent(parentUrl);
+      if (isValidUrl(decoded)) {
+        console.log('[getParentWindowUrl] Using cg_parent_url parameter:', decoded);
+        return decoded;
+      } else {
+        console.warn('[getParentWindowUrl] Invalid cg_parent_url parameter (not a valid URL):', decoded);
+      }
+    } catch (error) {
+      console.warn('[getParentWindowUrl] Failed to decode cg_parent_url parameter:', error);
+    }
+  }
+  
+  // 2. FALLBACK: Try to access parent window (usually blocked by CORS)
+  try {
+    // Check if we're in an iframe and can access parent
+    if (window.parent && window.parent !== window) {
+      const parentWindowUrl = window.parent.location.href;
+      if (isValidUrl(parentWindowUrl)) {
+        console.log('[getParentWindowUrl] Using parent window URL:', parentWindowUrl);
+        return parentWindowUrl;
+      }
+    }
+    
+    // Not in iframe, use current window URL as last resort
+    const currentWindowUrl = window.location.href;
+    if (isValidUrl(currentWindowUrl)) {
+      console.log('[getParentWindowUrl] Using current window URL:', currentWindowUrl);
+      return currentWindowUrl;
+    }
+  } catch {
+    // Cross-origin iframe - cannot access parent
+    console.warn('[getParentWindowUrl] Cannot access parent window URL due to cross-origin restrictions');
+  }
+  
+  return null;
+}
+
+/**
+ * Validates if a string is a valid URL
+ * @param url - The URL string to validate
+ * @returns True if valid URL, false otherwise
+ */
+function isValidUrl(url: string): boolean {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Builds a URL to a specific post detail page
  * @param postId - The ID of the post
  * @param boardId - The ID of the board the post belongs to
@@ -168,12 +233,11 @@ export async function buildExternalShareUrl(
   useSemanticUrl: boolean = true,
   communityHostingUrl?: string
 ): Promise<string> {
-  // Prioritize community hosting URL over env var
-  const baseUrl = communityHostingUrl || process.env.NEXT_PUBLIC_PLUGIN_BASE_URL;
+  // Priority chain: 1) Community hosting URL, 2) Parent window URL, 3) Error
+  const baseUrl = communityHostingUrl || getParentWindowUrl();
   
   if (!baseUrl) {
-    console.warn('[buildExternalShareUrl] No hosting URL configured (community or env var), falling back to internal URL');
-    return buildPostUrl(postId, boardId, false);
+    throw new Error('No sharing URL configured. Please ask your community admin to configure the hosting URL in community settings.');
   }
   
   // Try to generate semantic URL if all data available and enabled
@@ -229,12 +293,11 @@ export function buildLegacyExternalShareUrl(
   pluginId?: string,
   hostingUrl?: string
 ): string {
-  // Prioritize community hosting URL over env var
-  const pluginBaseUrl = hostingUrl || process.env.NEXT_PUBLIC_PLUGIN_BASE_URL;
+  // Priority chain: 1) Community hosting URL, 2) Parent window URL, 3) Error
+  const pluginBaseUrl = hostingUrl || getParentWindowUrl();
   
   if (!pluginBaseUrl) {
-    console.warn('[buildLegacyExternalShareUrl] No hosting URL configured (community or env var), falling back to internal URL');
-    return buildPostUrl(postId, boardId, false);
+    throw new Error('No sharing URL configured. Please ask your community admin to configure the hosting URL in community settings.');
   }
   
   // Remove trailing slash if present

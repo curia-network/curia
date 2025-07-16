@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { preserveCgParams } from '@/utils/urlBuilder';
 
 interface ExternalParamsContextType {
   externalParams: Record<string, string>;
@@ -207,13 +208,13 @@ export function ExternalParamsProvider({ children }: ExternalParamsProviderProps
 
       console.log(`🔧 [EXT_PARAMS] Resolved navigation target:`, resolved);
 
-      // Navigate to the resolved target
+      // Navigate to the resolved target while preserving CG parameters
       if (resolved.postId) {
-        const postUrl = `/board/${resolved.boardId}/post/${resolved.postId}`;
+        const postUrl = preserveCgParams(`/board/${resolved.boardId}/post/${resolved.postId}`);
         console.log(`🔧 [EXT_PARAMS] Navigating to post: ${postUrl}`);
         router.push(postUrl);
       } else {
-        const boardUrl = `/?boardId=${resolved.boardId}`;
+        const boardUrl = preserveCgParams('/', { boardId: resolved.boardId.toString() });
         console.log(`🔧 [EXT_PARAMS] Navigating to board: ${boardUrl}`);
         router.push(boardUrl);
       }

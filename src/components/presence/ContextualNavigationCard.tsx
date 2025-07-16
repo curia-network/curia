@@ -186,9 +186,15 @@ export const ContextualNavigationCard: React.FC<ContextualNavigationCardProps> =
       console.log(`[ContextualNavigationCard] Successfully created semantic URL: ${generatedShareUrl}`);
       
     } catch (shareUrlError) {
-      console.warn('[ContextualNavigationCard] Failed to create semantic URL, using internal fallback:', shareUrlError);
+      console.warn('[ContextualNavigationCard] Failed to create share URL:', shareUrlError);
       
-      // Fallback to internal URL if semantic URL generation fails
+      // Check if it's a configuration error (no hosting URL available)
+      if (shareUrlError instanceof Error && shareUrlError.message.includes('No sharing URL configured')) {
+        console.warn('[ContextualNavigationCard] No hosting URL configured, disabling share functionality');
+        return; // Don't show share button if no hosting URL is configured
+      }
+      
+      // For other errors, fallback to internal URL
       try {
         generatedShareUrl = `${window.location.origin}/board/${currentBoard.id}/post/${currentPost.id}`;
         console.log(`[ContextualNavigationCard] Using internal fallback URL: ${generatedShareUrl}`);

@@ -272,14 +272,8 @@ export const PostCard: React.FC<PostCardProps> = ({ post, showBoardContext = fal
       return;
     }
 
-    // Check if community hosting URL is configured
-    const communityHostingUrl = (communityData?.settings as any)?.hosting?.domain;
-    if (!communityHostingUrl && !process.env.NEXT_PUBLIC_PLUGIN_BASE_URL) {
-      console.warn('[PostCard] No hosting URL configured, showing error modal');
-      setShareError(true);
-      setShowShareModal(true);
-      return;
-    }
+    // NOTE: URL configuration check is now handled by buildExternalShareUrl
+    // If no hosting URL is configured, it will throw an error with user-friendly message
 
     // Prevent multiple concurrent share operations
     if (isGeneratingShareUrl) {
@@ -346,9 +340,18 @@ export const PostCard: React.FC<PostCardProps> = ({ post, showBoardContext = fal
       console.log('[DEBUG-SHARE] communityShortId USED', communityShortId, 'pluginId USED', pluginId);
       
     } catch (shareUrlError) {
-      console.warn('[PostCard] Failed to create semantic URL, using internal fallback:', shareUrlError);
+      console.warn('[PostCard] Failed to create share URL:', shareUrlError);
       
-      // Fallback to internal URL if semantic URL generation fails
+      // Check if it's a configuration error (no hosting URL available)
+      if (shareUrlError instanceof Error && shareUrlError.message.includes('No sharing URL configured')) {
+        console.warn('[PostCard] No hosting URL configured, showing error modal');
+        setShareError(true);
+        setShowShareModal(true);
+        setIsGeneratingShareUrl(false);
+        return;
+      }
+      
+      // For other errors, fallback to internal URL
       try {
         generatedShareUrl = window.location.origin + buildInternalUrl(`/board/${post.board_id}/post/${post.id}`);
         console.log(`[PostCard] Using internal fallback URL: ${generatedShareUrl}`);
