@@ -34,7 +34,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
       type: 'varchar(20)',
       notNull: true,
       default: 'member',
-      comment: 'User role in the community (member, moderator, admin, owner)'
+              comment: 'User role in the community (member, moderator, owner)'
     },
     status: {
       type: 'varchar(20)',
@@ -53,7 +53,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
 
   // Add constraints to validate role and status values
   pgm.addConstraint('user_communities', 'check_user_community_role', {
-    check: "role IN ('member', 'moderator', 'admin', 'owner')"
+            check: "role IN ('member', 'moderator', 'owner')"
   });
 
   pgm.addConstraint('user_communities', 'check_user_community_status', {

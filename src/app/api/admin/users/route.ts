@@ -28,14 +28,22 @@ export interface AdminUsersResponse {
 
 async function handler(req: AuthenticatedRequest) {
   const userId = req.user?.sub;
+  const communityId = req.user?.cid;
   const isAdmin = req.user?.adm || req.user?.sub === process.env.NEXT_PUBLIC_SUPERADMIN_ID;
 
-  console.log(`[Admin Users API] Request from user ${userId}, isAdmin: ${isAdmin}`);
+  console.log(`[Admin Users API] Request from user ${userId}, isAdmin: ${isAdmin}, communityId: ${communityId}`);
 
   if (!isAdmin) {
     return NextResponse.json(
       { error: 'Admin access required' },
       { status: 403 }
+    );
+  }
+
+  if (!communityId) {
+    return NextResponse.json(
+      { error: 'Community context required' },
+      { status: 400 }
     );
   }
 
@@ -50,12 +58,12 @@ async function handler(req: AuthenticatedRequest) {
     const offset = (page - 1) * limit;
 
     // Build search condition
-    let searchCondition = '';
-    const searchParams: string[] = [];
-    let paramIndex = 1;
+    let searchCondition = 'WHERE uc.community_id = $1';
+    const searchParams: string[] = [communityId];
+    let paramIndex = 2;
 
     if (search) {
-      searchCondition = `WHERE (u.name ILIKE $${paramIndex} OR u.user_id ILIKE $${paramIndex})`;
+      searchCondition += ` AND (u.name ILIKE $${paramIndex} OR u.user_id ILIKE $${paramIndex})`;
       searchParams.push(`%${search}%`);
       paramIndex++;
     }
@@ -68,8 +76,9 @@ async function handler(req: AuthenticatedRequest) {
 
     // Get total count
     const countQuery = `
-      SELECT COUNT(*) as total 
+      SELECT COUNT(DISTINCT u.user_id) as total 
       FROM users u 
+      INNER JOIN user_communities uc ON u.user_id = uc.user_id
       ${searchCondition}
     `;
     const countResult = await query(countQuery, searchParams);
@@ -77,13 +86,15 @@ async function handler(req: AuthenticatedRequest) {
 
     // Get users with pagination
     const usersQuery = `
-      SELECT 
+      SELECT DISTINCT
         u.user_id,
         u.name,
         u.profile_picture_url,
         u.updated_at,
         u.settings->>'roles' as roles,
         uc.first_visited_at as created_at,
+        uc.role as community_role,
+        uc.status as community_status,
         (
           SELECT MAX(activity_time) FROM (
             SELECT MAX(created_at) as activity_time FROM posts WHERE author_user_id = u.user_id
@@ -92,7 +103,7 @@ async function handler(req: AuthenticatedRequest) {
           ) activities
         ) as last_active
       FROM users u
-      LEFT JOIN user_communities uc ON u.user_id = uc.user_id
+      INNER JOIN user_communities uc ON u.user_id = uc.user_id
       ${searchCondition}
       ORDER BY ${safeSortBy === 'created_at' ? 'uc.first_visited_at' : `u.${safeSortBy}`} ${safeSortOrder.toUpperCase()}
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -123,6 +134,11 @@ async function handler(req: AuthenticatedRequest) {
         }
       }
 
+      // Add community role to roles if it exists
+      if (row.community_role && !roles.includes(row.community_role)) {
+        roles.push(row.community_role);
+      }
+
       return {
         user_id: row.user_id,
         name: row.name || 'Unknown User',
@@ -131,7 +147,7 @@ async function handler(req: AuthenticatedRequest) {
         last_active: row.last_active,
         stats: userStats,
         roles: roles,
-        isAdmin: roles.includes('admin') || row.user_id === process.env.NEXT_PUBLIC_SUPERADMIN_ID
+        isAdmin: roles.includes('admin') || ['owner', 'moderator'].includes(row.community_role) || row.user_id === process.env.NEXT_PUBLIC_SUPERADMIN_ID
       };
     });
 
@@ -152,7 +168,8 @@ async function handler(req: AuthenticatedRequest) {
       }
     };
 
-    console.log(`[Admin Users API] Returning ${users.length} users (page ${page}/${totalPages})`);
+    console.log(`[Admin Users API] Returning ${users.length} users (page ${page}/${totalPages}) from community ${communityId}`);
+    console.log(`[Admin Users API] User IDs: ${users.map(u => u.user_id).join(', ')}`);
     
     return NextResponse.json(response);
 

@@ -15,6 +15,7 @@ import { useCardStyling } from '@/hooks/useCardStyling';
 import { preserveCgParams } from '@/utils/urlBuilder';
 import { useTippingEligibility } from '@/hooks/useTippingEligibility';
 import { TippingModal } from '@/components/tipping/TippingModal';
+import { RoleManagementModal } from '@/components/admin/RoleManagementModal';
 import { authFetch } from '@/utils/authFetch';
 import { cn } from '@/lib/utils';
 
@@ -61,6 +62,7 @@ export const UserProfilePopover: React.FC<UserProfilePopoverProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tippingModalOpen, setTippingModalOpen] = useState(false);
+  const [roleManagementModalOpen, setRoleManagementModalOpen] = useState(false);
   const [capturedProfileData, setCapturedProfileData] = useState<{
     name?: string;
     avatarUrl?: string;
@@ -385,8 +387,7 @@ export const UserProfilePopover: React.FC<UserProfilePopoverProps> = ({
                       size="sm" 
                       className="w-full"
                       onClick={() => {
-                        // TODO: Implement role management modal
-                        console.log('Role management clicked for user:', userId);
+                        setRoleManagementModalOpen(true);
                         onOpenChange(false);
                       }}
                     >
@@ -428,6 +429,17 @@ export const UserProfilePopover: React.FC<UserProfilePopoverProps> = ({
         recipientName={capturedProfileData.name}
         recipientAvatar={capturedProfileData.avatarUrl}
         recipientUpAddress={tippingEligibility.upAddress}
+      />
+    )}
+
+    {/* Role Management Modal */}
+    {user?.isAdmin && user?.cid && (
+      <RoleManagementModal
+        open={roleManagementModalOpen}
+        onOpenChange={setRoleManagementModalOpen}
+        userId={userId}
+        username={username}
+        communityId={user.cid}
       />
     )}
     </>

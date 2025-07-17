@@ -358,23 +358,24 @@ export async function POST(req: NextRequest) {
     }
     console.log(`[/api/auth/session] Determined admin status based on role titles: ${isUserAdmin}`);
 
-    // Check 2: Community owner status
+    // Check 2: Community role-based admin status (owner or moderator)
     if (!isUserAdmin) {
       try {
-        const ownerCheckResult = await query(
-          'SELECT owner_user_id FROM communities WHERE id = $1',
-          [communityId]
+        const roleCheckResult = await query(
+          'SELECT role FROM user_communities WHERE user_id = $1 AND community_id = $2 AND status = $3',
+          [userId, communityId, 'active']
         );
         
-        if (ownerCheckResult.rows.length > 0) {
-          const ownerUserId = ownerCheckResult.rows[0].owner_user_id;
-          if (ownerUserId === userId) {
+        if (roleCheckResult.rows.length > 0) {
+          const userRole = roleCheckResult.rows[0].role;
+          // Owner and moderator have admin privileges in the forum
+          if (['owner', 'moderator'].includes(userRole)) {
             isUserAdmin = true;
-            console.log(`[/api/auth/session] User ${userId} is community owner for ${communityId}`);
+            console.log(`[/api/auth/session] User ${userId} has admin privileges (role: ${userRole}) in community ${communityId}`);
           }
         }
-      } catch (ownerCheckError) {
-        console.error(`[/api/auth/session] Error checking community owner status:`, ownerCheckError);
+      } catch (roleCheckError) {
+        console.error(`[/api/auth/session] Error checking community role status:`, roleCheckError);
         // Non-critical error, continue with existing admin status
       }
     }
