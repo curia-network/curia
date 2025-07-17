@@ -6,6 +6,7 @@ import { canUserAccessBoard, resolveBoard } from '@/lib/boardPermissions';
 import { SettingsUtils } from '@/types/settings';
 import emojiRegex from 'emoji-regex-xs';
 import { getUserVerifiedLocks } from '@/lib/queries/lockVerification';
+import { identityPermissionService } from '@/lib/services/IdentityPermissionService';
 
 interface ReactionSummary {
   emoji: string;
@@ -164,6 +165,18 @@ async function toggleReactionHandler(req: AuthenticatedRequest, context: RouteCo
   }
 
   const cleanEmoji = emoji.trim();
+
+  // 🛡️ IDENTITY GATING: Check if user's identity type can react to content in this community
+  const sessionToken = req.headers.get('Authorization')?.replace('Bearer ', '');
+  const reactionPermission = await identityPermissionService.canReact(sessionToken, userCommunityId || '');
+  
+  if (!reactionPermission.allowed) {
+    console.warn(`[API POST /api/comments/${commentId}/reactions] User ${user.sub} (${reactionPermission.identityType}) denied reaction: ${reactionPermission.reason}`);
+    return NextResponse.json({ 
+      error: 'Permission denied', 
+      reason: reactionPermission.reason 
+    }, { status: 403 });
+  }
 
   try {
     // SECURITY: First, check if user can access the board where this comment belongs

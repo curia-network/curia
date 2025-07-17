@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest, RouteContext } from '@/lib/withAuth';
 import { query, getClient } from '@/lib/db';
 import { canUserAccessBoard, resolveBoard } from '@/lib/boardPermissions';
+import { identityPermissionService } from '@/lib/services/IdentityPermissionService';
 
 // Force Node.js runtime to avoid Edge Runtime restrictions
 export const runtime = 'nodejs';
@@ -110,6 +111,18 @@ async function createCommentHandler(req: AuthenticatedRequest, context: RouteCon
   }
   if (isNaN(postId)) {
     return NextResponse.json({ error: 'Invalid post ID' }, { status: 400 });
+  }
+
+  // 🛡️ IDENTITY GATING: Check if user's identity type can create comments in this community
+  const sessionToken = req.headers.get('Authorization')?.replace('Bearer ', '');
+  const commentPermission = await identityPermissionService.canComment(sessionToken, userCommunityId || '');
+  
+  if (!commentPermission.allowed) {
+    console.warn(`[API POST /api/posts/${postId}/comments] User ${user.sub} (${commentPermission.identityType}) denied comment creation: ${commentPermission.reason}`);
+    return NextResponse.json({ 
+      error: 'Permission denied', 
+      reason: commentPermission.reason 
+    }, { status: 403 });
   }
 
   try {

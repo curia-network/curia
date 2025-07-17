@@ -5,6 +5,7 @@ import { PoolClient } from 'pg';
 import { canUserAccessBoard, resolveBoard } from '@/lib/boardPermissions';
 import { SettingsUtils } from '@/types/settings';
 import { getUserVerifiedLocks } from '@/lib/queries/lockVerification';
+import { identityPermissionService } from '@/lib/services/IdentityPermissionService';
 
 // POST to upvote a post (protected and permission-checked)
 async function addVoteHandler(req: AuthenticatedRequest, context: RouteContext) {
@@ -21,6 +22,18 @@ async function addVoteHandler(req: AuthenticatedRequest, context: RouteContext) 
   }
   if (isNaN(postId)) {
     return NextResponse.json({ error: 'Invalid post ID' }, { status: 400 });
+  }
+
+  // 🛡️ IDENTITY GATING: Check if user's identity type can upvote posts in this community
+  const sessionToken = req.headers.get('Authorization')?.replace('Bearer ', '');
+  const upvotePermission = await identityPermissionService.canUpvote(sessionToken, userCommunityId || '');
+  
+  if (!upvotePermission.allowed) {
+    console.warn(`[API POST /api/posts/${postId}/votes] User ${user.sub} (${upvotePermission.identityType}) denied upvote: ${upvotePermission.reason}`);
+    return NextResponse.json({ 
+      error: 'Permission denied', 
+      reason: upvotePermission.reason 
+    }, { status: 403 });
   }
 
   const userId = user.sub;

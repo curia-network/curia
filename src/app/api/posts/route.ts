@@ -4,6 +4,7 @@ import { query } from '@/lib/db';
 import { getAccessibleBoardIds, resolveBoard, getAccessibleBoards } from '@/lib/boardPermissions';
 import { PostSettings } from '@/types/settings';
 import { getPostsForCommunity, type PostQueryOptions } from '@/lib/queries/enrichedPosts';
+import { identityPermissionService } from '@/lib/services/IdentityPermissionService';
 
 // Interface for the structure of a post when returned by the API
 export interface ApiPost {
@@ -182,6 +183,18 @@ async function createPostHandler(req: AuthenticatedRequest) {
 
     if (!boardId) {
       return NextResponse.json({ error: 'Board selection is required' }, { status: 400 });
+    }
+
+    // 🛡️ IDENTITY GATING: Check if user's identity type can create posts in this community
+    const sessionToken = req.headers.get('Authorization')?.replace('Bearer ', '');
+    const postPermission = await identityPermissionService.canPost(sessionToken, currentCommunityId);
+    
+    if (!postPermission.allowed) {
+      console.warn(`[API POST /api/posts] User ${user.sub} (${postPermission.identityType}) denied post creation: ${postPermission.reason}`);
+      return NextResponse.json({ 
+        error: 'Permission denied', 
+        reason: postPermission.reason 
+      }, { status: 403 });
     }
 
     // Validate settings if provided

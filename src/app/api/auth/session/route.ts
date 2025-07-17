@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { query } from '@/lib/db'; // For potential initial user data sync
+import { identityPermissionService } from '@/lib/services/IdentityPermissionService';
 
 // Helper function for background friends sync
 async function syncFriendsInBackground(
@@ -148,6 +149,7 @@ interface TokenSignPayload {
   communityShortId?: string; // 🆕 Short ID for URL construction
   pluginId?: string;         // 🆕 Plugin ID from context
   previousVisit?: string | null; // 🆕 ISO timestamp of user's last visit
+  identity_type?: string; // 🆕 User identity type for permission checks
 }
 
 export async function POST(req: NextRequest) {
@@ -182,6 +184,9 @@ export async function POST(req: NextRequest) {
 
     // 🆕 Declare previousVisit at function level for JWT payload
     let previousVisit: string | null = null;
+    
+    // 🆕 Declare userIdentityType at function level for JWT payload
+    let userIdentityType: string = 'legacy'; // Default to legacy
 
     // --- Community and Default Board Upsert Logic --- 
     if (communityId) {
@@ -304,6 +309,24 @@ export async function POST(req: NextRequest) {
           [userId, name ?? null, profilePictureUrl ?? null, JSON.stringify(mergedSettings)]
         );
 
+        // 5.5. Fetch user's identity_type for JWT payload
+        try {
+          const identityResult = await query(
+            `SELECT identity_type FROM users WHERE user_id = $1`,
+            [userId]
+          );
+          
+          if (identityResult.rows.length > 0) {
+            userIdentityType = identityResult.rows[0].identity_type;
+            console.log(`[/api/auth/session] Fetched identity_type for ${userId}: ${userIdentityType}`);
+          } else {
+            console.warn(`[/api/auth/session] No identity_type found for ${userId}, using default: legacy`);
+          }
+        } catch (error) {
+          console.error(`[/api/auth/session] Error fetching identity_type for ${userId}:`, error);
+          // Continue with default 'legacy' - non-critical for session creation
+        }
+
         // 6. Track user-community relationship for cross-device "What's New"
         const userCommunityResult = await query(
           `INSERT INTO user_communities (user_id, community_id, first_visited_at, last_visited_at, visit_count, created_at, updated_at)
@@ -393,6 +416,7 @@ export async function POST(req: NextRequest) {
       communityShortId: communityShortId ?? undefined, // 🆕 Short ID for URL construction
       pluginId: pluginId ?? undefined,                 // 🆕 Plugin ID from context
       previousVisit: previousVisit,                    // 🆕 User's last visit timestamp
+      identity_type: userIdentityType,                 // 🆕 User identity type for permission checks
     };
     console.log('[/api/auth/session] Payload to sign (checking adm, uid, cid claims):', payloadToSign);
 
@@ -405,7 +429,14 @@ export async function POST(req: NextRequest) {
 
     const token = jwt.sign(payloadToSign, secret, signOptions);
 
-    return NextResponse.json({ token });
+    // DEMO: Identity detection service integration
+    const identityResult = await identityPermissionService.detectIdentity(token);
+    console.log('[Session] Identity detection result:', identityResult);
+
+    return NextResponse.json({ 
+      token,
+      identity: identityResult // Include identity info in response for demo
+    });
   } catch (error) {
     console.error('Error creating session token:', error);
     if (error instanceof SyntaxError) { // Potential req.json() error
