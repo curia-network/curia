@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Settings,
-  Shield,
   ArrowLeft,
   MessageSquare,
   Copy,
@@ -24,12 +23,12 @@ import { ApiCommunity } from '@/app/api/communities/[communityId]/route';
 import { CommunitySettings } from '@/types/settings';
 import { authFetchJson } from '@/utils/authFetch';
 import { useToast } from '@/hooks/use-toast';
-import { CommunityAccessForm } from '@/components/CommunityAccessForm';
+
 import { TelegramGroupsSection } from '@/components/settings/TelegramGroupsSection';
 import { CommunityBackgroundSettings } from '@/components/settings/CommunityBackgroundSettings';
 import { CommunityAIAutoModerationSettings } from '@/components/settings/CommunityAIAutoModerationSettings';
 import { CommunityHostingSettings } from '@/components/settings/CommunityHostingSettings';
-import { AnonymousPermissionsSettings } from '@/components/settings/AnonymousPermissionsSettings';
+import { IdentityGatingSettings } from '@/components/settings/IdentityGatingSettings';
 import { useEffectiveTheme } from '@/hooks/useEffectiveTheme';
 // Removed server-side import - now using API endpoint
 
@@ -151,7 +150,7 @@ export default function CommunitySettingsPage() {
   };
 
   // Fetch community settings from our new API
-  const { data: communitySettings, isLoading: isLoadingSettings } = useQuery<ApiCommunity>({
+  const { data: communitySettings } = useQuery<ApiCommunity>({
     queryKey: ['communitySettings', user?.cid],
     queryFn: async () => {
       if (!user?.cid || !token) throw new Error('No community ID or token available');
@@ -540,9 +539,9 @@ export default function CommunitySettingsPage() {
             />
           </div>
 
-          {/* Anonymous User Permissions Settings */}
+          {/* Identity-Based Community Gating Settings */}
           <div className="mb-6">
-            <AnonymousPermissionsSettings 
+            <IdentityGatingSettings 
               currentSettings={communitySettings?.settings || {}}
               onSettingsChange={(settings: CommunitySettings) => updateCommunityMutation.mutate(settings)}
               isLoading={updateCommunityMutation.isPending}
@@ -705,40 +704,7 @@ export default function CommunitySettingsPage() {
             </Card>
             */}
 
-            {/* Community Access Control */}
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield size={20} />
-                  Plugin Access Control
-                </CardTitle>
-                <CardDescription>
-                  Control who can access this community&apos;s forum plugin
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {isLoadingSettings ? (
-                  <div className="space-y-4">
-                    <div className={cn(
-                      "h-4 w-48 rounded animate-pulse",
-                      theme === 'dark' ? 'bg-slate-700' : 'bg-slate-200'
-                    )} />
-                    <div className={cn(
-                      "h-20 w-full rounded animate-pulse",
-                      theme === 'dark' ? 'bg-slate-700' : 'bg-slate-200'
-                    )} />
-                  </div>
-                ) : (
-                  <CommunityAccessForm
-                    currentSettings={communitySettings?.settings || {}}
-                    communityRoles={communityInfo.roles || []}
-                    onSave={(settings: CommunitySettings) => updateCommunityMutation.mutate(settings)}
-                    isLoading={updateCommunityMutation.isPending}
-                    theme={theme}
-                  />
-                )}
-              </CardContent>
-            </Card>
+            {/* Identity-Based Community Gating is now integrated above */}
           </div>
 
           {/* Additional Settings - HIDDEN FOR NOW

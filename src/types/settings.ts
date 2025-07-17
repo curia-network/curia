@@ -1,13 +1,60 @@
 import { GatingCategory, EthereumGatingRequirements } from './gating';
 
 /**
+ * Identity types supported by the authentication system
+ */
+export type IdentityType = 'legacy' | 'ens' | 'universal_profile' | 'anonymous';
+
+/**
+ * Permissions for a specific identity type
+ */
+export interface IdentityPermissions {
+  canPost: boolean;        // Create posts
+  canComment: boolean;     // Comment on posts
+  canUpvote: boolean;      // Upvote posts
+  canReact: boolean;       // Add emoji reactions
+  canJoinCommunity: boolean; // Join the community
+  
+  // Future permissions:
+  // canCreateBoards?: boolean;
+  // canInviteUsers?: boolean;
+  // canModerate?: boolean;
+  // canAccessPrivateBoards?: boolean;
+}
+
+/**
+ * Community-level identity-based gating configuration
+ */
+export interface CommunityIdentityGating {
+  // Core community access per identity type
+  canJoinCommunity: Record<IdentityType, boolean>;
+  
+  // Activity permissions per identity type
+  permissions: Record<IdentityType, IdentityPermissions>;
+}
+
+/**
+ * Community preset configurations for quick setup
+ */
+export interface CommunityPreset {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  gating: CommunityIdentityGating;
+}
+
+/**
  * Community-level settings for plugin access control and features
  */
 export interface CommunitySettings {
   permissions?: {
-    allowedRoles?: string[]; // Role IDs that can access the entire plugin
+    allowedRoles?: string[]; // Role IDs that can access the entire plugin (DEPRECATED - use identityGating)
     // Future: allowedUsers?: string[]; // Individual user overrides
   };
+  
+  // 🆕 Identity-based community gating (replaces role-based permissions)
+  identityGating?: CommunityIdentityGating;
   
   // Background customization settings for the entire community
   background?: {
