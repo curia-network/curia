@@ -156,6 +156,34 @@ export class IdentityPermissionService {
   }
 
   /**
+   * Get user-friendly permission denied message with upgrade instructions
+   */
+  private getPermissionDeniedMessage(identityType: IdentityType, action: keyof IdentityPermissions): string {
+    const actionMessages = {
+      canPost: 'create posts',
+      canComment: 'comment on posts',
+      canUpvote: 'upvote posts',
+      canReact: 'react to content',
+      canJoinCommunity: 'join this community',
+    };
+    
+    const actionText = actionMessages[action] || action;
+    
+    switch (identityType) {
+      case 'anonymous':
+        return `To ${actionText}, please connect your wallet or ENS domain. Anonymous users have limited permissions to encourage secure participation.`;
+      case 'legacy':
+        return `To ${actionText}, please connect your wallet or ENS domain. Legacy users have limited permissions in this community.`;
+      case 'ens':
+        return `ENS users cannot ${actionText} in this community. Please check the community's identity requirements.`;
+      case 'universal_profile':
+        return `Universal Profile users cannot ${actionText} in this community. Please check the community's identity requirements.`;
+      default:
+        return `Your identity type cannot ${actionText} in this community. Please check the community's identity requirements.`;
+    }
+  }
+
+  /**
    * Check if identity has permission for specific action
    */
   async checkPermission(
@@ -181,14 +209,14 @@ export class IdentityPermissionService {
       return {
         allowed,
         identityType,
-        reason: allowed ? undefined : `${identityType} users cannot ${action} in this community`,
+        reason: allowed ? undefined : this.getPermissionDeniedMessage(identityType, action),
       };
     } catch (error) {
       console.error('Error checking permission:', error);
       return {
         allowed: false,
         identityType,
-        reason: 'Permission check failed',
+        reason: 'Unable to verify permissions. Please try again or contact support.',
       };
     }
   }
