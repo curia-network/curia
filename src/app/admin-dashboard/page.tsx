@@ -37,12 +37,14 @@ import {
 import type { DashboardStats } from '@/app/api/admin/dashboard/stats/route';
 import type { AdminUsersResponse } from '@/app/api/admin/users/route';
 import Link from 'next/link';
+import { UserProfilePopover } from '@/components/mentions/UserProfilePopover';
 
 export default function AdminDashboardPage() {
   const { user, token } = useAuth();
   const searchParams = useSearchParams();
   const [userSearch, setUserSearch] = useState('');
   const [userPage, setUserPage] = useState(1);
+  const [openPopoverUserId, setOpenPopoverUserId] = useState<string | null>(null);
   
   // Use the effective theme from our theme orchestrator
   const theme = useEffectiveTheme();
@@ -435,26 +437,35 @@ export default function AdminDashboardPage() {
                     {usersData.users.map((user) => (
                       <div key={user.user_id} className="flex items-center justify-between p-4 rounded-lg border hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                         <div className="flex items-center gap-4">
-                          <Avatar>
-                            <AvatarImage src={user.profile_picture_url || ''} />
-                            <AvatarFallback>
-                              {user.name.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-medium">{user.name}</h3>
-                              {user.isAdmin && (
-                                <Badge variant="destructive" className="text-xs">Admin</Badge>
-                              )}
+                          <UserProfilePopover
+                            userId={user.user_id}
+                            username={user.name}
+                            open={openPopoverUserId === user.user_id}
+                            onOpenChange={(open) => setOpenPopoverUserId(open ? user.user_id : null)}
+                          >
+                            <div className="flex items-center gap-4 cursor-pointer">
+                              <Avatar>
+                                <AvatarImage src={user.profile_picture_url || ''} />
+                                <AvatarFallback>
+                                  {user.name.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h3 className="font-medium hover:text-primary transition-colors">{user.name}</h3>
+                                  {user.isAdmin && (
+                                    <Badge variant="destructive" className="text-xs">Admin</Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  Joined {new Date(user.created_at).toLocaleDateString()}
+                                  {user.last_active && (
+                                    <> • Last active {new Date(user.last_active).toLocaleDateString()}</>
+                                  )}
+                                </p>
+                              </div>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                              Joined {new Date(user.created_at).toLocaleDateString()}
-                              {user.last_active && (
-                                <> • Last active {new Date(user.last_active).toLocaleDateString()}</>
-                              )}
-                            </p>
-                          </div>
+                          </UserProfilePopover>
                         </div>
                         <div className="text-right">
                           <div className="text-sm font-medium">

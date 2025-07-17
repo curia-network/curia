@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Users, MessageSquare, ExternalLink, Gift } from 'lucide-react';
+import { Users, MessageSquare, ExternalLink, Gift, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCardStyling } from '@/hooks/useCardStyling';
 import { preserveCgParams } from '@/utils/urlBuilder';
@@ -65,7 +65,7 @@ export const UserProfilePopover: React.FC<UserProfilePopoverProps> = ({
     name?: string;
     avatarUrl?: string;
   } | null>(null);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
 
   // Get card styling for conditional frosted glass background
   const { getCardStyle } = useCardStyling();
@@ -370,6 +370,33 @@ export const UserProfilePopover: React.FC<UserProfilePopoverProps> = ({
                   Send Tip
                 </Button>
               ) : null}
+
+              {/* Admin Actions - Only visible to admins */}
+              {user?.isAdmin && (
+                <>
+                  <Separator />
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                      <Shield className="h-4 w-4" />
+                      Admin Actions
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => {
+                        // TODO: Implement role management modal
+                        console.log('Role management clicked for user:', userId);
+                        onOpenChange(false);
+                      }}
+                    >
+                      <Shield className="h-4 w-4 mr-2" />
+                      Manage Roles
+                    </Button>
+                  </div>
+                  <Separator />
+                </>
+              )}
 
               {/* View Profile Button */}
               <Link 
