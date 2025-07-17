@@ -77,7 +77,7 @@ const DEFAULT_PERMISSIONS: Record<IdentityType, IdentityPermissions> = {
     canComment: false,
     canUpvote: false,
     canReact: false,
-    canJoinCommunity: false
+    canJoinCommunity: true
   }
 };
 
@@ -267,7 +267,7 @@ export const IdentityGatingSettings: React.FC<IdentityGatingSettingsProps> = ({
       legacy: true,
       ens: true,
       universal_profile: true,
-      anonymous: false
+      anonymous: true
     },
     permissions: DEFAULT_PERMISSIONS
   };
