@@ -5,9 +5,20 @@ import { Lock, ArrowLeft, /* Shield, */ Info } from 'lucide-react';
 // import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
+interface AccessCheckResult {
+  allowed: boolean;
+  roleAccess: boolean;
+  identityAccess: boolean;
+  roleFailureReason?: string;
+  identityFailureReason?: string;
+  requiredRoles?: string[];
+  userIdentityType?: string;
+}
+
 interface CommunityAccessDeniedProps {
   communityName?: string;
   requiredRoles?: string[];
+  accessResult?: AccessCheckResult;
   // onBack?: () => void;
   theme?: 'light' | 'dark';
 }
@@ -15,12 +26,15 @@ interface CommunityAccessDeniedProps {
 export function CommunityAccessDenied({ 
   communityName = 'this community', 
   requiredRoles = [], 
+  accessResult,
   // onBack, 
   theme = 'light' 
 }: CommunityAccessDeniedProps) {
   // const { user } = useAuth();
   
   const hasSpecificRoles = requiredRoles.length > 0;
+  const identityFailure = accessResult && !accessResult.identityAccess;
+  const roleFailure = accessResult && !accessResult.roleAccess;
   
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
@@ -33,17 +47,73 @@ export function CommunityAccessDenied({
         </CardHeader>
         <CardContent className="space-y-6 text-center">
           <div className="space-y-3">
-            <p className={cn(
-              "text-sm",
-              theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
-            )}>
-              {communityName 
-                ? `Access to the ${communityName} forum plugin is restricted to specific community roles.`
-                : "Access to this community's forum plugin is restricted to specific community roles."
-              }
-            </p>
+            {/* Identity-based failure message (prioritized) */}
+            {identityFailure && (
+              <div className={cn(
+                "p-3 rounded-lg border",
+                theme === 'dark' ? 'bg-red-950/20 border-red-800' : 'bg-red-50 border-red-200'
+              )}>
+                <p className={cn(
+                  "font-medium text-sm mb-2",
+                  theme === 'dark' ? 'text-red-200' : 'text-red-800'
+                )}>
+                  Identity Access Required
+                </p>
+                <p className={cn(
+                  "text-sm",
+                  theme === 'dark' ? 'text-red-300' : 'text-red-700'
+                )}>
+                  {accessResult.identityFailureReason || 'Your identity type does not have permission to access this community.'}
+                </p>
+                {accessResult.userIdentityType && (
+                  <p className={cn(
+                    "text-xs mt-2 opacity-80",
+                    theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                  )}>
+                    Current identity: {accessResult.userIdentityType}
+                  </p>
+                )}
+              </div>
+            )}
             
-            {hasSpecificRoles && (
+            {/* Role-based failure message */}
+            {roleFailure && (
+              <div className={cn(
+                "p-3 rounded-lg border",
+                theme === 'dark' ? 'bg-amber-950/20 border-amber-800' : 'bg-amber-50 border-amber-200'
+              )}>
+                <p className={cn(
+                  "font-medium text-sm mb-2",
+                  theme === 'dark' ? 'text-amber-200' : 'text-amber-800'
+                )}>
+                  Role Access Required
+                </p>
+                <p className={cn(
+                  "text-sm",
+                  theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
+                )}>
+                  {communityName 
+                    ? `Access to the ${communityName} forum plugin is restricted to specific community roles.`
+                    : "Access to this community's forum plugin is restricted to specific community roles."
+                  }
+                </p>
+              </div>
+            )}
+            
+            {/* Fallback message for backward compatibility */}
+            {!accessResult && (
+              <p className={cn(
+                "text-sm",
+                theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
+              )}>
+                {communityName 
+                  ? `Access to the ${communityName} forum plugin is restricted to specific community roles.`
+                  : "Access to this community's forum plugin is restricted to specific community roles."
+                }
+              </p>
+            )}
+            
+            {hasSpecificRoles && roleFailure && (
               <div className={cn(
                 "p-3 rounded-lg border",
                 theme === 'dark' ? 'bg-amber-950/20 border-amber-800' : 'bg-amber-50 border-amber-200'

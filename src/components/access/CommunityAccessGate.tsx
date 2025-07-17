@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCommunityData } from '@/hooks/useCommunityData';
 import { checkCommunityAccess, getUserRoles, AccessControlUtils } from '@/lib/roleService';
+import { authFetchJson } from '@/utils/authFetch';
 import { CommunityAccessDenied } from './CommunityAccessDenied';
 import { useCgLib } from '@/contexts/CgLibContext';
 import { CommunityInfoResponsePayload } from '@curia_/cg-plugin-lib';
@@ -11,6 +12,16 @@ import { cn } from '@/lib/utils';
 interface CommunityAccessGateProps {
   children: React.ReactNode;
   theme?: 'light' | 'dark';
+}
+
+interface AccessCheckResult {
+  allowed: boolean;
+  roleAccess: boolean;
+  identityAccess: boolean;
+  roleFailureReason?: string;
+  identityFailureReason?: string;
+  requiredRoles?: string[];
+  userIdentityType?: string;
 }
 
 export const CommunityAccessGate: React.FC<CommunityAccessGateProps> = ({ 
@@ -35,11 +46,19 @@ export const CommunityAccessGate: React.FC<CommunityAccessGateProps> = ({
   // Fetch community settings using centralized hook
   const { data: communityData, isLoading, error } = useCommunityData();
 
-  // Check if user has community access
+  // Check if user has community access (both role-based and identity-based)
   const { data: userAccess, isLoading: isCheckingAccess } = useQuery({
     queryKey: ['userCommunityAccess', user?.userId, communityData?.id],
-    queryFn: async () => {
-      if (!communityData || !user) return false;
+    queryFn: async (): Promise<AccessCheckResult> => {
+      if (!communityData || !user) {
+        return {
+          allowed: false,
+          roleAccess: false,
+          identityAccess: false,
+          roleFailureReason: 'No community data or user session',
+          identityFailureReason: 'No community data or user session'
+        };
+      }
       
       // Admin override - admins always have access
       if (user.isAdmin) {
@@ -48,20 +67,48 @@ export const CommunityAccessGate: React.FC<CommunityAccessGateProps> = ({
           'granted', 
           'admin override'
         );
-        return true;
+        return {
+          allowed: true,
+          roleAccess: true,
+          identityAccess: true
+        };
       }
 
-      // Get user roles and check access
+      // Check role-based access (existing system)
       const userRoles = await getUserRoles(user.roles);
-      const hasAccess = await checkCommunityAccess(communityData, userRoles);
+      const roleAccess = await checkCommunityAccess(communityData, userRoles);
       
+      // Check identity-based access (new system)
+      const identityResult = await authFetchJson<{
+        success: boolean;
+        identityAccess: boolean;
+        identityType: string;
+        identityFailureReason?: string;
+      }>(`/api/communities/${communityData.id}/access-check`);
+      
+      const identityAccess = identityResult.success && identityResult.identityAccess;
+      const identityFailureReason = identityResult.identityFailureReason;
+      const identityType = identityResult.identityType;
+      
+      // Both must pass for access
+      const allowed = roleAccess && identityAccess;
+      
+      // Log access attempt
       AccessControlUtils.logAccessAttempt(
         'community', 
-        hasAccess ? 'granted' : 'denied',
-        hasAccess ? 'role-based access' : 'insufficient permissions'
+        allowed ? 'granted' : 'denied',
+        allowed ? 'role and identity access' : 
+          `role: ${roleAccess ? 'granted' : 'denied'}, identity: ${identityAccess ? 'granted' : 'denied'}`
       );
       
-      return hasAccess;
+      return {
+        allowed,
+        roleAccess,
+        identityAccess,
+        roleFailureReason: roleAccess ? undefined : 'Insufficient role permissions',
+        identityFailureReason: identityAccess ? undefined : identityFailureReason,
+        userIdentityType: identityType
+      };
     },
     enabled: !!communityData && !!user,
   });
@@ -109,12 +156,13 @@ export const CommunityAccessGate: React.FC<CommunityAccessGateProps> = ({
   }
 
   // Access denied
-  if (userAccess === false) {
+  if (userAccess?.allowed === false) {
     return (
       <CommunityAccessDenied 
         theme={theme}
         communityName={communityData?.name}
         requiredRoles={requiredRoleNames}
+        accessResult={userAccess}
       />
     );
   }
