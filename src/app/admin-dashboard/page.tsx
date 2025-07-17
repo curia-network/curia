@@ -454,7 +454,10 @@ export default function AdminDashboardPage() {
                                 <div className="flex items-center gap-2">
                                   <h3 className="font-medium hover:text-primary transition-colors">{user.name}</h3>
                                   {user.isAdmin && (
-                                    <Badge variant="destructive" className="text-xs">Admin</Badge>
+                                    <Badge variant="destructive" className="text-xs">
+                                      {user.roles?.includes('owner') ? 'Owner' : 
+                                       user.roles?.includes('moderator') ? 'Moderator' : 'Admin'}
+                                    </Badge>
                                   )}
                                 </div>
                                 <p className="text-sm text-muted-foreground">

@@ -1,38 +1,21 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
 import { withAuth, AuthenticatedRequest, RouteContext } from '@/lib/withAuth';
-import { 
-  createRoleChangeAuditLog, 
-  createStatusChangeAuditLog,
-  logAuditEntry,
-  validateRoleAssignment,
-  canActorModifyTarget,
-  CommunityRole,
-  CommunityStatus
-} from '@/lib/auditLog';
+import { query } from '@/lib/db';
 
 interface UserCommunityInfo {
   userId: string;
   communityId: string;
-  role: CommunityRole;
-  status: CommunityStatus;
+  role: string;
+  status: string;
   firstVisitedAt: string;
   lastVisitedAt: string;
   visitCount: number;
-  invitedByUserId?: string;
+  invitedByUserId: string | null;
   createdAt: string;
   updatedAt: string;
-  // User info
   userName: string;
-  userProfilePictureUrl?: string;
-  // Inviter info (if applicable)
-  inviterName?: string;
-}
-
-interface UpdateRoleRequest {
-  role?: CommunityRole;
-  status?: CommunityStatus;
-  reason?: string;
+  userProfilePictureUrl: string | null;
+  inviterName: string | null;
 }
 
 // GET /api/admin/users/[userId]/community-role - Get user's community role and stats
@@ -133,140 +116,87 @@ async function updateUserCommunityRole(req: AuthenticatedRequest, context: Route
   try {
     const params = await context.params;
     const targetUserId = params.userId;
-    const body: UpdateRoleRequest = await req.json();
-    const { role: newRole, status: newStatus, reason } = body;
+    const { role } = await req.json();
 
-    if (!targetUserId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    if (!targetUserId || !role) {
+      return NextResponse.json({ error: 'User ID and role are required' }, { status: 400 });
     }
 
-    // Don't allow self-modification
+    // Validate role
+    const validRoles = ['member', 'moderator', 'owner'];
+    if (!validRoles.includes(role)) {
+      return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
+    }
+
+    // Prevent self-modification
     if (actorUserId === targetUserId) {
-      return NextResponse.json({ error: 'Cannot modify your own role' }, { status: 400 });
+      return NextResponse.json({ 
+        error: 'Cannot modify your own role. Please have another admin change your role.' 
+      }, { status: 403 });
     }
 
-    console.log(`[API PUT] Admin ${actorUserId} updating role for user ${targetUserId}:`, { newRole, newStatus, reason });
+    console.log(`[API PUT] Admin ${actorUserId} updating user ${targetUserId} role to ${role}`);
 
-    // Get current user info and actor role
-    const [currentUserResult, actorRoleResult] = await Promise.all([
-      query(
-        `SELECT role, status FROM user_communities WHERE user_id = $1 AND community_id = $2`,
-        [targetUserId, actorCommunityId]
-      ),
-      query(
-        `SELECT role FROM user_communities WHERE user_id = $1 AND community_id = $2`,
-        [actorUserId, actorCommunityId]
-      )
-    ]);
+    // Get current user's role
+    const currentUserResult = await query(
+      'SELECT role FROM user_communities WHERE user_id = $1 AND community_id = $2',
+      [targetUserId, actorCommunityId]
+    );
 
     if (currentUserResult.rows.length === 0) {
       return NextResponse.json({ error: 'User not found in community' }, { status: 404 });
     }
 
-    if (actorRoleResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Actor not found in community' }, { status: 403 });
-    }
+    const currentRole = currentUserResult.rows[0].role;
 
-    const currentRole = currentUserResult.rows[0].role as CommunityRole;
-    const currentStatus = currentUserResult.rows[0].status as CommunityStatus;
-    const actorRole = actorRoleResult.rows[0].role as CommunityRole;
-
-    const updates: string[] = [];
-    const values: (string | number)[] = [];
-    let paramIndex = 3; // Start after user_id and community_id
-
-    // Handle role change
-    if (newRole && newRole !== currentRole) {
-      const validation = validateRoleAssignment(actorRole, currentRole, newRole);
-      if (!validation.valid) {
-        return NextResponse.json({ error: validation.reason }, { status: 403 });
-      }
-
-      updates.push(`role = $${paramIndex}`);
-      values.push(newRole);
-      paramIndex++;
-
-      // Log role change audit
-      const auditLog = createRoleChangeAuditLog(
-        actorUserId,
-        targetUserId,
-        actorCommunityId,
-        currentRole,
-        newRole,
-        reason
+    // If demoting an owner, ensure at least one owner remains
+    if (currentRole === 'owner' && role !== 'owner') {
+      const ownerCountResult = await query(
+        'SELECT COUNT(*) as count FROM user_communities WHERE community_id = $1 AND role = $2 AND status = $3',
+        [actorCommunityId, 'owner', 'active']
       );
-      await logAuditEntry(auditLog);
-    }
 
-    // Handle status change
-    if (newStatus && newStatus !== currentStatus) {
-      // Check permission for status changes
-      if (newStatus === 'banned') {
-        const canBan = canActorModifyTarget(actorRole, currentRole, 'ban_user');
-        if (!canBan.allowed) {
-          return NextResponse.json({ error: canBan.reason }, { status: 403 });
-        }
+      const ownerCount = parseInt(ownerCountResult.rows[0]?.count || '0');
+      
+      if (ownerCount <= 1) {
+        return NextResponse.json({ 
+          error: 'Cannot demote the last owner. At least one owner must remain in the community.' 
+        }, { status: 400 });
       }
-
-      updates.push(`status = $${paramIndex}`);
-      values.push(newStatus);
-      paramIndex++;
-
-      // Log status change audit
-      const auditLog = createStatusChangeAuditLog(
-        actorUserId,
-        targetUserId,
-        actorCommunityId,
-        currentStatus,
-        newStatus,
-        reason
-      );
-      await logAuditEntry(auditLog);
     }
 
-    if (updates.length === 0) {
-      return NextResponse.json({ error: 'No changes specified' }, { status: 400 });
-    }
-
-    // Add updated_at
-    updates.push(`updated_at = NOW()`);
-
-    // Update the user's role/status
-    const updateQuery = `
-      UPDATE user_communities 
-      SET ${updates.join(', ')}
-      WHERE user_id = $1 AND community_id = $2
-      RETURNING role, status, updated_at
-    `;
-
-    const updateResult = await query(updateQuery, [targetUserId, actorCommunityId, ...values]);
+    // Update user's role
+    const updateResult = await query(
+      `UPDATE user_communities 
+       SET role = $1, updated_at = NOW() 
+       WHERE user_id = $2 AND community_id = $3 
+       RETURNING *`,
+      [role, targetUserId, actorCommunityId]
+    );
 
     if (updateResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Update failed' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to update user role' }, { status: 500 });
     }
 
-    const updatedUser = updateResult.rows[0];
+    console.log(`[API PUT] Successfully updated user ${targetUserId} role from ${currentRole} to ${role}`);
+    
+    // Log the role change
+    console.log(`[AUDIT] Role change: Admin ${actorUserId} changed user ${targetUserId} role from ${currentRole} to ${role} in community ${actorCommunityId}`);
 
-    console.log(`[API PUT] Successfully updated user ${targetUserId}: ${updatedUser.role}/${updatedUser.status}`);
-
-    return NextResponse.json({
-      success: true,
-      user: {
-        userId: targetUserId,
-        role: updatedUser.role,
-        status: updatedUser.status,
-        updatedAt: updatedUser.updated_at
-      }
+    return NextResponse.json({ 
+      message: 'Role updated successfully',
+      previousRole: currentRole,
+      newRole: role
     });
 
   } catch (error) {
-    console.error('[API PUT] Error updating user community role:', error);
-    return NextResponse.json({ error: 'Failed to update user role' }, { status: 500 });
+    console.error('[API PUT] Error updating user role:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 // DELETE /api/admin/users/[userId]/community-role - Remove user from community
-async function removeUserFromCommunity(req: AuthenticatedRequest, context: RouteContext) {
+async function deleteUserCommunityRole(req: AuthenticatedRequest, context: RouteContext) {
   const actorUserId = req.user?.sub;
   const actorCommunityId = req.user?.cid;
   const isActorAdmin = req.user?.adm || false;
@@ -282,86 +212,80 @@ async function removeUserFromCommunity(req: AuthenticatedRequest, context: Route
   try {
     const params = await context.params;
     const targetUserId = params.userId;
-    const body = await req.json();
-    const { reason } = body;
+    const { communityId } = await req.json();
 
-    if (!targetUserId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    if (!targetUserId || !communityId) {
+      return NextResponse.json({ error: 'User ID and community ID are required' }, { status: 400 });
     }
 
-    // Don't allow self-removal
+    // Prevent self-removal
     if (actorUserId === targetUserId) {
-      return NextResponse.json({ error: 'Cannot remove yourself from community' }, { status: 400 });
+      return NextResponse.json({ 
+        error: 'Cannot remove yourself from the community. Please have another admin remove you if needed.' 
+      }, { status: 403 });
     }
 
-    console.log(`[API DELETE] Admin ${actorUserId} removing user ${targetUserId} from community`);
+    // Ensure we're operating on the correct community
+    if (communityId !== actorCommunityId) {
+      return NextResponse.json({ error: 'Invalid community' }, { status: 400 });
+    }
 
-    // Get current user info and actor role
-    const [currentUserResult, actorRoleResult] = await Promise.all([
-      query(
-        `SELECT role, status FROM user_communities WHERE user_id = $1 AND community_id = $2`,
-        [targetUserId, actorCommunityId]
-      ),
-      query(
-        `SELECT role FROM user_communities WHERE user_id = $1 AND community_id = $2`,
-        [actorUserId, actorCommunityId]
-      )
-    ]);
+    console.log(`[API DELETE] Admin ${actorUserId} removing user ${targetUserId} from community ${communityId}`);
+
+    // Get current user's role before removal
+    const currentUserResult = await query(
+      'SELECT role FROM user_communities WHERE user_id = $1 AND community_id = $2',
+      [targetUserId, actorCommunityId]
+    );
 
     if (currentUserResult.rows.length === 0) {
       return NextResponse.json({ error: 'User not found in community' }, { status: 404 });
     }
 
-    if (actorRoleResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Actor not found in community' }, { status: 403 });
+    const currentRole = currentUserResult.rows[0].role;
+
+    // If removing an owner, ensure at least one owner remains
+    if (currentRole === 'owner') {
+      const ownerCountResult = await query(
+        'SELECT COUNT(*) as count FROM user_communities WHERE community_id = $1 AND role = $2 AND status = $3',
+        [actorCommunityId, 'owner', 'active']
+      );
+
+      const ownerCount = parseInt(ownerCountResult.rows[0]?.count || '0');
+      
+      if (ownerCount <= 1) {
+        return NextResponse.json({ 
+          error: 'Cannot remove the last owner. At least one owner must remain in the community.' 
+        }, { status: 400 });
+      }
     }
 
-    const currentRole = currentUserResult.rows[0].role as CommunityRole;
-    const actorRole = actorRoleResult.rows[0].role as CommunityRole;
-
-    // Check permission
-    const canRemove = canActorModifyTarget(actorRole, currentRole, 'remove_user');
-    if (!canRemove.allowed) {
-      return NextResponse.json({ error: canRemove.reason }, { status: 403 });
-    }
-
-    // Set status to 'left' instead of deleting the record (keeps history)
-    const updateResult = await query(
-      `UPDATE user_communities 
-       SET status = 'left', updated_at = NOW()
-       WHERE user_id = $1 AND community_id = $2
-       RETURNING *`,
+    // Remove user from community
+    const deleteResult = await query(
+      'DELETE FROM user_communities WHERE user_id = $1 AND community_id = $2 RETURNING role',
       [targetUserId, actorCommunityId]
     );
 
-    if (updateResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Removal failed' }, { status: 500 });
+    if (deleteResult.rows.length === 0) {
+      return NextResponse.json({ error: 'Failed to remove user from community' }, { status: 500 });
     }
 
-    // Log removal audit
-    const auditLog = createStatusChangeAuditLog(
-      actorUserId,
-      targetUserId,
-      actorCommunityId,
-      'active',
-      'left',
-      reason || 'Removed by admin'
-    );
-    await logAuditEntry(auditLog);
+    console.log(`[API DELETE] Successfully removed user ${targetUserId} (${currentRole}) from community ${actorCommunityId}`);
+    
+    // Log the removal
+    console.log(`[AUDIT] User removal: Admin ${actorUserId} removed user ${targetUserId} (${currentRole}) from community ${actorCommunityId}`);
 
-    console.log(`[API DELETE] Successfully removed user ${targetUserId} from community`);
-
-    return NextResponse.json({
-      success: true,
-      message: 'User removed from community'
+    return NextResponse.json({ 
+      message: 'User removed from community successfully',
+      removedRole: currentRole
     });
 
   } catch (error) {
     console.error('[API DELETE] Error removing user from community:', error);
-    return NextResponse.json({ error: 'Failed to remove user' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export const GET = withAuth(getUserCommunityRole, true);
 export const PUT = withAuth(updateUserCommunityRole, true);
-export const DELETE = withAuth(removeUserFromCommunity, true); 
+export const DELETE = withAuth(deleteUserCommunityRole, true); 

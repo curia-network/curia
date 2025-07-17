@@ -25,7 +25,6 @@ import {
   Users, 
   Crown, 
   AlertTriangle,
-  CheckCircle2,
   XCircle,
   Clock,
   Calendar
@@ -100,6 +99,9 @@ export const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
   const queryClient = useQueryClient();
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Check if user is viewing their own profile
+  const isSelfModification = currentUser?.userId === userId;
 
   // Fetch current user role data
   const { data: userRoleData, isLoading, error } = useQuery<UserCommunityRole>({
@@ -225,10 +227,6 @@ export const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
     return Object.entries(ROLE_HIERARCHY)
       .filter(([role, level]) => level < currentUserLevel || role === userRoleData.role)
       .map(([role]) => role);
-  };
-
-  const canUpdateRole = () => {
-    return selectedRole && selectedRole !== userRoleData?.role && !isUpdating;
   };
 
   const canRemoveUser = () => {
@@ -357,26 +355,37 @@ export const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
             {/* Role Selection */}
             <div className="space-y-3">
               <h4 className="font-medium">Change Role</h4>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getAvailableRoles().map((role) => (
-                    <SelectItem key={role} value={role}>
-                      <div className="flex items-center gap-2">
-                        {React.createElement(ROLE_ICONS[role as keyof typeof ROLE_ICONS], { 
-                          className: "h-4 w-4" 
-                        })}
-                        <span>{ROLE_LABELS[role as keyof typeof ROLE_LABELS]}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-sm text-muted-foreground">
-                {selectedRole && ROLE_DESCRIPTIONS[selectedRole as keyof typeof ROLE_DESCRIPTIONS]}
-              </p>
+              {isSelfModification ? (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    You cannot modify your own role. Please have another admin change your role if needed.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <>
+                  <Select value={selectedRole} onValueChange={setSelectedRole}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableRoles().map((role) => (
+                        <SelectItem key={role} value={role}>
+                          <div className="flex items-center gap-2">
+                            {React.createElement(ROLE_ICONS[role as keyof typeof ROLE_ICONS], { 
+                              className: "h-4 w-4" 
+                            })}
+                            <span>{ROLE_LABELS[role as keyof typeof ROLE_LABELS]}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedRole && ROLE_DESCRIPTIONS[selectedRole as keyof typeof ROLE_DESCRIPTIONS]}
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Error Display */}
@@ -406,29 +415,32 @@ export const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
             )}
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
+            <Button 
+              variant="outline" 
               onClick={() => onOpenChange(false)}
               disabled={isUpdating}
             >
               Cancel
             </Button>
-            <Button
-              onClick={handleUpdateRole}
-              disabled={!canUpdateRole()}
-            >
-              {isUpdating ? (
-                <>
-                  <Clock className="h-4 w-4 mr-2 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Update Role
-                </>
-              )}
-            </Button>
+            
+            {!isSelfModification && (
+              <>
+                <Button 
+                  onClick={handleUpdateRole}
+                  disabled={isUpdating || !selectedRole || selectedRole === userRoleData?.role}
+                >
+                  {isUpdating ? 'Updating...' : 'Update Role'}
+                </Button>
+                
+                <Button 
+                  variant="destructive" 
+                  onClick={handleRemoveUser}
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? 'Removing...' : 'Remove from Community'}
+                </Button>
+              </>
+            )}
           </div>
         </DialogFooter>
       </DialogContent>
