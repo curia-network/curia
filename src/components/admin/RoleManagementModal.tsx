@@ -230,7 +230,7 @@ export const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
   };
 
   const canRemoveUser = () => {
-    return userRoleData?.role !== 'owner' && !isUpdating;
+    return userRoleData?.role !== 'owner' && !isUpdating && !isSelfModification;
   };
 
   const formatDate = (dateString: string) => {
@@ -424,22 +424,12 @@ export const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
             </Button>
             
             {!isSelfModification && (
-              <>
-                <Button 
-                  onClick={handleUpdateRole}
-                  disabled={isUpdating || !selectedRole || selectedRole === userRoleData?.role}
-                >
-                  {isUpdating ? 'Updating...' : 'Update Role'}
-                </Button>
-                
-                <Button 
-                  variant="destructive" 
-                  onClick={handleRemoveUser}
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? 'Removing...' : 'Remove from Community'}
-                </Button>
-              </>
+              <Button 
+                onClick={handleUpdateRole}
+                disabled={isUpdating || !selectedRole || selectedRole === userRoleData?.role}
+              >
+                {isUpdating ? 'Updating...' : 'Update Role'}
+              </Button>
             )}
           </div>
         </DialogFooter>
