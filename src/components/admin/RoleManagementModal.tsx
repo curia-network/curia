@@ -57,12 +57,6 @@ interface RoleManagementModalProps {
   communityId: string;
 }
 
-const ROLE_HIERARCHY = {
-  member: 1,
-  moderator: 2,
-  owner: 3,
-} as const;
-
 const ROLE_LABELS = {
   member: 'Member',
   moderator: 'Moderator',
@@ -102,6 +96,20 @@ export const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
 
   // Check if user is viewing their own profile
   const isSelfModification = currentUser?.userId === userId;
+
+  // Fetch current user's actual role in this community
+  const { data: currentUserRole } = useQuery<string>({
+    queryKey: ['currentUserRole', currentUser?.userId, communityId],
+    queryFn: async () => {
+      if (!token || !currentUser?.userId) throw new Error('No auth token or user');
+      const response = await authFetchJson<{ success: boolean; user: UserCommunityRole }>(
+        `/api/admin/users/${currentUser.userId}/community-role?communityId=${communityId}`,
+        { token }
+      );
+      return response.user.role;
+    },
+    enabled: open && !!token && !!currentUser?.userId && !!communityId,
+  });
 
   // Fetch current user role data
   const { data: userRoleData, isLoading, error } = useQuery<UserCommunityRole>({
@@ -214,23 +222,33 @@ export const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
   };
 
   const getAvailableRoles = () => {
-    if (!currentUser || !userRoleData) return [];
+    if (!currentUserRole || !userRoleData) return [];
     
-    // Determine current user's role level - admin status means owner or moderator
-    let currentUserLevel = 1; // Default to member
+    // Define what each role can manage
+    const rolePermissions: Record<string, string[]> = {
+      owner: ['member', 'moderator', 'owner'], // Owners can manage all roles
+      moderator: ['member'], // Moderators can only manage members
+      member: [] // Members can't manage roles
+    };
     
-    if (currentUser.isAdmin) {
-      // Admin users can be either owner or moderator, assume highest level for safety
-      currentUserLevel = 3; // Owner level permissions
-    }
+    // Get available roles based on current user's actual role
+    const availableRoles = rolePermissions[currentUserRole] || [];
     
-    return Object.entries(ROLE_HIERARCHY)
-      .filter(([role, level]) => level < currentUserLevel || role === userRoleData.role)
-      .map(([role]) => role);
+    return availableRoles;
   };
 
   const canRemoveUser = () => {
-    return userRoleData?.role !== 'owner' && !isUpdating && !isSelfModification;
+    if (!currentUserRole || !userRoleData || isUpdating || isSelfModification) return false;
+    
+    // Define removal permissions based on current user's role
+    const canRemove: Record<string, string[]> = {
+      owner: ['member', 'moderator'], // Owners can remove members and moderators, but not other owners (to prevent accidental removal)
+      moderator: ['member'], // Moderators can only remove members
+      member: [] // Members cannot remove anyone
+    };
+    
+    const allowedToRemove = canRemove[currentUserRole] || [];
+    return allowedToRemove.includes(userRoleData.role);
   };
 
   const formatDate = (dateString: string) => {
