@@ -10,6 +10,7 @@ import { ResponsiveToaster } from "@/components/ui/responsive-toaster";
 import { GlobalSearchModal } from "@/components/search/GlobalSearchModal";
 import { BackgroundProvider } from "@/contexts/BackgroundContext";
 import { Suspense } from "react";
+import { ApiProxyServerComponent } from "@/components/ApiProxyServerComponent";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,6 +58,9 @@ export default function RootLayout({
         </Script>
         
         <Suspense fallback={<div>Loading...</div>}>
+          {/* CRITICAL: Initialize API proxy server BEFORE any authentication or API calls */}
+          <ApiProxyServerComponent />
+          
           <ThemeProvider
             attribute="class"
             defaultTheme="system"

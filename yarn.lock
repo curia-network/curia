@@ -226,6 +226,11 @@
   resolved "https://registry.yarnpkg.com/@curia_/cg-plugin-lib/-/cg-plugin-lib-1.0.6.tgz#1a2211a6c938e7a926ab46109938fff55a72b5c5"
   integrity sha512-aUv1lsxuD+qXQfEqhubld2bvaFLSsBx8wVb6zPFQRYu9MPxhMLy+6UKuT+VjHIi5FkyQef9RgSInxjmQWe7Bbw==
 
+"@curia_/iframe-api-proxy@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.npmjs.org/@curia_/iframe-api-proxy/-/iframe-api-proxy-1.0.0.tgz#d2797bec1441d25c2d86bed034f83acdac4ef629"
+  integrity sha512-zFzWZG+klITkQAzCPb1nPmRzsXfgeKuB84LxmrJl1QP0emnJHHcIZwE5WVXrEmxWYHS2WK43bliQ7u/L3Y1qxg==
+
 "@ecies/ciphers@^0.2.3":
   version "0.2.4"
   resolved "https://registry.npmjs.org/@ecies/ciphers/-/ciphers-0.2.4.tgz"

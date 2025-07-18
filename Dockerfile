@@ -25,6 +25,7 @@ ARG TELEGRAM_CONNECT_SECRET
 ARG TELEGRAM_BOT_NAME
 ARG NEXT_PUBLIC_LUKSO_IPFS_GATEWAY
 ARG NEXT_PUBLIC_RSS_BASE_URL
+ARG NEXT_PUBLIC_HOST_SERVICE_URL
 
 # Copy package.json and yarn.lock first to leverage Docker cache
 COPY package.json yarn.lock ./
