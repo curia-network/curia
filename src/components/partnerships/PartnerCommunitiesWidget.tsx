@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Users, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { authFetchJson } from '@/utils/authFetch';
-import { useCrossCommunityNavigation } from '@/hooks/useCrossCommunityNavigation';
+import { useCommunityNavigation } from '@/hooks/useCommunityNavigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,8 +20,7 @@ export function PartnerCommunitiesWidget({
   className = ''
 }: PartnerCommunitiesSidebarProps) {
   const { token, user } = useAuth();
-  const { navigateToPost } = useCrossCommunityNavigation();
-  const [isNavigating, setIsNavigating] = React.useState<string | null>(null);
+  const { navigateToCommunity, navigatingTo } = useCommunityNavigation();
   const [expanded, setExpanded] = useState(false);
 
   // Fetch partnerships for current community
@@ -53,29 +52,25 @@ export function PartnerCommunitiesWidget({
     !!partner.id && !!partner.name
   );
 
-  // Fetch community details including logo URLs and navigation metadata
+  // Fetch community logos (simplified - only need logos now, no navigation metadata)
   const { data: communitiesWithLogos } = useQuery({
     queryKey: ['partnerCommunitiesLogos', partnerCommunities.map(p => p.id)],
     queryFn: async () => {
       if (!token || partnerCommunities.length === 0) return [];
       
-      // Fetch all communities to get logo URLs and navigation metadata
+      // Fetch communities to get logo URLs only
       const allCommunities = await authFetchJson<Array<{
         id: string;
         name: string;
         logoUrl?: string;
-        communityShortId?: string;
-        pluginId?: string;
       }>>('/api/communities', { token });
       
-      // Match partner communities with their full metadata
+      // Match partner communities with their logos
       return partnerCommunities.map(partner => {
         const communityData = allCommunities.find(c => c.id === partner.id);
         return {
           ...partner,
-          logoUrl: communityData?.logoUrl,
-          communityShortId: communityData?.communityShortId,
-          pluginId: communityData?.pluginId
+          logoUrl: communityData?.logoUrl
         };
       });
     },
@@ -97,20 +92,16 @@ export function PartnerCommunitiesWidget({
 
   const handleCommunityClick = async (communityId: string) => {
     const partner = partnersWithLogos.find(p => p.id === communityId);
-    if (!partner || !partner.communityShortId || !partner.pluginId) {
-      console.error('Community navigation failed: Missing navigation metadata for', communityId);
+    if (!partner) {
+      console.error('Community navigation failed: Partner not found for', communityId);
       return;
     }
 
-    setIsNavigating(communityId);
-    try {
-      // Navigate to partner community root (postId/boardId = -1 for community home)
-      await navigateToPost(partner.communityShortId, partner.pluginId, -1, -1);
-    } catch (error) {
-      console.error('Community navigation failed:', error);
-    } finally {
-      setIsNavigating(null);
-    }
+    // Navigate to partner community using the new simplified method
+    await navigateToCommunity(communityId, {
+      communityName: partner.name,
+      logoUrl: partner.logoUrl
+    });
   };
 
   // Don't show if loading or no partnerships
@@ -154,7 +145,7 @@ export function PartnerCommunitiesWidget({
         {/* Partner Logos Grid */}
         <div className="grid grid-cols-4 gap-2">
           {displayPartners.map((partner) => {
-            const navigatingThisCommunity = isNavigating === partner.id;
+            const navigatingThisCommunity = navigatingTo === partner.id;
             
             return (
               <button
