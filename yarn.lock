@@ -226,10 +226,10 @@
   resolved "https://registry.npmjs.org/@curia_/cg-plugin-lib/-/cg-plugin-lib-1.0.7.tgz#10f3ecb9827aef4de3ea05dde4035135258446e5"
   integrity sha512-JUZT+qOrstm3PIFgEJzOQxY5WZP526sgYXJ9kHdLz82HQMa5FkatcEGg5mkUuuW6j5ntWd96CZpGZ839HainQw==
 
-"@curia_/iframe-api-proxy@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/@curia_/iframe-api-proxy/-/iframe-api-proxy-1.0.0.tgz#d2797bec1441d25c2d86bed034f83acdac4ef629"
-  integrity sha512-zFzWZG+klITkQAzCPb1nPmRzsXfgeKuB84LxmrJl1QP0emnJHHcIZwE5WVXrEmxWYHS2WK43bliQ7u/L3Y1qxg==
+"@curia_/iframe-api-proxy@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.npmjs.org/@curia_/iframe-api-proxy/-/iframe-api-proxy-1.1.0.tgz#dd39a29d30c9e6aa05f6afcc8b0413f29423a2cc"
+  integrity sha512-CtYCJCJief/XkyNVCoTJF9Dly1trDPwX8eQXVldAbgnYqK3WcXkwhW9OIJNA5vEbmutaU2+GmqgzitoTVnqHjQ==
 
 "@ecies/ciphers@^0.2.3":
   version "0.2.4"
