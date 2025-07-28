@@ -13,7 +13,7 @@ import { useGlobalSearch } from '@/contexts/GlobalSearchContext';
  * perfect for one-way communication from sidebar to forum.
  */
 export const SidebarActionListener: React.FC = () => {
-  const { openSearch } = useGlobalSearch();
+  const { openSearch, closeSearch, isSearchOpen } = useGlobalSearch();
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -29,13 +29,19 @@ export const SidebarActionListener: React.FC = () => {
       switch (action) {
         case 'search':
           try {
-            console.log('[SidebarActionListener] Opening search modal');
-            openSearch({
-              initialQuery: payload?.searchQuery || '',
-              autoExpandForm: false // Keep it as search, not post creation
-            });
+            // 🆕 NEW - Toggle behavior: close if open, open if closed
+            if (isSearchOpen) {
+              console.log('[SidebarActionListener] Search modal is open - closing it');
+              closeSearch();
+            } else {
+              console.log('[SidebarActionListener] Opening search modal');
+              openSearch({
+                initialQuery: payload?.searchQuery || '',
+                autoExpandForm: false // Keep it as search, not post creation
+              });
+            }
           } catch (error) {
-            console.error('[SidebarActionListener] Failed to open search modal:', error);
+            console.error('[SidebarActionListener] Failed to toggle search modal:', error);
           }
           break;
 
@@ -63,7 +69,7 @@ export const SidebarActionListener: React.FC = () => {
       window.removeEventListener('message', handleMessage);
       console.log('[SidebarActionListener] Cleaned up message listener');
     };
-  }, [openSearch]);
+  }, [openSearch, closeSearch, isSearchOpen]);
 
   // This component doesn't render anything
   return null;
