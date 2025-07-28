@@ -11,6 +11,7 @@ import { GlobalSearchModal } from "@/components/search/GlobalSearchModal";
 import { BackgroundProvider } from "@/contexts/BackgroundContext";
 import { Suspense } from "react";
 import { ApiProxyServerComponent } from "@/components/ApiProxyServerComponent";
+import { SidebarActionListener } from "@/components/SidebarActionListener";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -68,6 +69,8 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <Providers>
+              {/* Initialize sidebar action listener for host service communication - needs GlobalSearchProvider */}
+              <SidebarActionListener />
               <BackgroundProvider>
                 <Suspense fallback={<div>Loading application...</div>}>
                   <MainLayoutWithSidebar>{children}</MainLayoutWithSidebar>
