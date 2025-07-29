@@ -19,7 +19,7 @@ const CgLibContext = createContext<CgLibContextType | undefined>(undefined);
 
 // Get the public key from environment variables
 const publicKey = process.env.NEXT_PUBLIC_PUBKEY as string;
-const pluginBaseUrl = process.env.NEXT_PUBLIC_PLUGIN_BASE_URL as string;
+const rssBaseUrl = process.env.NEXT_PUBLIC_RSS_BASE_URL as string;
 
 // Provider component
 export function CgLibProvider({ children }: { children: React.ReactNode }) {
@@ -104,9 +104,9 @@ export function CgLibProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (!pluginBaseUrl) {
-      console.error("[CgLibContext] Plugin base URL is not set. Cannot initialize.");
-      setInitError(new Error("NEXT_PUBLIC_PLUGIN_BASE_URL is not set in the .env file."));
+    if (!rssBaseUrl) {
+      console.error("[CgLibContext] RSS base URL is not set. Cannot initialize.");
+      setInitError(new Error("NEXT_PUBLIC_RSS_BASE_URL is not set in the .env file."));
       setIsInitializing(false);
       return;
     }
@@ -123,7 +123,7 @@ export function CgLibProvider({ children }: { children: React.ReactNode }) {
     setInitError(null);
 
     // 🔧 FIX: Use absolute URL for signing endpoint instead of relative path
-    const signingEndpoint = `${pluginBaseUrl}/api/sign`;
+    const signingEndpoint = `${rssBaseUrl}/api/sign`;
     console.log(`[CgLibContext] Using signing endpoint: ${signingEndpoint}`);
 
     CgPluginLib.initialize(iframeUid, signingEndpoint, publicKey)
