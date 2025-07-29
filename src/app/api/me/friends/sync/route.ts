@@ -79,16 +79,36 @@ async function handler(req: NextRequest) {
 
     for (const friend of friends) {
       try {
-        // Ensure friend user exists in users table
-        await query(
-          `INSERT INTO users (user_id, name, profile_picture_url, updated_at)
-           VALUES ($1, $2, $3, NOW())
-           ON CONFLICT (user_id) DO UPDATE SET 
-             name = COALESCE(EXCLUDED.name, users.name),
-             profile_picture_url = COALESCE(EXCLUDED.profile_picture_url, users.profile_picture_url),
-             updated_at = NOW();`,
-          [friend.id, friend.name, friend.image || null]
-        );
+        // Detect if this is an ENS user based on the name ending with .eth
+        const isEnsUser = friend.name && friend.name.endsWith('.eth');
+        
+        // Ensure friend user exists in users table with proper identity fields
+        if (isEnsUser) {
+          // ENS user: set identity_type='ens', wallet_address, and ens_domain
+          await query(
+            `INSERT INTO users (user_id, name, profile_picture_url, identity_type, wallet_address, ens_domain, updated_at)
+             VALUES ($1, $2, $3, 'ens', $4, $5, NOW())
+             ON CONFLICT (user_id) DO UPDATE SET 
+               name = COALESCE(EXCLUDED.name, users.name),
+               profile_picture_url = COALESCE(EXCLUDED.profile_picture_url, users.profile_picture_url),
+               identity_type = COALESCE(EXCLUDED.identity_type, users.identity_type),
+               wallet_address = COALESCE(EXCLUDED.wallet_address, users.wallet_address),
+               ens_domain = COALESCE(EXCLUDED.ens_domain, users.ens_domain),
+               updated_at = NOW();`,
+            [friend.id, friend.name, friend.image || null, friend.id, friend.name]
+          );
+        } else {
+          // Non-ENS user: use legacy behavior
+          await query(
+            `INSERT INTO users (user_id, name, profile_picture_url, updated_at)
+             VALUES ($1, $2, $3, NOW())
+             ON CONFLICT (user_id) DO UPDATE SET 
+               name = COALESCE(EXCLUDED.name, users.name),
+               profile_picture_url = COALESCE(EXCLUDED.profile_picture_url, users.profile_picture_url),
+               updated_at = NOW();`,
+            [friend.id, friend.name, friend.image || null]
+          );
+        }
 
         // Upsert friendship record
         await query(
