@@ -235,7 +235,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, []); // Optimized: removed dependencies that caused unnecessary re-creation
+  }, [cgInstance, isCgLibInitializing, cgIframeUid, fetchUserStats]); // 🔧 FIX: Added missing dependencies to prevent stale closure
 
   const login = useCallback(async (userDataFromCgLib: UserDataFromCgLib) => {
     await performLoginLogic(userDataFromCgLib, false);
