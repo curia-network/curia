@@ -8,7 +8,7 @@ if (!privateKey || !publicKey) {
 }
 
 // Handle CORS preflight requests
-export async function OPTIONS(req: Request) {
+export async function OPTIONS() {
     return new Response(null, {
         status: 200,
         headers: {
