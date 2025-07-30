@@ -1,19 +1,23 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useGlobalSearch } from '@/contexts/GlobalSearchContext';
+import { preserveCgParams } from '@/utils/urlBuilder';
 
 /**
  * Sidebar Action Listener Component
  * 
  * Listens for sidebar action messages from the parent window (host service)
- * and integrates them with the forum app's features like GlobalSearchModal.
+ * and integrates them with the forum app's features like GlobalSearchModal
+ * and navigation to What's New page.
  * 
  * This is a much simpler approach than the bidirectional CommandServer,
  * perfect for one-way communication from sidebar to forum.
  */
 export const SidebarActionListener: React.FC = () => {
   const { openSearch, closeSearch, isSearchOpen } = useGlobalSearch();
+  const router = useRouter();
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -51,8 +55,12 @@ export const SidebarActionListener: React.FC = () => {
           break;
 
         case 'notifications':
-          console.log('[SidebarActionListener] Notifications action received - not implemented yet');
-          // TODO: Implement notifications interface when available
+          try {
+            console.log('[SidebarActionListener] Opening What\'s New page');
+            router.push(preserveCgParams('/whats-new'));
+          } catch (error) {
+            console.error('[SidebarActionListener] Failed to navigate to What\'s New:', error);
+          }
           break;
 
         default:
@@ -69,7 +77,7 @@ export const SidebarActionListener: React.FC = () => {
       window.removeEventListener('message', handleMessage);
       console.log('[SidebarActionListener] Cleaned up message listener');
     };
-  }, [openSearch, closeSearch, isSearchOpen]);
+  }, [openSearch, closeSearch, isSearchOpen, router]);
 
   // This component doesn't render anything
   return null;
