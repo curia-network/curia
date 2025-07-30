@@ -3,20 +3,21 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGlobalSearch } from '@/contexts/GlobalSearchContext';
-import { preserveCgParams } from '@/utils/urlBuilder';
+import { useWhatsNew } from '@/contexts/WhatsNewContext';
 
 /**
  * Sidebar Action Listener Component
  * 
  * Listens for sidebar action messages from the parent window (host service)
  * and integrates them with the forum app's features like GlobalSearchModal
- * and navigation to What's New page.
+ * and WhatsNewModal overlay system.
  * 
  * This is a much simpler approach than the bidirectional CommandServer,
  * perfect for one-way communication from sidebar to forum.
  */
 export const SidebarActionListener: React.FC = () => {
   const { openSearch, closeSearch, isSearchOpen } = useGlobalSearch();
+  const { openNotifications, closeNotifications, isNotificationsOpen } = useWhatsNew();
   const router = useRouter();
 
   useEffect(() => {
@@ -56,10 +57,16 @@ export const SidebarActionListener: React.FC = () => {
 
         case 'notifications':
           try {
-            console.log('[SidebarActionListener] Opening What\'s New page');
-            router.push(preserveCgParams('/whats-new'));
+            // 🆕 NEW - Toggle behavior: close if open, open if closed
+            if (isNotificationsOpen) {
+              console.log('[SidebarActionListener] Notifications modal is open - closing it');
+              closeNotifications();
+            } else {
+              console.log('[SidebarActionListener] Opening notifications modal');
+              openNotifications();
+            }
           } catch (error) {
-            console.error('[SidebarActionListener] Failed to navigate to What\'s New:', error);
+            console.error('[SidebarActionListener] Failed to toggle notifications modal:', error);
           }
           break;
 
@@ -77,7 +84,7 @@ export const SidebarActionListener: React.FC = () => {
       window.removeEventListener('message', handleMessage);
       console.log('[SidebarActionListener] Cleaned up message listener');
     };
-  }, [openSearch, closeSearch, isSearchOpen, router]);
+  }, [openSearch, closeSearch, isSearchOpen, isNotificationsOpen, closeNotifications, openNotifications, router]);
 
   // This component doesn't render anything
   return null;

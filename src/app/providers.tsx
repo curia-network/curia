@@ -6,6 +6,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { CgLibProvider } from '@/contexts/CgLibContext';
 import { SocketProvider } from '@/contexts/SocketContext';
 import { GlobalSearchProvider } from '@/contexts/GlobalSearchContext';
+import { WhatsNewProvider } from '@/contexts/WhatsNewContext';
 import { ConditionalUniversalProfileProvider } from '@/contexts/ConditionalUniversalProfileProvider';
 import { AppInitializer } from '@/components/AppInitializer';
 import { ExternalParamsProvider } from '@/contexts/ExternalParamsContext';
@@ -52,16 +53,18 @@ export function Providers({ children }: ProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <CgLibProvider>
         <AuthProvider>
-          <GlobalSearchProvider>
-            <WalletProviders>
+          <WhatsNewProvider>
+            <GlobalSearchProvider>
+              <WalletProviders>
               <SocketProvider>
                 <AppInitializer />
                 <ExternalParamsProvider>
                   {children}
                 </ExternalParamsProvider>
               </SocketProvider>
-            </WalletProviders>
-          </GlobalSearchProvider>
+              </WalletProviders>
+            </GlobalSearchProvider>
+          </WhatsNewProvider>
         </AuthProvider>
       </CgLibProvider>
     </QueryClientProvider>

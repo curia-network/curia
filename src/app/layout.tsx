@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { MainLayoutWithSidebar } from "@/components/layout/MainLayoutWithSidebar";
 import { ResponsiveToaster } from "@/components/ui/responsive-toaster";
 import { GlobalSearchModal } from "@/components/search/GlobalSearchModal";
+import { WhatsNewModal } from "@/components/whats-new/WhatsNewModal";
 import { BackgroundProvider } from "@/contexts/BackgroundContext";
 import { Suspense } from "react";
 import { ApiProxyServerComponent } from "@/components/ApiProxyServerComponent";
@@ -75,6 +76,7 @@ export default function RootLayout({
                 <Suspense fallback={<div>Loading application...</div>}>
                   <MainLayoutWithSidebar>{children}</MainLayoutWithSidebar>
                   <GlobalSearchModal />
+                  <WhatsNewModal />
                 </Suspense>
               </BackgroundProvider>
             </Providers>
