@@ -82,6 +82,12 @@ async function handler(req: NextRequest) {
         // Detect if this is an ENS user based on the name ending with .eth
         const isEnsUser = friend.name && friend.name.endsWith('.eth');
         
+        // Detect if this is a Universal Profile user based on address format (but not ENS)
+        const isUpUser = friend.id && 
+                        friend.id.startsWith('0x') && 
+                        friend.id.length === 42 && 
+                        !isEnsUser; // UP addresses are Ethereum addresses that are not ENS
+        
         // Ensure friend user exists in users table with proper identity fields
         if (isEnsUser) {
           // ENS user: set identity_type='ens', wallet_address, and ens_domain
@@ -97,14 +103,28 @@ async function handler(req: NextRequest) {
                updated_at = NOW();`,
             [friend.id, friend.name, friend.image || null, friend.id, friend.name]
           );
-        } else {
-          // Non-ENS user: use legacy behavior
+        } else if (isUpUser) {
+          // Universal Profile user: set identity_type='universal_profile' and up_address
           await query(
-            `INSERT INTO users (user_id, name, profile_picture_url, updated_at)
-             VALUES ($1, $2, $3, NOW())
+            `INSERT INTO users (user_id, name, profile_picture_url, identity_type, up_address, updated_at)
+             VALUES ($1, $2, $3, 'universal_profile', $4, NOW())
              ON CONFLICT (user_id) DO UPDATE SET 
                name = COALESCE(EXCLUDED.name, users.name),
                profile_picture_url = COALESCE(EXCLUDED.profile_picture_url, users.profile_picture_url),
+               identity_type = COALESCE(EXCLUDED.identity_type, users.identity_type),
+               up_address = COALESCE(EXCLUDED.up_address, users.up_address),
+               updated_at = NOW();`,
+            [friend.id, friend.name, friend.image || null, friend.id]
+          );
+        } else {
+          // Legacy user: default to 'legacy' identity_type
+          await query(
+            `INSERT INTO users (user_id, name, profile_picture_url, identity_type, updated_at)
+             VALUES ($1, $2, $3, 'legacy', NOW())
+             ON CONFLICT (user_id) DO UPDATE SET 
+               name = COALESCE(EXCLUDED.name, users.name),
+               profile_picture_url = COALESCE(EXCLUDED.profile_picture_url, users.profile_picture_url),
+               identity_type = COALESCE(EXCLUDED.identity_type, users.identity_type),
                updated_at = NOW();`,
             [friend.id, friend.name, friend.image || null]
           );
