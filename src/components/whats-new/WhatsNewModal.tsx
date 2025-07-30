@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useWhatsNew } from '@/contexts/WhatsNewContext';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { WhatsNewContent } from './WhatsNewContent';
 import { Bell, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -29,7 +29,7 @@ export function WhatsNewModal() {
   const { isNotificationsOpen, closeNotifications } = useWhatsNew();
   const isDesktop = useIsDesktop();
 
-  // Body scroll lock when modal is open (pattern from ModalContainer)
+  // Body scroll lock and focus management when modal is open
   useEffect(() => {
     if (isNotificationsOpen) {
       // Store original overflow style
@@ -37,6 +37,12 @@ export function WhatsNewModal() {
       
       // Lock scroll
       document.body.style.overflow = 'hidden';
+      
+      // Focus the modal container for screen readers
+      const modalContainer = document.querySelector('[role="dialog"]');
+      if (modalContainer instanceof HTMLElement) {
+        modalContainer.focus();
+      }
       
       // Cleanup function to restore scroll
       return () => {
@@ -72,14 +78,20 @@ export function WhatsNewModal() {
       />
       
       {/* Modal Content - Responsive Design */}
-      <div className={cn(
-        "fixed z-50 bg-background shadow-2xl border overscroll-contain",
-        isDesktop
-          ? // Desktop: Left sidebar (384px = w-96)
-            "left-0 top-0 bottom-0 w-96 rounded-r-2xl animate-in slide-in-from-left-5 fade-in-0 duration-300"
-          : // Mobile: Bottom drawer
-            "left-0 right-0 bottom-0 max-h-[80vh] rounded-t-2xl animate-in slide-in-from-bottom-4 fade-in-0 duration-300"
-      )}>
+      <div 
+        className={cn(
+          "fixed z-50 bg-background shadow-2xl border overscroll-contain flex flex-col focus:outline-none",
+          isDesktop
+            ? // Desktop: Left sidebar (384px = w-96)
+              "left-0 top-0 bottom-0 w-96 rounded-r-2xl animate-in slide-in-from-left-5 fade-in-0 duration-300"
+            : // Mobile: Bottom drawer
+              "left-0 right-0 bottom-0 max-h-[80vh] rounded-t-2xl animate-in slide-in-from-bottom-4 fade-in-0 duration-300"
+        )}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="whats-new-title"
+        tabIndex={-1}
+      >
         {/* Header */}
         <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-primary/10 p-4">
           <div className="flex items-center justify-between">
@@ -87,7 +99,7 @@ export function WhatsNewModal() {
               <div className="p-2 rounded-lg bg-primary/10 text-primary">
                 <Bell size={18} />
               </div>
-              <h2 className="text-lg font-semibold">What&apos;s New</h2>
+              <h2 id="whats-new-title" className="text-lg font-semibold">What&apos;s New</h2>
             </div>
             <Button
               variant="ghost"
@@ -97,38 +109,14 @@ export function WhatsNewModal() {
               aria-label="Close notifications"
             >
               <X size={16} />
+              <span className="sr-only">Close notifications</span>
             </Button>
           </div>
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4">
-            {/* Placeholder content - will be replaced with actual WhatsNewContent */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Notifications Modal</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  🎉 Modal is working! This will be replaced with the actual What&apos;s New content in Step 3.
-                </p>
-                <div className="mt-4 space-y-2">
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-sm font-medium">Test Notification 1</p>
-                    <p className="text-xs text-muted-foreground">This is a placeholder notification</p>
-                  </div>
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-sm font-medium">Test Notification 2</p>
-                    <p className="text-xs text-muted-foreground">Another placeholder notification</p>
-                  </div>
-                </div>
-                <div className="mt-4 text-xs text-muted-foreground">
-                  {isDesktop ? '🖥️ Desktop sidebar mode' : '📱 Mobile drawer mode'}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        {/* Content Area - Full height with WhatsNewContent managing its own layout */}
+        <div className="flex-1 overflow-hidden">
+          <WhatsNewContent />
         </div>
       </div>
     </>,

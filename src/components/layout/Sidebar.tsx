@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-import { Home, LayoutDashboard, Settings, ChevronRight, ChevronDown, Plus, X, Lock, Shield, Bell, Handshake, Share2, BarChart3, Trophy } from 'lucide-react';
+import { Home, LayoutDashboard, Settings, ChevronRight, ChevronDown, Plus, X, Lock, Shield, Handshake, Share2, BarChart3, Trophy } from 'lucide-react';
 import { CommunityInfoResponsePayload } from '@curia_/cg-plugin-lib';
 import { ApiBoard } from '@/app/api/communities/[communityId]/boards/route';
 import { cn } from '@/lib/utils';
@@ -77,11 +77,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const currentBoardId = searchParams?.get('boardId');
   const isLocksPage = pathname === '/locks';
   const isCreateBoardPage = pathname === '/create-board';
-  const isWhatsNewPage = pathname === '/whats-new';
   const isPartnershipsPage = pathname === '/partnerships';
   const isAdminDashboardPage = pathname === '/admin-dashboard';
   const isLeaderboardPage = pathname === '/leaderboard';
-  const isHome = !currentBoardId && !isLocksPage && !isCreateBoardPage && !isWhatsNewPage && !isPartnershipsPage && !isAdminDashboardPage && !isLeaderboardPage;
+  const isHome = !currentBoardId && !isLocksPage && !isCreateBoardPage && !isPartnershipsPage && !isAdminDashboardPage && !isLeaderboardPage;
 
   // Helper function to preserve existing URL params
   const buildUrl = (path: string, additionalParams: Record<string, string> = {}) => {
@@ -308,57 +307,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </Link>
 
-        {/* What's New Link */}
-        <Link
-          href={buildUrl('/whats-new')}
-          className={cn(
-            'group flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden',
-            isWhatsNewPage
-              ? theme === 'dark'
-                ? 'bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-300 shadow-lg shadow-orange-500/10'
-                : 'bg-gradient-to-r from-orange-500/10 to-red-500/10 text-orange-700 shadow-lg shadow-orange-500/10'
-              : theme === 'dark'
-                ? hasActiveBackground 
-                  ? 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/30'
-                  : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/60'
-                : hasActiveBackground
-                  ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/40'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
-          )}
-        >
-          <div className={cn(
-            'p-1.5 rounded-lg mr-3 transition-all duration-200',
-            isWhatsNewPage
-              ? theme === 'dark'
-                ? 'bg-orange-500/20 text-orange-300'
-                : 'bg-orange-500/10 text-orange-600'
-              : theme === 'dark'
-                ? 'bg-slate-700/50 text-slate-400 group-hover:bg-slate-600/50 group-hover:text-slate-300'
-                : 'bg-slate-200/50 text-slate-500 group-hover:bg-slate-300/50 group-hover:text-slate-700'
-          )}>
-            <Bell size={16} />
-          </div>
-          <span className="flex-1">What&apos;s New</span>
-          
-          {/* NEW Badge */}
-          <div className={cn(
-            'px-1.5 py-0.5 rounded-full text-xs font-bold tracking-wide transition-all duration-200',
-            theme === 'dark'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20'
-              : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
-          )}>
-            NEW
-          </div>
-          
-          {isWhatsNewPage && (
-            <ChevronRight size={14} className="opacity-60 ml-2" />
-          )}
-          
-          {/* Active indicator */}
-          {isWhatsNewPage && (
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5 rounded-xl" />
-          )}
-        </Link>
+
 
         {/* Leaderboard Link */}
         <Link
