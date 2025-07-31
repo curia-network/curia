@@ -9,7 +9,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
 import { Globe, MessageSquare, Heart, Plus, Loader2, Filter, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTimeSince } from '@/utils/timeUtils';
@@ -73,7 +72,6 @@ export function WhatsNewContent() {
   const { token, user } = useAuth();
   const [selectedCommunityId, setSelectedCommunityId] = useState<string>(user?.cid || '');
   const [showOnlyNew, setShowOnlyNew] = useState(false);
-  const [loadMoreEnabled, setLoadMoreEnabled] = useState(true);
 
   // Update selected community when user data loads
   useEffect(() => {
@@ -83,7 +81,7 @@ export function WhatsNewContent() {
   }, [user?.cid, selectedCommunityId]);
 
   // Fetch unified activity feed (simplified from the complex categorization)
-  const { data: activityData, isLoading, refetch } = useQuery<WhatsNewResponse>({
+  const { data: activityData, isLoading } = useQuery<WhatsNewResponse>({
     queryKey: ['whatsNewUnified', selectedCommunityId, showOnlyNew],
     queryFn: async () => {
       if (!selectedCommunityId || !token) {
@@ -373,7 +371,7 @@ export function WhatsNewContent() {
             ))}
             
             {/* Load more button if there are more items */}
-            {activityData?.pagination?.hasMore && loadMoreEnabled && (
+            {activityData?.pagination?.hasMore && (
               <div className="text-center pt-4">
                 <Button
                   variant="outline"

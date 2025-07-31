@@ -94,7 +94,7 @@ export default function WhatsNewRedirectPage() {
           <CardContent className="pt-6">
             <h3 className="font-medium mb-2">Need Help Finding Notifications?</h3>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Look for a bell icon or "notifications" button in your host service</li>
+              <li>• Look for a bell icon or &quot;notifications&quot; button in your host service</li>
               <li>• The notifications panel shows all your activity in a clean, organized view</li>
               <li>• You can filter by community and toggle between new and all activities</li>
             </ul>
