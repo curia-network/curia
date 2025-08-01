@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGlobalSearch } from '@/contexts/GlobalSearchContext';
 import { useWhatsNew } from '@/contexts/WhatsNewContext';
+import { useChatModal } from '@curia_/curia-chat-modal';
 
 /**
  * Sidebar Action Listener Component
@@ -18,6 +19,7 @@ import { useWhatsNew } from '@/contexts/WhatsNewContext';
 export const SidebarActionListener: React.FC = () => {
   const { openSearch, closeSearch, isSearchOpen } = useGlobalSearch();
   const { openNotifications, closeNotifications, isNotificationsOpen } = useWhatsNew();
+  const { openChat, closeChat, isChatOpen } = useChatModal();
   const router = useRouter();
 
   useEffect(() => {
@@ -51,8 +53,18 @@ export const SidebarActionListener: React.FC = () => {
           break;
 
         case 'messages':
-          console.log('[SidebarActionListener] Messages action received - not implemented yet');
-          // TODO: Implement messages interface when available
+          try {
+            // Toggle behavior: close if open, open if closed
+            if (isChatOpen) {
+              console.log('[SidebarActionListener] Chat modal is open - closing it');
+              closeChat();
+            } else {
+              console.log('[SidebarActionListener] Opening chat modal');
+              openChat();
+            }
+          } catch (error) {
+            console.error('[SidebarActionListener] Failed to toggle chat modal:', error);
+          }
           break;
 
         case 'notifications':
@@ -84,7 +96,7 @@ export const SidebarActionListener: React.FC = () => {
       window.removeEventListener('message', handleMessage);
       console.log('[SidebarActionListener] Cleaned up message listener');
     };
-  }, [openSearch, closeSearch, isSearchOpen, isNotificationsOpen, closeNotifications, openNotifications, router]);
+  }, [openSearch, closeSearch, isSearchOpen, isNotificationsOpen, closeNotifications, openNotifications, openChat, closeChat, isChatOpen, router]);
 
   // This component doesn't render anything
   return null;

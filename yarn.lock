@@ -244,6 +244,16 @@
   resolved "https://registry.npmjs.org/@curia_/cg-plugin-lib/-/cg-plugin-lib-1.0.8.tgz#8e676b5465a58ed7ff00b3b70275e04d8b71ed6f"
   integrity sha512-G2a0HZS63r9mJCKN9zZxRoP60XNOj0z8XTjqqHWOODd0rGJEK43J1frZzKnkJnAXya1fsW2N9nLCXaY+VIjZfw==
 
+"@curia_/curia-chat-modal@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.npmjs.org/@curia_/curia-chat-modal/-/curia-chat-modal-1.0.0.tgz#f66000717a6f9be1a79a50c02a148213b079c03e"
+  integrity sha512-0R2qtRNrmZhmFJGuMnW4W+zuPLRlL9kCyQCQ8l28Fj9CsXZ3N4fcAUaZ4k8SUWB6SJB/+YtEkW5R5VwQJ1RETQ==
+  dependencies:
+    class-variance-authority "^0.7.1"
+    clsx "^2.1.1"
+    lucide-react "^0.453.0"
+    tailwind-merge "^2.5.4"
+
 "@curia_/iframe-api-proxy@1.4.0":
   version "1.4.0"
   resolved "https://registry.npmjs.org/@curia_/iframe-api-proxy/-/iframe-api-proxy-1.4.0.tgz#ab33b1ae06defc6664e132434165ed9413d70bd7"
@@ -8146,6 +8156,11 @@ ltgt@~2.2.0:
   resolved "https://registry.npmjs.org/ltgt/-/ltgt-2.2.1.tgz#f35ca91c493f7b73da0e07495304f17b31f87ee5"
   integrity sha512-AI2r85+4MquTw9ZYqabu4nMwy9Oftlfa/e/52t9IjtfG+mGBbTNdAoZ3RQKLHR6r0wQnwZnPIEh/Ya6XTWAKNA==
 
+lucide-react@^0.453.0:
+  version "0.453.0"
+  resolved "https://registry.npmjs.org/lucide-react/-/lucide-react-0.453.0.tgz#d37909a45a29d89680383a202ee861224b05ba6a"
+  integrity sha512-kL+RGZCcJi9BvJtzg2kshO192Ddy9hv3ij+cPrVPWSRzgCWCVazoQJxOjAwgK53NomL07HB7GPHW120FimjNhQ==
+
 lucide-react@^0.511.0:
   version "0.511.0"
   resolved "https://registry.npmjs.org/lucide-react/-/lucide-react-0.511.0.tgz#1dfef3065c725ac83f5fe0a6f02d1e0b0c36e641"
@@ -10595,6 +10610,11 @@ swr@^2.2.5:
   dependencies:
     dequal "^2.0.3"
     use-sync-external-store "^1.4.0"
+
+tailwind-merge@^2.5.4:
+  version "2.6.0"
+  resolved "https://registry.npmjs.org/tailwind-merge/-/tailwind-merge-2.6.0.tgz#ac5fb7e227910c038d458f396b7400d93a3142d5"
+  integrity sha512-P+Vu1qXfzediirmHOC3xKGAYeZtPcV9g76X+xg2FD4tYgR71ewMA35Y3sCz3zhiN/dwefRpJX0yBcgwi1fXNQA==
 
 tailwind-merge@^3.3.0:
   version "3.3.1"

@@ -9,6 +9,7 @@ import { MainLayoutWithSidebar } from "@/components/layout/MainLayoutWithSidebar
 import { ResponsiveToaster } from "@/components/ui/responsive-toaster";
 import { GlobalSearchModal } from "@/components/search/GlobalSearchModal";
 import { WhatsNewModal } from "@/components/whats-new/WhatsNewModal";
+import { ChatModalWrapper } from "@/components/ChatModalWrapper";
 import { BackgroundProvider } from "@/contexts/BackgroundContext";
 import { Suspense } from "react";
 import { ApiProxyServerComponent } from "@/components/ApiProxyServerComponent";
@@ -77,6 +78,7 @@ export default function RootLayout({
                   <MainLayoutWithSidebar>{children}</MainLayoutWithSidebar>
                   <GlobalSearchModal />
                   <WhatsNewModal />
+                  <ChatModalWrapper />
                 </Suspense>
               </BackgroundProvider>
             </Providers>

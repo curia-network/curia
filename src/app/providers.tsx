@@ -7,6 +7,7 @@ import { CgLibProvider } from '@/contexts/CgLibContext';
 import { SocketProvider } from '@/contexts/SocketContext';
 import { GlobalSearchProvider } from '@/contexts/GlobalSearchContext';
 import { WhatsNewProvider } from '@/contexts/WhatsNewContext';
+import { ChatProvider } from '@curia_/curia-chat-modal';
 import { ConditionalUniversalProfileProvider } from '@/contexts/ConditionalUniversalProfileProvider';
 import { AppInitializer } from '@/components/AppInitializer';
 import { ExternalParamsProvider } from '@/contexts/ExternalParamsContext';
@@ -54,16 +55,18 @@ export function Providers({ children }: ProvidersProps) {
       <CgLibProvider>
         <AuthProvider>
           <WhatsNewProvider>
-            <GlobalSearchProvider>
-              <WalletProviders>
-              <SocketProvider>
-                <AppInitializer />
-                <ExternalParamsProvider>
-                  {children}
-                </ExternalParamsProvider>
-              </SocketProvider>
-              </WalletProviders>
-            </GlobalSearchProvider>
+            <ChatProvider>
+              <GlobalSearchProvider>
+                <WalletProviders>
+                  <SocketProvider>
+                    <AppInitializer />
+                    <ExternalParamsProvider>
+                      {children}
+                    </ExternalParamsProvider>
+                  </SocketProvider>
+                </WalletProviders>
+              </GlobalSearchProvider>
+            </ChatProvider>
           </WhatsNewProvider>
         </AuthProvider>
       </CgLibProvider>
