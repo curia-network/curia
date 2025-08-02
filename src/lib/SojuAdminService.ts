@@ -1,79 +1,85 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import net from 'net';
-
-const execAsync = promisify(exec);
+/**
+ * SojuAdminService - HTTP client for Soju IRC bouncer admin operations
+ * 
+ * This service communicates with the curia-irc-bouncer-sidecar HTTP API
+ * which handles all the complex sojuctl command execution and parsing.
+ * 
+ * Environment Variables:
+ * - SOJU_SIDECAR_URL: URL of the sidecar service (default: http://localhost:3001)
+ * - SOJU_ADMIN_API_TOKEN: Authentication token for sidecar API
+ */
 
 // Type definitions for admin operations
-interface CreateUserParams {
+export interface CreateUserParams {
   ircUsername: string;
   ircPassword: string;
   nickname: string;
   realname: string;
 }
 
-interface CreateNetworkParams {
+export interface CreateNetworkParams {
   ircUsername: string;
   nickname: string;
 }
 
-interface SojuAdminResponse {
+export interface SojuAdminResponse {
   success: boolean;
   output?: string;
   error?: string;
 }
 
 /**
- * SojuAdminService - Abstraction for Soju IRC bouncer admin operations
- * 
- * Supports dual environments:
- * - Local Development: Unix socket + sojuctl CLI commands
- * - Railway Production: TCP network admin interface
- * 
- * Environment detection is automatic based on NODE_ENV and Railway variables.
+ * HTTP client for Soju admin operations via sidecar service
  */
 export class SojuAdminService {
-  private readonly SOCKET_PATH = '/var/lib/soju/admin.sock';
-  private readonly TCP_TIMEOUT = 10000; // 10 seconds
-  private readonly DEFAULT_NETWORK_HOST = 'ergo';
-  private readonly DEFAULT_NETWORK_PORT = '6667';
+  private readonly sidecarUrl: string;
+  private readonly apiToken: string;
+  private readonly timeout: number = 30000; // 30 seconds
 
-  /**
-   * Determine if we're running in local development environment
-   */
-  private isLocalEnvironment(): boolean {
-    // Check multiple indicators for local development
-    const isLocalNode = process.env.NODE_ENV === 'development';
-    const isNotRailway = !process.env.RAILWAY_ENVIRONMENT_ID;
-    const isSocketForced = process.env.SOJU_ADMIN_METHOD === 'socket';
+  constructor() {
+    this.sidecarUrl = process.env.SOJU_SIDECAR_URL || 'http://localhost:3003';
+    this.apiToken = process.env.SOJU_ADMIN_API_TOKEN || '';
     
-    // Local if any of these conditions are true
-    return isLocalNode || isNotRailway || isSocketForced;
+    if (!this.apiToken) {
+      console.warn('[SojuAdmin] SOJU_ADMIN_API_TOKEN not configured - sidecar calls will fail');
+    }
+    
+    console.log('[SojuAdmin] Initialized HTTP client:', {
+      sidecarUrl: this.sidecarUrl,
+      hasToken: !!this.apiToken
+    });
   }
 
   /**
-   * Create a new IRC user via admin interface
+   * Create a new IRC user via sidecar API
    */
   async createUser(params: CreateUserParams): Promise<SojuAdminResponse> {
-    console.log('[SojuAdmin] Creating IRC user:', {
+    console.log('[SojuAdmin] Creating IRC user via sidecar:', {
       ircUsername: params.ircUsername,
       nickname: params.nickname,
-      environment: this.isLocalEnvironment() ? 'local' : 'railway',
       timestamp: new Date().toISOString()
     });
 
     try {
-      if (this.isLocalEnvironment()) {
-        return await this.createUserViaSojuctl(params);
-      } else {
-        return await this.createUserViaTcp(params);
-      }
+      const response = await this.makeRequest('POST', '/api/users', {
+        ircUsername: params.ircUsername,
+        ircPassword: params.ircPassword,
+        nickname: params.nickname,
+        realname: params.realname
+      });
+
+      console.log('[SojuAdmin] User creation successful:', {
+        ircUsername: params.ircUsername,
+        output: response.output?.substring(0, 100)
+      });
+
+      return response;
+      
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('[SojuAdmin] Failed to create user:', {
         ircUsername: params.ircUsername,
-        error: errorMessage,
-        environment: this.isLocalEnvironment() ? 'local' : 'railway'
+        error: errorMessage
       });
       
       return {
@@ -84,27 +90,32 @@ export class SojuAdminService {
   }
 
   /**
-   * Create a network connection for an IRC user
+   * Create a network connection for an IRC user via sidecar API
    */
   async createNetwork(params: CreateNetworkParams): Promise<SojuAdminResponse> {
-    console.log('[SojuAdmin] Creating IRC network for user:', {
+    console.log('[SojuAdmin] Creating IRC network via sidecar:', {
       ircUsername: params.ircUsername,
-      environment: this.isLocalEnvironment() ? 'local' : 'railway',
       timestamp: new Date().toISOString()
     });
 
     try {
-      if (this.isLocalEnvironment()) {
-        return await this.createNetworkViaSojuctl(params);
-      } else {
-        return await this.createNetworkViaTcp(params);
-      }
+      const response = await this.makeRequest('POST', '/api/networks', {
+        ircUsername: params.ircUsername,
+        nickname: params.nickname
+      });
+
+      console.log('[SojuAdmin] Network creation successful:', {
+        ircUsername: params.ircUsername,
+        output: response.output?.substring(0, 100)
+      });
+
+      return response;
+      
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('[SojuAdmin] Failed to create network:', {
         ircUsername: params.ircUsername,
-        error: errorMessage,
-        environment: this.isLocalEnvironment() ? 'local' : 'railway'
+        error: errorMessage
       });
       
       return {
@@ -115,27 +126,31 @@ export class SojuAdminService {
   }
 
   /**
-   * Update an existing user's password
+   * Update an existing user's password via sidecar API
    */
   async updateUserPassword(ircUsername: string, ircPassword: string): Promise<SojuAdminResponse> {
-    console.log('[SojuAdmin] Updating password for user:', {
+    console.log('[SojuAdmin] Updating user password via sidecar:', {
       ircUsername,
-      environment: this.isLocalEnvironment() ? 'local' : 'railway',
       timestamp: new Date().toISOString()
     });
 
     try {
-      if (this.isLocalEnvironment()) {
-        return await this.updatePasswordViaSojuctl(ircUsername, ircPassword);
-      } else {
-        return await this.updatePasswordViaTcp(ircUsername, ircPassword);
-      }
+      const response = await this.makeRequest('PUT', `/api/users/${encodeURIComponent(ircUsername)}`, {
+        ircPassword
+      });
+
+      console.log('[SojuAdmin] Password update successful:', {
+        ircUsername,
+        output: response.output?.substring(0, 100)
+      });
+
+      return response;
+      
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('[SojuAdmin] Failed to update password:', {
         ircUsername,
-        error: errorMessage,
-        environment: this.isLocalEnvironment() ? 'local' : 'railway'
+        error: errorMessage
       });
       
       return {
@@ -146,13 +161,13 @@ export class SojuAdminService {
   }
 
   /**
-   * Provision user (create new or update existing)
+   * Provision user (create new or update existing) via sidecar API
+   * This is the main method used by the IRC provisioning endpoint
    */
   async provisionUser(params: CreateUserParams): Promise<SojuAdminResponse> {
-    console.log('[SojuAdmin] Provisioning IRC user:', {
+    console.log('[SojuAdmin] Provisioning IRC user via sidecar:', {
       ircUsername: params.ircUsername,
       nickname: params.nickname,
-      environment: this.isLocalEnvironment() ? 'local' : 'railway',
       timestamp: new Date().toISOString()
     });
 
@@ -163,21 +178,21 @@ export class SojuAdminService {
       if (!userResult.success) {
         // Check if it failed because user already exists
         if (userResult.error && userResult.error.includes('already exists')) {
-          console.log('[SojuAdmin] User exists, updating password:', params.ircUsername);
+          console.log('[SojuAdmin] User exists, updating password via sidecar:', params.ircUsername);
           
           // Update password instead
           const passwordResult = await this.updateUserPassword(params.ircUsername, params.ircPassword);
           if (!passwordResult.success) {
-            throw new Error(`Failed to update password: ${passwordResult.error}`);
+            throw new Error(`Failed to update password via sidecar: ${passwordResult.error}`);
           }
           
           return {
             success: true,
-            output: `Updated existing user ${params.ircUsername}`
+            output: `Updated existing user ${params.ircUsername} via sidecar`
           };
         } else {
           // Real error - rethrow
-          throw new Error(userResult.error || 'Unknown user creation error');
+          throw new Error(userResult.error || 'Unknown user creation error from sidecar');
         }
       }
 
@@ -188,7 +203,7 @@ export class SojuAdminService {
       });
 
       if (!networkResult.success) {
-        console.warn('[SojuAdmin] User created but network creation failed:', {
+        console.warn('[SojuAdmin] User created but network creation failed via sidecar:', {
           ircUsername: params.ircUsername,
           networkError: networkResult.error
         });
@@ -197,15 +212,14 @@ export class SojuAdminService {
 
       return {
         success: true,
-        output: `Created new user ${params.ircUsername} with network`
+        output: `Created new user ${params.ircUsername} with network via sidecar`
       };
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('[SojuAdmin] Failed to provision user:', {
+      console.error('[SojuAdmin] Failed to provision user via sidecar:', {
         ircUsername: params.ircUsername,
-        error: errorMessage,
-        environment: this.isLocalEnvironment() ? 'local' : 'railway'
+        error: errorMessage
       });
       
       return {
@@ -216,271 +230,90 @@ export class SojuAdminService {
   }
 
   /**
-   * Test admin interface connectivity
+   * Test sidecar connectivity
    */
   async testConnection(): Promise<SojuAdminResponse> {
-    console.log('[SojuAdmin] Testing admin interface connection...');
+    console.log('[SojuAdmin] Testing sidecar connection...');
     
     try {
-      if (this.isLocalEnvironment()) {
-        const { stdout } = await execAsync('docker exec curia-irc-soju sojuctl -config /etc/soju/soju.conf user status');
-        return {
-          success: true,
-          output: `Unix socket connection OK. Users: ${stdout.trim()}`
-        };
-      } else {
-        const response = await this.sendTcpAdminCommand('user list');
-        return {
-          success: true,
-          output: `TCP connection OK. Response: ${response}`
-        };
-      }
+      const response = await this.makeRequest('GET', '/api/test');
+      
+      console.log('[SojuAdmin] Sidecar connection test successful:', {
+        output: response.output?.substring(0, 100)
+      });
+      
+      return response;
+      
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[SojuAdmin] Sidecar connection test failed:', errorMessage);
+      
       return {
         success: false,
-        error: `Connection test failed: ${errorMessage}`
+        error: `Sidecar connection test failed: ${errorMessage}`
       };
     }
   }
 
-  // ===== PRIVATE METHODS - Unix Socket Implementation =====
-
   /**
-   * Create user via sojuctl CLI (local development)
+   * Make HTTP request to sidecar API
    */
-  private async createUserViaSojuctl(params: CreateUserParams): Promise<SojuAdminResponse> {
-    const { ircUsername, ircPassword, nickname, realname } = params;
+  private async makeRequest(method: string, path: string, body?: any): Promise<SojuAdminResponse> {
+    const url = `${this.sidecarUrl}${path}`;
     
-    // Escape shell arguments to prevent injection
-    const escapedUsername = this.escapeShellArg(ircUsername);
-    const escapedPassword = this.escapeShellArg(ircPassword);
-    const escapedNickname = this.escapeShellArg(nickname);
-    const escapedRealname = this.escapeShellArg(realname);
-    
-    const cmd = `docker exec curia-irc-soju sojuctl -config /etc/soju/soju.conf user create -username ${escapedUsername} -password ${escapedPassword} -nick ${escapedNickname} -realname ${escapedRealname}`;
-    
-    try {
-      const { stdout, stderr } = await execAsync(cmd);
-      
-      // Check if user already exists (not an error for our use case)
-      if (stderr && stderr.includes('already exists')) {
-        console.log('[SojuAdmin] User already exists, proceeding:', { ircUsername });
-        return {
-          success: true,
-          output: `User ${ircUsername} already exists`
-        };
-      }
-      
-      // Check for other errors
-      if (stderr && !stderr.includes('already exists')) {
-        throw new Error(`sojuctl stderr: ${stderr}`);
-      }
-      
-      console.log('[SojuAdmin] User created via sojuctl:', { 
-        ircUsername, 
-        stdout: stdout.trim() 
-      });
-      
-      return {
-        success: true,
-        output: stdout.trim()
-      };
-      
-    } catch (error) {
-      throw new Error(`sojuctl user create failed: ${error instanceof Error ? error.message : error}`);
-    }
-  }
-
-  /**
-   * Update user password via sojuctl CLI (local development)
-   */
-  private async updatePasswordViaSojuctl(ircUsername: string, ircPassword: string): Promise<SojuAdminResponse> {
-    const escapedUsername = this.escapeShellArg(ircUsername);
-    const escapedPassword = this.escapeShellArg(ircPassword);
-    
-    const cmd = `docker exec curia-irc-soju sojuctl -config /etc/soju/soju.conf user update ${escapedUsername} -password ${escapedPassword}`;
-    
-    try {
-      const { stdout, stderr } = await execAsync(cmd);
-      
-      if (stderr) {
-        throw new Error(`sojuctl stderr: ${stderr}`);
-      }
-      
-      console.log('[SojuAdmin] Password updated via sojuctl:', { 
-        ircUsername, 
-        stdout: stdout.trim() 
-      });
-      
-      return {
-        success: true,
-        output: stdout.trim()
-      };
-      
-    } catch (error) {
-      throw new Error(`sojuctl user update failed: ${error instanceof Error ? error.message : error}`);
-    }
-  }
-
-  /**
-   * Create network via sojuctl CLI (local development)
-   */
-  private async createNetworkViaSojuctl(params: CreateNetworkParams): Promise<SojuAdminResponse> {
-    const { ircUsername, nickname } = params;
-    
-    const escapedUsername = this.escapeShellArg(ircUsername);
-    const escapedNickname = this.escapeShellArg(nickname);
-    const networkAddr = `irc+insecure://${this.DEFAULT_NETWORK_HOST}:${this.DEFAULT_NETWORK_PORT}`;
-    
-    const cmd = `docker exec curia-irc-soju sojuctl -config /etc/soju/soju.conf user run ${escapedUsername} network create -addr "${networkAddr}" -name commonground -username ${escapedUsername} -nick ${escapedNickname}`;
-    
-    try {
-      const { stdout, stderr } = await execAsync(cmd);
-      
-      // Check if network already exists
-      if (stderr && stderr.includes('already exists')) {
-        console.log('[SojuAdmin] Network already exists, proceeding:', { ircUsername });
-        return {
-          success: true,
-          output: `Network for ${ircUsername} already exists`
-        };
-      }
-      
-      if (stderr && !stderr.includes('already exists')) {
-        throw new Error(`sojuctl stderr: ${stderr}`);
-      }
-      
-      console.log('[SojuAdmin] Network created via sojuctl:', { 
-        ircUsername, 
-        stdout: stdout.trim() 
-      });
-      
-      return {
-        success: true,
-        output: stdout.trim()
-      };
-      
-    } catch (error) {
-      throw new Error(`sojuctl network create failed: ${error instanceof Error ? error.message : error}`);
-    }
-  }
-
-  // ===== PRIVATE METHODS - TCP Implementation =====
-
-  /**
-   * Create user via TCP admin interface (Railway production)
-   */
-  private async createUserViaTcp(params: CreateUserParams): Promise<SojuAdminResponse> {
-    const { ircUsername, ircPassword, nickname, realname } = params;
-    const command = `user create -username "${ircUsername}" -password "${ircPassword}" -nick "${nickname}" -realname "${realname}"`;
-    
-    const response = await this.sendTcpAdminCommand(command);
-    
-    return {
-      success: true,
-      output: response
+    const options: RequestInit = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.apiToken}`
+      },
+      signal: AbortSignal.timeout(this.timeout)
     };
-  }
 
-  /**
-   * Update user password via TCP admin interface (Railway production)
-   */
-  private async updatePasswordViaTcp(ircUsername: string, ircPassword: string): Promise<SojuAdminResponse> {
-    const command = `user update "${ircUsername}" -password "${ircPassword}"`;
-    const response = await this.sendTcpAdminCommand(command);
-    
-    return {
-      success: true,
-      output: response
-    };
-  }
+    if (body && (method === 'POST' || method === 'PUT')) {
+      options.body = JSON.stringify(body);
+    }
 
-  /**
-   * Create network via TCP admin interface (Railway production)
-   */
-  private async createNetworkViaTcp(params: CreateNetworkParams): Promise<SojuAdminResponse> {
-    const { ircUsername, nickname } = params;
-    const networkAddr = `irc+insecure://${this.DEFAULT_NETWORK_HOST}:${this.DEFAULT_NETWORK_PORT}`;
-    const command = `user run "${ircUsername}" network create -addr "${networkAddr}" -name commonground -username "${ircUsername}" -nick "${nickname}"`;
-    
-    const response = await this.sendTcpAdminCommand(command);
-    
-    return {
-      success: true,
-      output: response
-    };
-  }
-
-  /**
-   * Send command to Soju via TCP admin interface
-   */
-  private async sendTcpAdminCommand(command: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const adminPassword = process.env.SOJU_ADMIN_PASS;
-      if (!adminPassword) {
-        reject(new Error('SOJU_ADMIN_PASS environment variable not configured'));
-        return;
-      }
-
-      const sojuHost = process.env.SOJU_ADMIN_HOST || 'curia-irc-bouncer';
-      const sojuPort = parseInt(process.env.SOJU_ADMIN_PORT || '9999');
-
-      console.log('[SojuAdmin] Connecting to TCP admin interface:', {
-        host: sojuHost,
-        port: sojuPort,
-        command: command.substring(0, 50) + '...' // Log truncated command
-      });
-
-      const client = net.createConnection(sojuPort, sojuHost);
-      let responseData = '';
-
-      client.on('connect', () => {
-        console.log('[SojuAdmin] TCP connection established');
-        // Send admin authentication and command
-        client.write(`PASS ${adminPassword}\r\n`);
-        client.write(`${command}\r\n`);
-        client.write('QUIT\r\n'); // Clean disconnect
-      });
-
-      client.on('data', (data) => {
-        responseData += data.toString();
-      });
-
-      client.on('end', () => {
-        client.destroy();
-        
-        // Parse response for errors
-        if (responseData.includes('ERROR') || responseData.includes('FAIL')) {
-          reject(new Error(`Soju admin command failed: ${responseData.trim()}`));
-        } else {
-          console.log('[SojuAdmin] TCP command successful:', {
-            response: responseData.trim().substring(0, 100) + '...'
-          });
-          resolve(responseData.trim());
-        }
-      });
-
-      client.on('error', (error) => {
-        reject(new Error(`TCP connection error: ${error.message}`));
-      });
-
-      // Set timeout
-      client.setTimeout(this.TCP_TIMEOUT, () => {
-        client.destroy();
-        reject(new Error(`TCP admin command timeout after ${this.TCP_TIMEOUT}ms`));
-      });
+    console.log('[SojuAdmin] Making sidecar request:', {
+      method,
+      url,
+      hasBody: !!body,
+      timestamp: new Date().toISOString()
     });
-  }
 
-  // ===== UTILITY METHODS =====
+    try {
+      const response = await fetch(url, options);
+      
+      if (!response.ok) {
+        let errorData: any;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
+        
+        // Include details field to preserve "already exists" error messages
+        const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}`;
+        const fullError = errorData.details ? `${errorMessage}: ${errorData.details}` : errorMessage;
+        throw new Error(fullError);
+      }
 
-  /**
-   * Escape shell arguments to prevent injection attacks
-   */
-  private escapeShellArg(arg: string): string {
-    // Replace single quotes with '\'' and wrap in single quotes
-    return `'${arg.replace(/'/g, "'\\''")}'`;
+      const result = await response.json();
+      
+      // Normalize sidecar response to our format
+      return {
+        success: result.success !== false, // Default to true unless explicitly false
+        output: result.output || result.message,
+        error: result.error
+      };
+      
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error(`Sidecar request timeout after ${this.timeout}ms`);
+      }
+      
+      throw error;
+    }
   }
 
   /**
@@ -488,15 +321,10 @@ export class SojuAdminService {
    */
   getConfig() {
     return {
-      environment: this.isLocalEnvironment() ? 'local' : 'railway',
-      method: this.isLocalEnvironment() ? 'unix-socket' : 'tcp',
-      socketPath: this.SOCKET_PATH,
-      tcpHost: process.env.SOJU_ADMIN_HOST || 'curia-irc-bouncer',
-      tcpPort: process.env.SOJU_ADMIN_PORT || '9999',
-      hasAdminPassword: !!process.env.SOJU_ADMIN_PASS,
-      nodeEnv: process.env.NODE_ENV,
-      railwayEnv: process.env.RAILWAY_ENVIRONMENT_ID,
-      adminMethod: process.env.SOJU_ADMIN_METHOD
+      sidecarUrl: this.sidecarUrl,
+      hasApiToken: !!this.apiToken,
+      timeout: this.timeout,
+      environment: process.env.NODE_ENV || 'development'
     };
   }
 }
