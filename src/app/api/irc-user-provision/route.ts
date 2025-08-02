@@ -1,82 +1,18 @@
 import { NextResponse } from 'next/server';
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
-import { Pool } from 'pg';
+import { sojuAdminService } from '@/lib/SojuAdminService';
 import { 
   generateIrcUsername, 
-  generateSecurePassword, 
-  hashIrcPassword 
+  generateSecurePassword
 } from '@curia_/curia-chat-modal';
 
-// IRC Database Connection
-const ircPool = new Pool({
-  connectionString: process.env.IRC_DATABASE_URL,
-  max: 5, // Smaller pool for IRC operations
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000
-});
-
-async function ircQuery(text: string, values?: unknown[]): Promise<{ rows: unknown[] }> {
-  const client = await ircPool.connect();
-  try {
-    const res = await client.query(text, values);
-    return res;
-  } catch (error) {
-    console.error('[IRC Database] Query failed:', {
-      query: text,
-      values,
-      error: error instanceof Error ? error.message : error,
-      timestamp: new Date().toISOString()
-    });
-    throw error;
-  } finally {
-    client.release();
-  }
-}
+// Using SojuAdminService instead of direct database access
 
 interface ProvisionResponse {
   success: boolean;
   ircUsername: string;
   ircPassword: string; // Generated password for The Lounge
   networkName: string;
-}
-
-async function upsertSojuUser({
-  ircUsername,
-  hashedPassword,
-  nickname,
-  realname
-}: {
-  ircUsername: string;
-  hashedPassword: string;
-  nickname: string;
-  realname: string;
-}) {
-  // Atomic UPSERT - eliminates race condition
-  const result = await ircQuery(
-    `INSERT INTO "User" (username, password, nick, realname, admin, enabled) 
-     VALUES ($1, $2, $3, $4, false, true) 
-     ON CONFLICT (username) 
-     DO UPDATE SET 
-       password = EXCLUDED.password, 
-       nick = EXCLUDED.nick, 
-       realname = EXCLUDED.realname
-     RETURNING id`,
-    [ircUsername, hashedPassword, nickname, realname]
-  );
-
-  const userId = (result.rows[0] as { id: number }).id;
-
-  // Ensure network exists for user
-  await ircQuery(
-    `INSERT INTO "Network" (name, "user", addr, nick, username, enabled) 
-     VALUES ($1, $2, $3, $4, $5, true) 
-     ON CONFLICT (name, "user") DO UPDATE SET
-       nick = EXCLUDED.nick,
-       username = EXCLUDED.username`,
-    ['commonground', userId, 'irc+insecure://ergo:6667', nickname, ircUsername]
-  );
-
-  return { userId, ircUsername };
 }
 
 async function provisionIrcUserHandler(req: AuthenticatedRequest) {
@@ -102,17 +38,20 @@ async function provisionIrcUserHandler(req: AuthenticatedRequest) {
     
     // Generate secure password for IRC
     const ircPassword = generateSecurePassword();
-    const hashedPassword = await hashIrcPassword(ircPassword);
 
-    // Upsert user in Soju database
-    await upsertSojuUser({
+    // Provision user (create or update) via admin interface (no restart needed!)
+    const provisionResult = await sojuAdminService.provisionUser({
       ircUsername,
-      hashedPassword,
+      ircPassword,
       nickname: user.name || ircUsername,
       realname: user.name || ircUsername
     });
 
-    console.log('[IRC Provision] Successfully provisioned IRC user:', {
+    if (!provisionResult.success) {
+      throw new Error(`Failed to provision user: ${provisionResult.error}`);
+    }
+
+    console.log('[IRC Provision] Successfully provisioned IRC user via admin interface:', {
       ircUsername,
       userId: user.sub,
       userName: user.name,
