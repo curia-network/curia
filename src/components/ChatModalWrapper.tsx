@@ -35,6 +35,7 @@ export function ChatModalWrapper() {
   }
 
   const chatBaseUrl = process.env.NEXT_PUBLIC_CHAT_BASE_URL || 'https://chat.curia.network';
+  const curiaBaseUrl = process.env.NEXT_PUBLIC_CURIA_BASE_URL || '';
 
   return (
     <ChatModal
@@ -48,6 +49,8 @@ export function ChatModalWrapper() {
       }}
       theme="light" // TODO: Get from theme context
       chatBaseUrl={chatBaseUrl}
+      curiaBaseUrl={curiaBaseUrl}
+      authToken={token}
       onClose={closeChat}
     />
   );
