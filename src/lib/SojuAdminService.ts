@@ -417,9 +417,9 @@ export class SojuAdminService {
    */
   private async sendTcpAdminCommand(command: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const adminPassword = process.env.SOJU_ADMIN_PASSWORD;
+      const adminPassword = process.env.SOJU_ADMIN_PASS;
       if (!adminPassword) {
-        reject(new Error('SOJU_ADMIN_PASSWORD environment variable not configured'));
+        reject(new Error('SOJU_ADMIN_PASS environment variable not configured'));
         return;
       }
 
@@ -493,7 +493,7 @@ export class SojuAdminService {
       socketPath: this.SOCKET_PATH,
       tcpHost: process.env.SOJU_ADMIN_HOST || 'curia-irc-bouncer',
       tcpPort: process.env.SOJU_ADMIN_PORT || '9999',
-      hasAdminPassword: !!process.env.SOJU_ADMIN_PASSWORD,
+      hasAdminPassword: !!process.env.SOJU_ADMIN_PASS,
       nodeEnv: process.env.NODE_ENV,
       railwayEnv: process.env.RAILWAY_ENVIRONMENT_ID,
       adminMethod: process.env.SOJU_ADMIN_METHOD
