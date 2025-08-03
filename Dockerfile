@@ -36,6 +36,8 @@ ARG STORAGE_PUBLIC_URL_PREFIX
 ARG NEXT_PUBLIC_CHAT_BASE_URL
 ARG IRC_DATABASE_URL
 ARG NEXT_PUBLIC_CURIA_BASE_URL
+ARG SOJU_ADMIN_API_TOKEN
+ARG SOJU_SIDECAR_URL
 
 # Copy package.json and yarn.lock first to leverage Docker cache
 COPY package.json yarn.lock ./
