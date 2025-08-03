@@ -269,6 +269,7 @@ export class SojuAdminService {
       method,
       headers: {
         'Content-Type': 'application/json',
+        // eslint-disable-next-line no-restricted-syntax -- Service-to-service communication with sidecar API token
         'Authorization': `Bearer ${this.apiToken}`
       },
       signal: AbortSignal.timeout(this.timeout)
