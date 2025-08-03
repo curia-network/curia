@@ -3,6 +3,7 @@ import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import { sojuAdminService } from '@/lib/SojuAdminService';
 import { 
   generateIrcUsername, 
+  generateIrcNickname,
   generateSecurePassword
 } from '@curia_/curia-chat-modal';
 
@@ -36,6 +37,9 @@ async function provisionIrcUserHandler(req: AuthenticatedRequest) {
     // Generate IRC username (avoid conflicts)
     const ircUsername = generateIrcUsername(user.name || user.sub, user.sub);
     
+    // Generate IRC-compliant nickname (stricter rules than username)
+    const ircNickname = generateIrcNickname(user.name || user.sub);
+    
     // Generate secure password for IRC
     const ircPassword = generateSecurePassword();
 
@@ -43,7 +47,7 @@ async function provisionIrcUserHandler(req: AuthenticatedRequest) {
     const provisionResult = await sojuAdminService.provisionUser({
       ircUsername,
       ircPassword,
-      nickname: user.name || ircUsername,
+      nickname: ircNickname,
       realname: user.name || ircUsername
     });
 
