@@ -186,33 +186,37 @@ export class SojuAdminService {
             throw new Error(`Failed to update password via sidecar: ${passwordResult.error}`);
           }
           
-          return {
-            success: true,
-            output: `Updated existing user ${params.ircUsername} via sidecar`
-          };
+          // Continue to network creation for existing users too
+          console.log('[SojuAdmin] Password updated, now ensuring network exists for existing user:', params.ircUsername);
         } else {
           // Real error - rethrow
           throw new Error(userResult.error || 'Unknown user creation error from sidecar');
         }
       }
 
-      // User was created successfully, now create network
+      // Now create/ensure network exists (for both new and existing users)
       const networkResult = await this.createNetwork({
         ircUsername: params.ircUsername,
         nickname: params.nickname
       });
 
       if (!networkResult.success) {
-        console.warn('[SojuAdmin] User created but network creation failed via sidecar:', {
+        console.warn('[SojuAdmin] Network creation failed via sidecar:', {
           ircUsername: params.ircUsername,
           networkError: networkResult.error
         });
         // Don't fail the whole operation for network creation
       }
 
+      // Determine success message based on whether user was new or existing
+      const wasExistingUser = userResult && !userResult.success && userResult.error && userResult.error.includes('already exists');
+      const message = wasExistingUser 
+        ? `Updated existing user ${params.ircUsername} and ensured network via sidecar`
+        : `Created new user ${params.ircUsername} with network via sidecar`;
+
       return {
         success: true,
-        output: `Created new user ${params.ircUsername} with network via sidecar`
+        output: message
       };
 
     } catch (error) {
