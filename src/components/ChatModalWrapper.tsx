@@ -19,6 +19,9 @@ export function ChatModalWrapper() {
   const { isChatOpen, closeChat } = useChatModal();
   const { user, token } = useAuth();
   const theme = useEffectiveTheme();
+  
+  // Configurable chat mode - easy to extend with user preferences later
+  const chatMode: 'single' | 'normal' = 'single'; // Default: single channel mode
 
   // Fetch community data
   const { data: community } = useQuery<ApiCommunity>({
@@ -50,6 +53,7 @@ export function ChatModalWrapper() {
         name: community.name
       }}
       theme={theme} // Dynamic theme from cg_theme URL parameter
+      mode={chatMode} // Configurable single channel mode
       chatBaseUrl={chatBaseUrl}
       curiaBaseUrl={curiaBaseUrl}
       authToken={token}
