@@ -75,5 +75,45 @@ export const socketEvents = {
     } else {
       console.error('[Socket.IO broadcastBoardSettingsChanged via Emitter] FAILED: customEventEmitter not available.');
     }
+  },
+
+  // Chat Channel Events
+  broadcastNewChatChannel: (communityId: string, channelData: Record<string, unknown>) => {
+    const emitter = getProcessEventEmitter();
+    if (emitter) {
+      emitter.emit('broadcastEvent', {
+        room: `community:${communityId}`,
+        eventName: 'newChatChannel',
+        payload: channelData
+      });
+    } else {
+      console.error('[Socket.IO broadcastNewChatChannel via Emitter] FAILED: customEventEmitter not available.');
+    }
+  },
+
+  broadcastChatChannelUpdated: (communityId: string, channelId: number, channelData: Record<string, unknown>) => {
+    const emitter = getProcessEventEmitter();
+    if (emitter) {
+      emitter.emit('broadcastEvent', {
+        room: `community:${communityId}`,
+        eventName: 'chatChannelUpdated',
+        payload: { channelId, ...channelData }
+      });
+    } else {
+      console.error('[Socket.IO broadcastChatChannelUpdated via Emitter] FAILED: customEventEmitter not available.');
+    }
+  },
+
+  broadcastChatChannelDeleted: (communityId: string, channelId: number, channelName: string) => {
+    const emitter = getProcessEventEmitter();
+    if (emitter) {
+      emitter.emit('broadcastEvent', {
+        room: `community:${communityId}`,
+        eventName: 'chatChannelDeleted',
+        payload: { channelId, channelName }
+      });
+    } else {
+      console.error('[Socket.IO broadcastChatChannelDeleted via Emitter] FAILED: customEventEmitter not available.');
+    }
   }
 }; 
