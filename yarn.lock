@@ -244,10 +244,10 @@
   resolved "https://registry.npmjs.org/@curia_/cg-plugin-lib/-/cg-plugin-lib-1.0.8.tgz#8e676b5465a58ed7ff00b3b70275e04d8b71ed6f"
   integrity sha512-G2a0HZS63r9mJCKN9zZxRoP60XNOj0z8XTjqqHWOODd0rGJEK43J1frZzKnkJnAXya1fsW2N9nLCXaY+VIjZfw==
 
-"@curia_/curia-chat-modal@1.6.2":
-  version "1.6.2"
-  resolved "https://registry.npmjs.org/@curia_/curia-chat-modal/-/curia-chat-modal-1.6.2.tgz#1974bafec5c682eff0790288bdccfe693ea0b635"
-  integrity sha512-uUnUXgBBtjxqo6XzcBqdSNc9VbuqDqO5pkoPOMWL9I7f2if/LkRSe4U2Qc2O1qu1ch5luQoiHiAhcJksVH51Qw==
+"@curia_/curia-chat-modal@1.6.3":
+  version "1.6.3"
+  resolved "https://registry.npmjs.org/@curia_/curia-chat-modal/-/curia-chat-modal-1.6.3.tgz#1012897ae91381b08c7a6b0edace3048fd47789c"
+  integrity sha512-eHbSReKj1HwatCgdLYa9i3kd4dqaCPohfMfEM5tw5PsrToB1MSwskqvVP3arJDJKY7Ygp+k/P9UYfYX0mQbUkg==
   dependencies:
     bcryptjs "^3.0.2"
     class-variance-authority "^0.7.1"
