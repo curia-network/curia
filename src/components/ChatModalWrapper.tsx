@@ -5,6 +5,7 @@ import { ChatModal, useChatModal } from '@curia_/curia-chat-modal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { authFetchJson } from '@/utils/authFetch';
+import { useEffectiveTheme } from '@/hooks/useEffectiveTheme';
 
 interface ApiCommunity {
   id: string;
@@ -17,6 +18,7 @@ interface ApiCommunity {
 export function ChatModalWrapper() {
   const { isChatOpen, closeChat } = useChatModal();
   const { user, token } = useAuth();
+  const theme = useEffectiveTheme();
 
   // Fetch community data
   const { data: community } = useQuery<ApiCommunity>({
@@ -47,7 +49,7 @@ export function ChatModalWrapper() {
         id: community.id,
         name: community.name
       }}
-      theme="light" // TODO: Get from theme context
+      theme={theme} // Dynamic theme from cg_theme URL parameter
       chatBaseUrl={chatBaseUrl}
       curiaBaseUrl={curiaBaseUrl}
       authToken={token}
