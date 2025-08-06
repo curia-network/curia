@@ -12,6 +12,7 @@ import { useEffectiveTheme } from '@/hooks/useEffectiveTheme';
 import { authFetchJson } from '@/utils/authFetch';
 import { ApiBoard } from '@/app/api/communities/[communityId]/boards/route';
 import { ApiPost } from '@/app/api/posts/route';
+import { ApiChatChannel } from '@/types/chatChannels';
 import { CommunityInfoResponsePayload } from '@curia_/cg-plugin-lib';
 import { Sidebar } from './Sidebar';
 import { Button } from '@/components/ui/button';
@@ -168,6 +169,16 @@ export const MainLayoutWithSidebar: React.FC<MainLayoutWithSidebarProps> = ({ ch
     enabled: !!boardsList && !!user && !!communityIdForBoards,
   });
 
+  // Fetch chat channels for the community
+  const { data: chatChannelsList, isLoading: isLoadingChatChannels, error: chatChannelsError } = useQuery<ApiChatChannel[]>({
+    queryKey: ['chatChannels', communityIdForBoards],
+    queryFn: async () => {
+      if (!communityIdForBoards || !token) throw new Error('Community context or token not available for fetching chat channels');
+      return authFetchJson<ApiChatChannel[]>(`/api/communities/${communityIdForBoards}/chat-channels`, { token });
+    },
+    enabled: !!isAuthenticated && !!token && !!communityIdForBoards && !!communityInfo,
+  });
+
   // Enhanced context detection for navigation and sidebar
   const navigationContext = React.useMemo(() => {
     // Post detail route detection
@@ -303,7 +314,7 @@ export const MainLayoutWithSidebar: React.FC<MainLayoutWithSidebarProps> = ({ ch
     }
   };
 
-  const showSidebar = isAuthenticated && communityInfo && accessibleBoardsList && !isLoadingCommunityInfo && !isLoadingBoards && !isFilteringBoards && !cgLibError && !communityInfoError && !boardsError;
+  const showSidebar = isAuthenticated && communityInfo && accessibleBoardsList && chatChannelsList && !isLoadingCommunityInfo && !isLoadingBoards && !isFilteringBoards && !isLoadingChatChannels && !cgLibError && !communityInfoError && !boardsError && !chatChannelsError;
 
   // Handle mini mode (200x200px Common Ground minimized state)
   if (isMiniMode) {
@@ -365,11 +376,12 @@ export const MainLayoutWithSidebar: React.FC<MainLayoutWithSidebarProps> = ({ ch
         )}
 
         {/* Left Sidebar */}
-        {showSidebar && communityInfo && accessibleBoardsList && (
+        {showSidebar && communityInfo && accessibleBoardsList && chatChannelsList && (
           <div data-sidebar>
             <Sidebar 
               communityInfo={communityInfo} 
               boardsList={accessibleBoardsList}
+              chatChannelsList={chatChannelsList}
               isOpen={leftSidebarOpen}
               isMobile={isMobile || isTablet}
               onClose={() => setLeftSidebarOpen(false)}
