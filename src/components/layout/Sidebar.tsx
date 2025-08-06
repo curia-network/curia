@@ -164,15 +164,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   // Helper component for chat channel icon
-  const ChatIcon: React.FC<{ channel: ApiChatChannel; isActive: boolean }> = ({ isActive }) => {
+  const ChatIcon: React.FC<{ channel: ApiChatChannel; isActive: boolean }> = ({ channel, isActive }) => {
+    // Use lightning emoji for default channels (typically named after the community)
+    const isDefaultChannel = channel.is_default || channel.name === communityInfo?.title;
+    
     return (
       <div className={cn(
-        'p-1.5 rounded-lg transition-all duration-200',
+        'p-1.5 rounded-lg transition-all duration-200 flex items-center justify-center',
         isActive
           ? 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300'
           : 'bg-slate-200/50 text-slate-500 group-hover:bg-slate-300/50 group-hover:text-slate-700 dark:bg-slate-700/50 dark:text-slate-400 dark:group-hover:bg-slate-600/50 dark:group-hover:text-slate-300'
       )}>
-        <MessageSquare size={16} />
+        {isDefaultChannel ? (
+          <span className="text-[16px] leading-none">⚡</span>
+        ) : (
+          <MessageSquare size={16} />
+        )}
       </div>
     );
   };
@@ -363,6 +370,57 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 to-amber-500/5 rounded-xl" />
           )}
         </Link>
+
+        {/* Chats Section */}
+        {chatChannelsList && chatChannelsList.length > 0 && (
+          <div className="pt-6 pb-2">
+            <h3 className={cn(
+              'px-3 text-xs font-semibold uppercase tracking-wider mb-3',
+              theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+            )}>
+              Chats
+            </h3>
+            <div className="space-y-1">
+              {chatChannelsList.map((channel) => {
+                const isActive = currentChatId === channel.id.toString();
+                return (
+                  <div key={channel.id} className="relative group">
+                    <Link
+                      href={buildUrl('/chat/' + channel.id.toString())}
+                      className={cn(
+                        'group flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden',
+                        isActive
+                          ? theme === 'dark'
+                            ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 shadow-lg shadow-blue-500/10'
+                            : 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10 text-blue-700 shadow-lg shadow-blue-500/10'
+                          : theme === 'dark'
+                            ? hasActiveBackground 
+                              ? 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/30'
+                              : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/60'
+                            : hasActiveBackground
+                              ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/40'
+                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                      )}
+                    >
+                      <div className="mr-3">
+                        <ChatIcon channel={channel} isActive={isActive} />
+                      </div>
+                      <span className="flex-1 truncate pr-8">{channel.name}</span>
+                      {isActive && (
+                        <ChevronRight size={14} className="opacity-60" />
+                      )}
+                      
+                      {/* Active indicator */}
+                      {isActive && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-cyan-500/5 rounded-xl" />
+                      )}
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Boards Section */}
         {boardsList && boardsList.length > 0 && (
@@ -772,57 +830,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               />
             ))}
-          </div>
-        )}
-
-        {/* Chats Section */}
-        {chatChannelsList && chatChannelsList.length > 0 && (
-          <div className="pt-6 pb-2">
-            <h3 className={cn(
-              'px-3 text-xs font-semibold uppercase tracking-wider mb-3',
-              theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
-            )}>
-              Chats
-            </h3>
-            <div className="space-y-1">
-              {chatChannelsList.map((channel) => {
-                const isActive = currentChatId === channel.id.toString();
-                return (
-                  <div key={channel.id} className="relative group">
-                    <Link
-                      href={buildUrl('/chat/' + channel.id.toString())}
-                      className={cn(
-                        'group flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden',
-                        isActive
-                          ? theme === 'dark'
-                            ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 shadow-lg shadow-blue-500/10'
-                            : 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10 text-blue-700 shadow-lg shadow-blue-500/10'
-                          : theme === 'dark'
-                            ? hasActiveBackground 
-                              ? 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/30'
-                              : 'text-slate-300 hover:text-slate-100 hover:bg-slate-800/60'
-                            : hasActiveBackground
-                              ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/40'
-                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
-                      )}
-                    >
-                      <div className="mr-3">
-                        <ChatIcon channel={channel} isActive={isActive} />
-                      </div>
-                      <span className="flex-1 truncate pr-8">{channel.name}</span>
-                      {isActive && (
-                        <ChevronRight size={14} className="opacity-60" />
-                      )}
-                      
-                      {/* Active indicator */}
-                      {isActive && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-cyan-500/5 rounded-xl" />
-                      )}
-                    </Link>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         )}
 
