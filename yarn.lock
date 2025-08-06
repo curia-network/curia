@@ -244,10 +244,8 @@
   resolved "https://registry.npmjs.org/@curia_/cg-plugin-lib/-/cg-plugin-lib-1.0.8.tgz#8e676b5465a58ed7ff00b3b70275e04d8b71ed6f"
   integrity sha512-G2a0HZS63r9mJCKN9zZxRoP60XNOj0z8XTjqqHWOODd0rGJEK43J1frZzKnkJnAXya1fsW2N9nLCXaY+VIjZfw==
 
-"@curia_/curia-chat-modal@1.7.0":
-  version "1.7.0"
-  resolved "https://registry.npmjs.org/@curia_/curia-chat-modal/-/curia-chat-modal-1.7.0.tgz#3e2fd08bf26bef0bd6ab699bc400ff8815e01d6b"
-  integrity sha512-3vKSL7f5cDz1F7L25mMUh5ITP69HGOjtqx9P/zgy/n8f4IrTYAzUw1PZkIzv+IaN2jMs5JT4lhse9haKHsQZCg==
+"@curia_/curia-chat-modal@file:../curia-chat-modal":
+  version "2.0.1"
   dependencies:
     bcryptjs "^3.0.2"
     class-variance-authority "^0.7.1"
@@ -256,7 +254,7 @@
     tailwind-merge "^2.5.4"
 
 "@curia_/curia-chat-modal@file:///Users/florian/Git/curia/curia-chat-modal":
-  version "2.0.0"
+  version "2.0.1"
   dependencies:
     bcryptjs "^3.0.2"
     class-variance-authority "^0.7.1"

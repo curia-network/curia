@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest, RouteContext } from '@/lib/withAuth';
 import { ChatChannelQueries } from '@/lib/queries/chatChannels';
-import { filterAccessibleChatChannels, canUserAccessChatChannel } from '@/lib/chatChannelPermissions';
+import { filterAccessibleChatChannels, canUserAccessChatChannel, generateIrcChannelName } from '@/lib/chatChannelPermissions';
 import { CreateChatChannelRequest } from '@/types/chatChannels';
+import { query } from '@/lib/db';
 
 // GET /api/communities/[communityId]/chat-channels - List community chat channels
 async function getCommunityChannelsHandler(req: AuthenticatedRequest, context: RouteContext) {
@@ -26,7 +27,63 @@ async function getCommunityChannelsHandler(req: AuthenticatedRequest, context: R
 
   try {
     // Get all channels for this community
-    const allChannels = await ChatChannelQueries.getChannelsByCommunity(communityId);
+    let allChannels = await ChatChannelQueries.getChannelsByCommunity(communityId);
+    
+    // AUTO-CREATE DEFAULT CHANNEL: If no channels exist, create one using community name
+    if (allChannels.length === 0) {
+      console.log(`[API GET /api/communities/${communityId}/chat-channels] No channels found, auto-creating default channel`);
+      
+      try {
+        // Get community name for channel creation
+        const communityResult = await query(
+          'SELECT name FROM communities WHERE id = $1',
+          [communityId]
+        );
+        
+        if (communityResult.rows.length === 0) {
+          console.error(`[API] Community ${communityId} not found during channel auto-creation`);
+          return NextResponse.json({ error: 'Community not found' }, { status: 404 });
+        }
+        
+        const communityName = communityResult.rows[0].name;
+        console.log(`[API] Auto-creating default channel for community: ${communityName}`);
+        
+        // Create default channel using community name
+        const defaultChannel = await ChatChannelQueries.createChannel({
+          community_id: communityId,
+          name: communityName, // Use actual community name, not "General"
+          description: `Main chat for ${communityName}`,
+          irc_channel_name: generateIrcChannelName(communityName), // Auto-generated IRC name
+          is_single_mode: true,
+          is_default: true,
+          settings: {
+            permissions: {
+              // No role restrictions - public to all community members
+            },
+            irc: {
+              autoconnect: true,
+              lockchannel: true,
+              nofocus: true,
+              welcomeMessage: `Welcome to ${communityName} chat!`
+            },
+            ui: {
+              defaultTheme: 'auto',
+              allowThemeSwitch: true,
+              showUserList: true,
+              allowMentions: true
+            }
+          }
+        });
+        
+        console.log(`[API] Successfully auto-created default channel: ${defaultChannel.name} (${defaultChannel.irc_channel_name})`);
+        allChannels = [defaultChannel]; // Use the newly created channel
+        
+      } catch (autoCreateError) {
+        console.error(`[API] Error auto-creating default channel for community ${communityId}:`, autoCreateError);
+        // Don't fail the request - just continue with empty channels
+        // This ensures backward compatibility if auto-creation fails
+      }
+    }
     
     // SECURITY: Filter channels based on user permissions
     const accessibleChannels = filterAccessibleChatChannels(allChannels, userRoles, isAdmin);

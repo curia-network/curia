@@ -30,6 +30,7 @@ export function ChatModalWrapper() {
       // Pass pre-provisioned data - no API calls in modal!
       ircCredentials={sessionData.ircCredentials}
       channel={targetChannel}
+      chatBaseUrl={process.env.NEXT_PUBLIC_CHAT_BASE_URL} // 🎯 Prop drilling the env var!
       theme={theme}
       mode={targetChannel.is_single_mode ? 'single' : 'normal'}
       onClose={closeChat}
