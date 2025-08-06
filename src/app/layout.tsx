@@ -10,6 +10,7 @@ import { ResponsiveToaster } from "@/components/ui/responsive-toaster";
 import { GlobalSearchModal } from "@/components/search/GlobalSearchModal";
 import { WhatsNewModal } from "@/components/whats-new/WhatsNewModal";
 import { ChatModalWrapper } from "@/components/ChatModalWrapper";
+import { ChatSessionProvider } from "@/contexts/ChatSessionContext";
 import { BackgroundProvider } from "@/contexts/BackgroundContext";
 import { Suspense } from "react";
 import { ApiProxyServerComponent } from "@/components/ApiProxyServerComponent";
@@ -74,12 +75,14 @@ export default function RootLayout({
               {/* Initialize sidebar action listener for host service communication - needs GlobalSearchProvider */}
               <SidebarActionListener />
               <BackgroundProvider>
-                <Suspense fallback={<div>Loading application...</div>}>
-                  <MainLayoutWithSidebar>{children}</MainLayoutWithSidebar>
-                  <GlobalSearchModal />
-                  <WhatsNewModal />
-                  <ChatModalWrapper />
-                </Suspense>
+                <ChatSessionProvider>
+                  <Suspense fallback={<div>Loading application...</div>}>
+                    <MainLayoutWithSidebar>{children}</MainLayoutWithSidebar>
+                    <GlobalSearchModal />
+                    <WhatsNewModal />
+                    <ChatModalWrapper />
+                  </Suspense>
+                </ChatSessionProvider>
               </BackgroundProvider>
             </Providers>
             <ResponsiveToaster />

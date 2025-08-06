@@ -62,7 +62,7 @@ export function useChatSession(): UseChatSessionReturn {
       // 1. Provision IRC credentials (moved from chat modal!)
       console.log('[Chat Session] Provisioning IRC user...');
       const ircCredentials = await provisionIrcUser(
-        token,
+        token!,
         process.env.NEXT_PUBLIC_CHAT_BASE_URL || '',
         process.env.NEXT_PUBLIC_CURIA_BASE_URL || ''
       );
@@ -71,7 +71,7 @@ export function useChatSession(): UseChatSessionReturn {
       
       // 2. Fetch available channels for community
       const channels = await authFetchJson<ApiChatChannel[]>(
-        `/api/communities/${user.cid}/chat-channels`,
+        `/api/communities/${user!.cid}/chat-channels`,
         { token }
       );
       

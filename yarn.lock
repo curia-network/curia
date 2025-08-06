@@ -245,16 +245,7 @@
   integrity sha512-G2a0HZS63r9mJCKN9zZxRoP60XNOj0z8XTjqqHWOODd0rGJEK43J1frZzKnkJnAXya1fsW2N9nLCXaY+VIjZfw==
 
 "@curia_/curia-chat-modal@file:../curia-chat-modal":
-  version "2.0.1"
-  dependencies:
-    bcryptjs "^3.0.2"
-    class-variance-authority "^0.7.1"
-    clsx "^2.1.1"
-    lucide-react "^0.453.0"
-    tailwind-merge "^2.5.4"
-
-"@curia_/curia-chat-modal@file:///Users/florian/Git/curia/curia-chat-modal":
-  version "2.0.1"
+  version "2.1.0"
   dependencies:
     bcryptjs "^3.0.2"
     class-variance-authority "^0.7.1"

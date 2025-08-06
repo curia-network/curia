@@ -164,7 +164,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   // Helper component for chat channel icon
-  const ChatIcon: React.FC<{ channel: ApiChatChannel; isActive: boolean }> = ({ channel, isActive }) => {
+  const ChatIcon: React.FC<{ channel: ApiChatChannel; isActive: boolean }> = ({ isActive }) => {
     return (
       <div className={cn(
         'p-1.5 rounded-lg transition-all duration-200',

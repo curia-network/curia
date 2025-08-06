@@ -3,7 +3,7 @@
 import React from 'react';
 import { ChatModal, useChatModal } from '@curia_/curia-chat-modal';
 import { useEffectiveTheme } from '@/hooks/useEffectiveTheme';
-import { useChatSession } from '@/hooks/useChatSession';
+import { useChatSessionContext } from '@/contexts/ChatSessionContext';
 import { ChatLoadingModal } from '@/components/chat/ChatLoadingModal';
 import { ChatErrorModal } from '@/components/chat/ChatErrorModal';
 
@@ -17,7 +17,7 @@ export function ChatModalWrapper() {
     retryCount, 
     isRetrying, 
     retryInitialization 
-  } = useChatSession();
+  } = useChatSessionContext();
   const theme = useEffectiveTheme();
   
   // Don't render anything if modal is closed
@@ -58,7 +58,7 @@ export function ChatModalWrapper() {
 
   // Determine which channel to show
   const targetChannel = selectedChannelId 
-    ? sessionData.channels.find(ch => ch.id === selectedChannelId)
+    ? sessionData.channels.find((ch: any) => ch.id === selectedChannelId)
     : sessionData.defaultChannel;
 
   if (!targetChannel) {

@@ -501,7 +501,7 @@ export const MainLayoutWithSidebar: React.FC<MainLayoutWithSidebarProps> = ({ ch
           <div className="flex flex-1">
             {/* Page content */}
             <div className={cn(
-              "flex-1 p-4 md:p-6 lg:p-8 transition-all duration-300",
+              "flex-1 transition-all duration-300",
               // Add right padding/margin on large screens when sidebar is visible
               showSidebar && !isMobile && !isTablet && rightSidebarOpen && "lg:pr-64 xl:pr-72",
               showSidebar && !isMobile && !isTablet && "xl:pr-72" // Always account for sidebar on xl+

@@ -3,23 +3,22 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { authFetchJson } from '@/utils/authFetch';
 import { ApiChatChannel } from '@/types/chatChannels';
-import { ChatModal } from '@curia_/curia-chat-modal';
-import { useChatSession } from '@/hooks/useChatSession';
+import { ChatPage, LoadingState, ErrorState } from '@curia_/curia-chat-modal';
+import { useChatSessionContext } from '@/contexts/ChatSessionContext';
 import { useEffectiveTheme } from '@/hooks/useEffectiveTheme';
-import { ChatLoadingModal } from '@/components/chat/ChatLoadingModal';
-import { ChatErrorModal } from '@/components/chat/ChatErrorModal';
 
 interface ChatPageProps {
   params: Promise<{ chatId: string }>;
 }
 
-export default function ChatPage({ params }: ChatPageProps) {
+export default function Page({ params }: ChatPageProps) {
   const [chatId, setChatId] = useState<string>('');
   const { token, user } = useAuth();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const theme = useEffectiveTheme();
   const { 
     sessionData, 
@@ -29,7 +28,7 @@ export default function ChatPage({ params }: ChatPageProps) {
     retryCount, 
     isRetrying, 
     retryInitialization 
-  } = useChatSession();
+  } = useChatSessionContext();
 
   useEffect(() => {
     params.then(({ chatId }) => {
@@ -45,7 +44,7 @@ export default function ChatPage({ params }: ChatPageProps) {
       
       // First try to get from session data if available
       if (sessionData?.channels) {
-        const existingChannel = sessionData.channels.find(ch => ch.id === parseInt(chatId));
+        const existingChannel = sessionData.channels.find((ch: ApiChatChannel) => ch.id === parseInt(chatId));
         if (existingChannel) {
           return existingChannel;
         }
@@ -70,6 +69,14 @@ export default function ChatPage({ params }: ChatPageProps) {
   const isLoading = isSessionLoading || isChannelLoading;
   const error = initError || channelError;
 
+  // Navigation helper
+  const handleClose = () => {
+    const params = new URLSearchParams(searchParams?.toString() || '');
+    params.delete('boardId');
+    const homeUrl = params.toString() ? `/?${params.toString()}` : '/';
+    router.push(homeUrl);
+  };
+
   // Show loading state during session initialization, retries, or channel loading
   if (isLoading || isRetrying) {
     const message = isRetrying 
@@ -77,14 +84,11 @@ export default function ChatPage({ params }: ChatPageProps) {
       : "Loading chat...";
     
     return (
-      <div className="h-screen w-full">
-        <ChatLoadingModal 
-          message={message}
-          onClose={() => {
-            // Navigate back to home
-            window.history.back();
-          }}
-        />
+      <div className="h-screen w-full flex items-center justify-center flex-col space-y-4">
+        <LoadingState />
+        <div className="text-center">
+          <p className="text-lg">{message}</p>
+        </div>
       </div>
     );
   }
@@ -92,54 +96,35 @@ export default function ChatPage({ params }: ChatPageProps) {
   // Show error state after all retries failed or channel not found
   if (error && (!isRetrying || retryCount >= 3)) {
     return (
-      <div className="h-screen w-full">
-        <ChatErrorModal 
-          error={typeof error === 'string' ? error : error.message || 'Failed to load chat'}
-          retryCount={retryCount}
-          onRetry={channelError ? () => window.location.reload() : retryInitialization}
-          onClose={() => {
-            // Navigate back to home
-            window.history.back();
-          }}
-        />
-      </div>
+      <ErrorState 
+        error={typeof error === 'string' ? error : error.message || 'Failed to load chat'}
+        onRetry={channelError ? () => window.location.reload() : retryInitialization}
+        className="h-screen w-full flex items-center justify-center"
+      />
     );
   }
 
-  // Don't show modal if not ready yet (still initializing)
+  // Don't show page if not ready yet (still initializing)
   if (!isInitialized || !sessionData || !chatChannel) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="h-screen w-full flex items-center justify-center">
+        <LoadingState />
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p>Loading chat...</p>
         </div>
       </div>
     );
   }
 
+  // Render the ChatPage component - this will fill the entire viewport cleanly
   return (
-    <div className="h-screen w-full">
-      {/* Full-screen chat modal without backdrop - styled for full page */}
-      <div className="h-full w-full relative">
-        <div className="absolute inset-0 bg-background">
-          <ChatModal
-            ircCredentials={sessionData.ircCredentials}
-            channel={chatChannel}
-            chatBaseUrl={process.env.NEXT_PUBLIC_CHAT_BASE_URL}
-            theme={theme}
-            mode={chatChannel.is_single_mode ? 'single' : 'normal'}
-            onClose={() => {
-              // Navigate back to home or previous page
-              const params = new URLSearchParams(searchParams?.toString() || '');
-              // Remove any existing boardId or chatId to go to home
-              params.delete('boardId');
-              const homeUrl = params.toString() ? `/?${params.toString()}` : '/';
-              window.location.href = homeUrl;
-            }}
-          />
-        </div>
-      </div>
-    </div>
+    <ChatPage
+      ircCredentials={sessionData.ircCredentials}
+      channel={chatChannel}
+      chatBaseUrl={process.env.NEXT_PUBLIC_CHAT_BASE_URL}
+      theme={theme}
+      mode={chatChannel.is_single_mode ? 'single' : 'normal'}
+      onClose={handleClose}
+    />
   );
 }
