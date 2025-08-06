@@ -4,14 +4,55 @@ import React from 'react';
 import { ChatModal, useChatModal } from '@curia_/curia-chat-modal';
 import { useEffectiveTheme } from '@/hooks/useEffectiveTheme';
 import { useChatSession } from '@/hooks/useChatSession';
+import { ChatLoadingModal } from '@/components/chat/ChatLoadingModal';
+import { ChatErrorModal } from '@/components/chat/ChatErrorModal';
 
 export function ChatModalWrapper() {
   const { isChatOpen, selectedChannelId, closeChat } = useChatModal();
-  const { sessionData, isInitialized } = useChatSession();
+  const { 
+    sessionData, 
+    isInitialized, 
+    isLoading, 
+    initError, 
+    retryCount, 
+    isRetrying, 
+    retryInitialization 
+  } = useChatSession();
   const theme = useEffectiveTheme();
   
-  // Don't render if modal is closed or session not ready
-  if (!isChatOpen || !isInitialized || !sessionData) {
+  // Don't render anything if modal is closed
+  if (!isChatOpen) {
+    return null;
+  }
+
+  // Show loading state during initialization or retries
+  if (isLoading || isRetrying) {
+    const message = isRetrying 
+      ? `Retrying connection (${retryCount}/3)...`
+      : "Connecting to chat...";
+    
+    return (
+      <ChatLoadingModal 
+        message={message}
+        onClose={closeChat}
+      />
+    );
+  }
+
+  // Show error state after all retries failed
+  if (initError && !isRetrying && retryCount >= 3) {
+    return (
+      <ChatErrorModal 
+        error={initError}
+        retryCount={retryCount}
+        onRetry={retryInitialization}
+        onClose={closeChat}
+      />
+    );
+  }
+
+  // Don't show modal if not ready yet (still initializing)
+  if (!isInitialized || !sessionData) {
     return null;
   }
 
@@ -22,7 +63,13 @@ export function ChatModalWrapper() {
 
   if (!targetChannel) {
     console.error('[ChatModalWrapper] Invalid channel selection:', selectedChannelId);
-    return null; // Invalid channel selection
+    return (
+      <ChatErrorModal 
+        error="Selected chat channel not found. Please try again."
+        onRetry={() => closeChat()}
+        onClose={closeChat}
+      />
+    );
   }
 
   return (
