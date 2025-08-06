@@ -1,5 +1,5 @@
 import { query } from '../db';
-import { ApiChatChannel, ChatChannelSettings, CreateChatChannelRequest, UpdateChatChannelRequest, ChatChannelRow } from '../../types/chatChannels';
+import { ApiChatChannel, CreateChatChannelRequest, UpdateChatChannelRequest, ChatChannelRow } from '../../types/chatChannels';
 import { transformChannelRow, generateIrcChannelName, isIrcChannelNameUnique } from '../chatChannelPermissions';
 
 /**
@@ -66,7 +66,7 @@ export class ChatChannelQueries {
     
     // Ensure IRC channel name is unique by appending numbers if needed
     let counter = 1;
-    let baseIrcChannelName = finalIrcChannelName;
+    const baseIrcChannelName = finalIrcChannelName;
     while (!(await isIrcChannelNameUnique(finalIrcChannelName, community_id))) {
       finalIrcChannelName = `${baseIrcChannelName}-${counter}`;
       counter++;

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest, RouteContext } from '@/lib/withAuth';
 import { ChatChannelQueries } from '@/lib/queries/chatChannels';
 import { filterAccessibleChatChannels, canUserAccessChatChannel } from '@/lib/chatChannelPermissions';
-import { ApiChatChannel, CreateChatChannelRequest, ChatChannelSettings } from '@/types/chatChannels';
+import { CreateChatChannelRequest } from '@/types/chatChannels';
 
 // GET /api/communities/[communityId]/chat-channels - List community chat channels
 async function getCommunityChannelsHandler(req: AuthenticatedRequest, context: RouteContext) {
@@ -145,7 +145,7 @@ async function createChannelHandler(req: AuthenticatedRequest, context: RouteCon
     const newChannel = await ChatChannelQueries.createChannel({
       community_id: communityId,
       name: name.trim(),
-      description: description?.trim() || null,
+      description: description?.trim() || undefined,
       irc_channel_name,
       is_single_mode,
       is_default,

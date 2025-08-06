@@ -255,6 +255,15 @@
     lucide-react "^0.453.0"
     tailwind-merge "^2.5.4"
 
+"@curia_/curia-chat-modal@file:///Users/florian/Git/curia/curia-chat-modal":
+  version "2.0.0"
+  dependencies:
+    bcryptjs "^3.0.2"
+    class-variance-authority "^0.7.1"
+    clsx "^2.1.1"
+    lucide-react "^0.453.0"
+    tailwind-merge "^2.5.4"
+
 "@curia_/iframe-api-proxy@1.4.0":
   version "1.4.0"
   resolved "https://registry.npmjs.org/@curia_/iframe-api-proxy/-/iframe-api-proxy-1.4.0.tgz#ab33b1ae06defc6664e132434165ed9413d70bd7"

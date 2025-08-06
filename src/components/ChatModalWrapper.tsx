@@ -2,61 +2,36 @@
 
 import React from 'react';
 import { ChatModal, useChatModal } from '@curia_/curia-chat-modal';
-import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
-import { authFetchJson } from '@/utils/authFetch';
 import { useEffectiveTheme } from '@/hooks/useEffectiveTheme';
-
-interface ApiCommunity {
-  id: string;
-  name: string;
-  settings: Record<string, unknown>;
-  created_at: string;
-  updated_at: string;
-}
+import { useChatSession } from '@/hooks/useChatSession';
 
 export function ChatModalWrapper() {
-  const { isChatOpen, closeChat } = useChatModal();
-  const { user, token } = useAuth();
+  const { isChatOpen, selectedChannelId, closeChat } = useChatModal();
+  const { sessionData, isInitialized } = useChatSession();
   const theme = useEffectiveTheme();
   
-  // Configurable chat mode - easy to extend with user preferences later
-  const chatMode: 'single' | 'normal' = 'single'; // Default: single channel mode
-
-  // Fetch community data
-  const { data: community } = useQuery<ApiCommunity>({
-    queryKey: ['community', user?.cid],
-    queryFn: async () => {
-      if (!token || !user?.cid) throw new Error('Community not available');
-      return authFetchJson<ApiCommunity>(`/api/communities/${user.cid}`, { token });
-    },
-    enabled: !!token && !!user?.cid && isChatOpen, // Only fetch when modal is open
-    staleTime: 10 * 60 * 1000, // 10 minutes
-  });
-
-  // Don't render if modal is closed or missing data
-  if (!isChatOpen || !user || !community) {
+  // Don't render if modal is closed or session not ready
+  if (!isChatOpen || !isInitialized || !sessionData) {
     return null;
   }
 
-  const chatBaseUrl = process.env.NEXT_PUBLIC_CHAT_BASE_URL || 'https://chat.curia.network';
-  const curiaBaseUrl = process.env.NEXT_PUBLIC_CURIA_BASE_URL || '';
+  // Determine which channel to show
+  const targetChannel = selectedChannelId 
+    ? sessionData.channels.find(ch => ch.id === selectedChannelId)
+    : sessionData.defaultChannel;
+
+  if (!targetChannel) {
+    console.error('[ChatModalWrapper] Invalid channel selection:', selectedChannelId);
+    return null; // Invalid channel selection
+  }
 
   return (
     <ChatModal
-      user={{
-        id: user.userId,
-        name: user.name || 'Anonymous'
-      }}
-      community={{
-        id: community.id,
-        name: community.name
-      }}
-      theme={theme} // Dynamic theme from cg_theme URL parameter
-      mode={chatMode} // Configurable single channel mode
-      chatBaseUrl={chatBaseUrl}
-      curiaBaseUrl={curiaBaseUrl}
-      authToken={token}
+      // Pass pre-provisioned data - no API calls in modal!
+      ircCredentials={sessionData.ircCredentials}
+      channel={targetChannel}
+      theme={theme}
+      mode={targetChannel.is_single_mode ? 'single' : 'normal'}
       onClose={closeChat}
     />
   );

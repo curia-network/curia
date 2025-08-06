@@ -569,3 +569,457 @@ Add channel selection logic:
 - ✅ Chat modal updated
 - ✅ Error handling comprehensive
 - ✅ Business logic validated
+
+## Revised Architecture: Session-Aware Chat Modal System
+
+### Current Architecture Analysis ✅
+
+**Current Pattern (Architectural Problem Identified!):**
+1. **`ChatModalWrapper.tsx`** - Fetches community data only when modal opens
+2. **`ChatModal.tsx`** - **CALLS `/api/irc-user-provision` DIRECTLY** 😱 
+3. **IRC Provisioning** - Chat modal package makes HTTP requests to Curia backend
+4. **Network Delay** - 2-3 second delay every time modal opens 
+5. **Channel Selection** - Hardcoded community name → channel name conversion
+6. **State Management** - Simple open/close boolean in `ChatContext`
+
+**Problems with Current Approach:**
+- ❌ **Terrible architecture** - Chat modal package calling Curia backend APIs
+- ❌ **Fresh provisioning every open** - Network delay on every modal open
+- ❌ **No credential persistence** - API call for same user/session repeatedly
+- ❌ **No channel management** - Hardcoded channel logic
+- ❌ **Package coupling** - Chat modal depends on Curia API structure
+
+### New Architecture: Session-Aware with Initialization/Invocation Pattern
+
+### **Core Concept: Two-Phase Initialization**
+
+#### **Phase 1: Session Initialization (Once per page load)**
+```typescript
+// In curia app - done once when user authenticates or page loads
+// MOVE IRC provisioning call from chat modal to curia app!
+const ircCredentials = await provisionIrcUser(chatBaseUrl, authToken, curiaBaseUrl);
+const channels = await fetchCommunityChannels(communityId, authToken);
+
+// Initialize chat modal package with credentials and channels
+const chatSession = initializeChatSession({
+  ircCredentials,
+  channels,
+  defaultChannel: channels.find(ch => ch.is_default)
+});
+```
+
+#### **Phase 2: Modal Invocation (Multiple times per session)**
+```typescript
+// Each time user wants to open chat modal - INSTANT (no API calls!)
+chatSession.openChannel({
+  channelId: 123,           // Optional: specific channel
+  mode: 'single',          // Optional: override channel mode
+  theme: 'dark'            // Optional: current app theme
+});
+```
+
+### **Implementation Roadmap**
+
+### **Phase A: Enhanced Backend Integration (Curia App)**
+
+#### **A1: Move IRC Provisioning to Curia App**
+**File:** `curia/src/hooks/useChatSession.ts` (NEW)
+
+```typescript
+export interface ChatSessionData {
+  ircCredentials: IrcCredentials;
+  channels: ApiChatChannel[];
+  defaultChannel: ApiChatChannel;
+}
+
+export function useChatSession() {
+  const { user, token } = useAuth();
+  const [sessionData, setSessionData] = useState<ChatSessionData | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
+
+  // Initialize session on mount - MOVE provisioning HERE from chat modal!
+  useEffect(() => {
+    if (!user || !token) return;
+    
+    const initializeSession = async () => {
+      try {
+        // 1. Provision IRC credentials (moved from chat modal!)
+        const ircCredentials = await provisionIrcUser(
+          process.env.NEXT_PUBLIC_CHAT_BASE_URL || '',
+          token,
+          process.env.NEXT_PUBLIC_CURIA_BASE_URL || ''
+        );
+        
+        // 2. Fetch available channels for community
+        const channels = await authFetchJson<ApiChatChannel[]>(
+          `/api/communities/${user.cid}/chat-channels`,
+          { token }
+        );
+        
+        // 3. Identify default channel
+        const defaultChannel = channels.find(ch => ch.is_default) || channels[0];
+        
+        if (!defaultChannel) {
+          throw new Error('No chat channels available for community');
+        }
+
+        setSessionData({
+          ircCredentials,
+          channels,
+          defaultChannel
+        });
+        setIsInitialized(true);
+        
+      } catch (error) {
+        setInitError(error instanceof Error ? error.message : 'Failed to initialize chat');
+      }
+    };
+    
+    initializeSession();
+  }, [user?.userId, user?.cid, token]);
+
+  return {
+    sessionData,
+    isInitialized,
+    initError,
+    // Helper to get channel by ID
+    getChannelById: (channelId: number) => 
+      sessionData?.channels.find(ch => ch.id === channelId)
+  };
+}
+```
+
+#### **A2: Updated Chat Modal Wrapper - Clean Architecture**
+**File:** `curia/src/components/ChatModalWrapper.tsx` (UPDATED)
+
+```typescript
+export function ChatModalWrapper() {
+  const { isChatOpen, selectedChannelId, closeChat } = useChatModal();
+  const { sessionData, isInitialized } = useChatSession();
+  const theme = useEffectiveTheme();
+  
+  // Don't render if modal is closed or session not ready
+  if (!isChatOpen || !isInitialized || !sessionData) {
+    return null;
+  }
+
+  // Determine which channel to show
+  const targetChannel = selectedChannelId 
+    ? sessionData.channels.find(ch => ch.id === selectedChannelId)
+    : sessionData.defaultChannel;
+
+  if (!targetChannel) {
+    return null; // Invalid channel selection
+  }
+
+  return (
+    <ChatModal
+      // Pass pre-provisioned data - no API calls in modal!
+      ircCredentials={sessionData.ircCredentials}
+      channel={targetChannel}
+      theme={theme}
+      mode={targetChannel.is_single_mode ? 'single' : 'normal'}
+      onClose={closeChat}
+    />
+  );
+}
+```
+
+#### **A3: Updated Chat Context - Channel Selection**
+**File:** `curia-chat-modal/src/contexts/ChatContext.tsx` (UPDATED)
+
+```typescript
+interface ChatContextType {
+  isChatOpen: boolean;
+  selectedChannelId: number | null; // Which channel to show
+  openChat: (channelId?: number) => void; // Optional channel selection
+  closeChat: () => void;
+}
+
+export function ChatProvider({ children }: { children: React.ReactNode }) {
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [selectedChannelId, setSelectedChannelId] = useState<number | null>(null);
+
+  const openChat = useCallback((channelId?: number) => {
+    setSelectedChannelId(channelId || null); // null = use default channel
+    setIsChatOpen(true);
+  }, []);
+
+  const closeChat = useCallback(() => {
+    setIsChatOpen(false);
+    // Keep selectedChannelId for potential re-opening
+  }, []);
+
+  return (
+    <ChatContext.Provider value={{
+      isChatOpen,
+      selectedChannelId,
+      openChat,
+      closeChat,
+    }}>
+      {children}
+    </ChatContext.Provider>
+  );
+}
+```
+
+### **Phase B: Enhanced Chat Modal Package**
+
+#### **B1: Simplified Chat Modal - Remove API Calls**
+**File:** `curia-chat-modal/src/components/ChatModal.tsx` (MAJOR REFACTOR)
+
+```typescript
+export interface ChatModalProps {
+  ircCredentials: IrcCredentials; // Pre-provisioned from curia app
+  channel: ApiChatChannel;        // Pre-selected channel from curia app
+  theme: 'light' | 'dark';       // Current app theme
+  mode: 'single' | 'normal';     // Channel mode or override
+  onClose: () => void;
+}
+
+export function ChatModal({ 
+  ircCredentials, 
+  channel,
+  theme,
+  mode,
+  onClose 
+}: ChatModalProps) {
+  const isDesktop = useIsDesktop();
+  const [isLoading, setIsLoading] = useState(true);
+
+  // NO MORE API CALLS! Use pre-provisioned data instantly
+  const chatUrl = useMemo(() => {
+    return buildLoungeUrl({
+      baseUrl: process.env.NEXT_PUBLIC_CHAT_BASE_URL || '',
+      ircUsername: ircCredentials.ircUsername,
+      ircPassword: ircCredentials.ircPassword,
+      networkName: ircCredentials.networkName,
+      userNick: ircCredentials.ircUsername,
+      channelName: channel.irc_channel_name, // Use proper IRC channel name
+      nofocus: channel.settings?.irc?.nofocus ?? true,
+      theme,
+      mode
+    });
+  }, [ircCredentials, channel, theme, mode]);
+
+  // INSTANT load - no provisioning delay!
+  return createPortal(
+    <>
+      <div 
+        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40" 
+        onClick={onClose} 
+      />
+      <div className={cn("fixed z-50 bg-background", styles.modalResponsive)}>
+        {isLoading && (
+          <div className="flex items-center justify-center h-32">
+            <Loader className="h-6 w-6 animate-spin" />
+          </div>
+        )}
+        <iframe
+          src={chatUrl}
+          className="w-full h-full border-0"
+          title={`Chat: ${channel.name}`}
+          onLoad={() => setIsLoading(false)}
+          style={{ display: isLoading ? 'none' : 'block' }}
+        />
+      </div>
+    </>,
+    document.body
+  );
+}
+```
+
+#### **B2: Remove API Client - No More Backend Calls**
+**File:** `curia-chat-modal/src/utils/api-client.ts` (UPDATED)
+
+```typescript
+// REMOVE: provisionIrcUser function - moved to curia app!
+// DELETE: All API calling logic
+
+// KEEP: buildLoungeUrl - still needed for URL construction
+export function buildLoungeUrl({
+  baseUrl,
+  ircUsername,
+  ircPassword,
+  networkName,
+  userNick,
+  channelName,
+  nofocus = true,
+  theme,
+  mode
+}: {
+  baseUrl: string;
+  ircUsername: string;
+  ircPassword: string;
+  networkName: string;
+  userNick: string;
+  channelName: string;
+  nofocus?: boolean;
+  theme?: 'light' | 'dark';
+  mode?: 'normal' | 'single';
+}): string {
+  const params = new URLSearchParams({
+    password: ircPassword,
+    autoconnect: 'true',
+    nick: userNick,
+    username: `${ircUsername}/${networkName}`,
+    realname: userNick,
+    join: `#${channelName}`,
+    lockchannel: 'true',
+    ...(nofocus && { nofocus: 'true' }),
+    ...(theme && { theme }),
+    ...(mode && { mode })
+  });
+
+  const finalUrl = `${baseUrl}?${params.toString()}`;
+  
+  console.log('[Chat Modal] Built Lounge URL for channel:', channelName, theme ? `with theme: ${theme}` : '', mode ? `with mode: ${mode}` : '');
+
+  return finalUrl;
+}
+
+// KEEP: Type definitions - still needed
+export interface IrcCredentials {
+  success: boolean;
+  ircUsername: string;
+  ircPassword: string;
+  networkName: string;
+}
+```
+
+### **Phase C: Integration Points**
+
+#### **C1: Updated Sidebar Action - Simple Toggle**
+**File:** `curia/src/components/SidebarActionListener.tsx` (MINIMAL CHANGE)
+
+```typescript
+export const SidebarActionListener: React.FC = () => {
+  const { openChat, closeChat, isChatOpen } = useChatModal(); // Same interface!
+
+  // Handle sidebar chat action - no change needed!
+  const handleChatAction = useCallback(() => {
+    if (isChatOpen) {
+      closeChat();
+    } else {
+      openChat(); // Opens default channel automatically
+    }
+  }, [isChatOpen, openChat, closeChat]);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'sidebar_action' && event.data.action === 'messages') {
+        handleChatAction();
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [handleChatAction]);
+
+  return null;
+};
+```
+
+#### **C2: Simple Channel Selection Helper**
+**File:** `curia/src/hooks/useChannelSelection.ts` (NEW)
+
+```typescript
+export function useChannelSelection() {
+  const { openChat } = useChatModal();
+  const { sessionData } = useChatSession();
+
+  // Helper to open specific channel by ID
+  const openChannelById = useCallback((channelId: number) => {
+    if (!sessionData) return;
+    
+    const channel = sessionData.channels.find(ch => ch.id === channelId);
+    if (channel) {
+      openChat(channelId); // Pass channel ID to context
+    }
+  }, [sessionData, openChat]);
+
+  // Helper to open default channel
+  const openDefaultChannel = useCallback(() => {
+    openChat(); // No ID = default channel
+  }, [openChat]);
+
+  return {
+    openChannelById,
+    openDefaultChannel,
+    availableChannels: sessionData?.channels || [],
+    defaultChannel: sessionData?.defaultChannel
+  };
+}
+```
+
+### **Phase D: File-by-File Implementation Plan**
+
+#### **Backend (Curia App) - 5 Files (Simplified!)**
+1. **`src/hooks/useChatSession.ts`** (NEW) - Move IRC provisioning here
+2. **`src/hooks/useChannelSelection.ts`** (NEW) - Channel selection helpers
+3. **`src/components/ChatModalWrapper.tsx`** (UPDATE) - Pass pre-provisioned data
+4. **`src/components/SidebarActionListener.tsx`** (MINIMAL UPDATE) - Same interface
+5. **`src/utils/api-client.ts`** (NEW) - Move provisionIrcUser from chat modal
+
+#### **Chat Modal Package - 3 Files (Major Simplification!)**
+1. **`src/components/ChatModal.tsx`** (MAJOR REFACTOR) - Remove all API calls
+2. **`src/contexts/ChatContext.tsx`** (UPDATE) - Add channel selection
+3. **`src/utils/api-client.ts`** (UPDATE) - Remove provisionIrcUser, keep buildLoungeUrl
+
+#### **Migration Strategy - 2 Files**
+1. **Create default channels migration** - Ensure all communities have channels
+2. **Update community creation** - Auto-create default channel
+
+### **Key Architectural Changes Summary**
+
+#### **What Moves FROM Chat Modal TO Curia App:**
+- ✅ **IRC provisioning API call** - `/api/irc-user-provision`
+- ✅ **Channel fetching API call** - `/api/communities/{id}/chat-channels`
+- ✅ **Session management** - Credential caching and persistence
+
+#### **What Stays IN Chat Modal:**
+- ✅ **URL building** - `buildLoungeUrl()` function
+- ✅ **UI rendering** - Modal display and iframe management
+- ✅ **Theme handling** - Accept theme as prop
+- ✅ **Mode handling** - Accept mode as prop
+
+#### **Performance Impact:**
+- ❌ **Before**: 2-3 second delay every modal open
+- ✅ **After**: ~200ms delay (iframe load only)
+
+### **Benefits of New Architecture**
+
+#### **Performance Benefits**
+- ✅ **Instant modal opening** - No provisioning delay
+- ✅ **Credential persistence** - One provision per session
+- ✅ **Channel caching** - No repeated API calls
+- ✅ **Optimistic loading** - Immediate UI feedback
+
+#### **User Experience Benefits**
+- ✅ **Fast chat access** - Sub-second modal opening
+- ✅ **Consistent credentials** - Same password throughout session
+- ✅ **Channel selection** - Can open specific channels
+- ✅ **Theme coherence** - Dynamic theme updates
+
+#### **Developer Experience Benefits**
+- ✅ **Clean separation** - Chat modal stays backend-ignorant
+- ✅ **Type safety** - Comprehensive TypeScript interfaces
+- ✅ **Reusable patterns** - Session service for other features
+- ✅ **Easy testing** - Mockable session service
+
+#### **Architectural Benefits**
+- ✅ **Proper encapsulation** - Clear responsibility boundaries
+- ✅ **Session awareness** - Persistent state across opens/closes
+- ✅ **Channel flexibility** - Easy to add channel selection UI
+- ✅ **Future-proof** - Extensible for advanced features
+
+### **Implementation Priority**
+
+**Phase A → B → C → D** 
+
+**Rationale:**
+1. **A**: Backend foundation enables everything else
+2. **B**: Chat modal refactor unlocks performance benefits  
+3. **C**: Integration makes it all work together
+4. **D**: File-by-file ensures nothing is missed
