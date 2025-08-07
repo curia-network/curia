@@ -13,9 +13,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { authFetchJson } from '@/utils/authFetch';
-import { provisionIrcUser, type IrcCredentials } from '@/utils/chat-api-client';
+import { provisionIrcUser } from '@/utils/chat-api-client';
+import { type IrcCredentials } from '@curia_/cg-plugin-lib';
 import type { ApiChatChannel } from '@/types/chatChannels';
 import { toast } from 'sonner';
+import { CgPluginLib } from '@curia_/cg-plugin-lib';
 
 export interface ChatSessionData {
   ircCredentials: IrcCredentials;
@@ -59,13 +61,86 @@ export function useChatSession(): UseChatSessionReturn {
       
       console.log(`[Chat Session] Starting session initialization (attempt ${attemptNumber}/3)...`);
       
-      // 1. Provision IRC credentials (moved from chat modal!)
-      console.log('[Chat Session] Provisioning IRC user...');
-      const ircCredentials = await provisionIrcUser(
-        token!,
-        process.env.NEXT_PUBLIC_CHAT_BASE_URL || '',
-        process.env.NEXT_PUBLIC_CURIA_BASE_URL || ''
-      );
+      // 1. Check for standalone mode and provision IRC credentials accordingly
+      const searchParams = new URLSearchParams(window.location.search);
+      const isStandalone = searchParams.has('mod') && searchParams.get('mod') === 'standalone';
+      
+      let ircCredentials: IrcCredentials;
+      
+      if (isStandalone) {
+        console.log('[Chat Session] Standalone mode detected - requesting IRC credentials from host-service...');
+        
+        try {
+          // Get CgPluginLib instance (should be initialized by now in standalone mode)
+          const cgLib = CgPluginLib.getInstance();
+          const rawResponse: any = await cgLib.getIrcCredentials();
+
+          // 🔍 FRONTEND_IRC_DEBUG: Log exactly what we received
+          console.log('🔍 FRONTEND_IRC_DEBUG - Raw response from cgLib.getIrcCredentials():', {
+            fullResponse: rawResponse,
+            hasSuccess: rawResponse && typeof rawResponse === 'object' && 'success' in rawResponse,
+            successValue: rawResponse?.success,
+            hasData: rawResponse && typeof rawResponse === 'object' && 'data' in rawResponse,
+            dataValue: rawResponse?.data,
+            looksLikeRawCreds: !!(rawResponse && rawResponse.ircUsername && rawResponse.ircPassword && rawResponse.networkName),
+            responseKeys: Object.keys(rawResponse || {}),
+            timestamp: new Date().toISOString()
+          });
+
+          // Accept both wrapped and raw formats
+          let parsedCreds: any | null = null;
+          if (rawResponse && typeof rawResponse === 'object') {
+            // Wrapped ApiResponse format
+            if ('success' in rawResponse || 'data' in rawResponse) {
+              if (!rawResponse.success || !rawResponse.data) {
+                throw new Error(rawResponse.error || 'Failed to get IRC credentials from host-service');
+              }
+              parsedCreds = rawResponse.data;
+            } else if (
+              // Raw credentials format
+              'ircUsername' in rawResponse &&
+              'ircPassword' in rawResponse &&
+              'networkName' in rawResponse
+            ) {
+              parsedCreds = rawResponse;
+            }
+          }
+
+          if (!parsedCreds) {
+            throw new Error('Invalid IRC credentials response from host-service');
+          }
+
+          ircCredentials = {
+            ircUsername: parsedCreds.ircUsername,
+            ircPassword: parsedCreds.ircPassword,
+            networkName: parsedCreds.networkName
+          };
+
+          console.log('[Chat Session] IRC credentials received from host-service:', {
+            username: ircCredentials.ircUsername,
+            hasPassword: !!ircCredentials.ircPassword
+          });
+
+        } catch (error) {
+          console.error('[Chat Session] Failed to get IRC credentials from host-service:', error);
+          throw new Error(`Host-service IRC provisioning failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+        
+      } else {
+        console.log('[Chat Session] Direct mode - provisioning IRC user directly...');
+        const directResponse = await provisionIrcUser(
+          token!,
+          process.env.NEXT_PUBLIC_CHAT_BASE_URL || '',
+          process.env.NEXT_PUBLIC_CURIA_BASE_URL || ''
+        );
+        
+        // Extract just the credentials (without success field) for consistency
+        ircCredentials = {
+          ircUsername: directResponse.ircUsername,
+          ircPassword: directResponse.ircPassword,
+          networkName: directResponse.networkName
+        };
+      }
       
       console.log('[Chat Session] IRC provisioning complete, fetching channels...');
       

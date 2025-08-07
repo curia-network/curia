@@ -239,15 +239,11 @@
   resolved "https://registry.npmjs.org/@curia_/cg-plugin-lib-host/-/cg-plugin-lib-host-1.0.2.tgz#d4d329e4392348af09c3c47984c7eb801a688700"
   integrity sha512-XNngK2zf8URN4Ncye4LZblsuvh3Qn36hBRtPY+WKSHVAZNsmubwmWxlNkX+qlJvgOzAaauGJFpC7JS8uFraaeQ==
 
-"@curia_/cg-plugin-lib@^1.0.8":
+"@curia_/cg-plugin-lib@file:../cg-plugin-lib":
   version "1.0.8"
-  resolved "https://registry.npmjs.org/@curia_/cg-plugin-lib/-/cg-plugin-lib-1.0.8.tgz#8e676b5465a58ed7ff00b3b70275e04d8b71ed6f"
-  integrity sha512-G2a0HZS63r9mJCKN9zZxRoP60XNOj0z8XTjqqHWOODd0rGJEK43J1frZzKnkJnAXya1fsW2N9nLCXaY+VIjZfw==
 
-"@curia_/curia-chat-modal@^4.0.0":
+"@curia_/curia-chat-modal@file:../curia-chat-modal":
   version "4.0.0"
-  resolved "https://registry.npmjs.org/@curia_/curia-chat-modal/-/curia-chat-modal-4.0.0.tgz#23504482c13c6293e607bbf0c7263daae357bb88"
-  integrity sha512-n9hPeC5or6RQXgBCgIjddFLy03Bkk1alTKHtFjyQWJ2htd+Z5fToi/GFPV8NblYHBmQxUKZEDI1b42E1rY5c6A==
   dependencies:
     bcryptjs "^3.0.2"
     class-variance-authority "^0.7.1"
@@ -255,10 +251,8 @@
     lucide-react "^0.453.0"
     tailwind-merge "^2.5.4"
 
-"@curia_/iframe-api-proxy@1.4.0":
+"@curia_/iframe-api-proxy@file:../iframe-api-proxy":
   version "1.4.0"
-  resolved "https://registry.npmjs.org/@curia_/iframe-api-proxy/-/iframe-api-proxy-1.4.0.tgz#ab33b1ae06defc6664e132434165ed9413d70bd7"
-  integrity sha512-SSehtyAx4hphG0Lqm5Ph1uYnPJ+02SJmNbrgr8TOMeqmQ/e3r5Yr+YLkEHPqPUd6R2hrBBFuY3Msj+8+pFmzQg==
 
 "@ecies/ciphers@^0.2.3":
   version "0.2.4"
