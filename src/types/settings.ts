@@ -3,7 +3,7 @@ import { GatingCategory, EthereumGatingRequirements } from './gating';
 /**
  * Identity types supported by the authentication system
  */
-export type IdentityType = 'legacy' | 'ens' | 'universal_profile' | 'anonymous';
+export type IdentityType = 'legacy' | 'ens' | 'universal_profile' | 'anonymous' | 'farcaster';
 
 /**
  * Permissions for a specific identity type

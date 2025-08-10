@@ -72,6 +72,13 @@ const DEFAULT_PERMISSIONS: Record<IdentityType, IdentityPermissions> = {
     canReact: true,
     canJoinCommunity: true
   },
+  farcaster: {
+    canPost: true,
+    canComment: true,
+    canUpvote: true,
+    canReact: true,
+    canJoinCommunity: true
+  },
   anonymous: {
     canPost: false,
     canComment: false,
@@ -93,12 +100,14 @@ const COMMUNITY_PRESETS: CommunityPreset[] = [
         legacy: true,
         ens: true,
         universal_profile: true,
+        farcaster: true,
         anonymous: true
       },
       permissions: {
         legacy: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
         ens: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
         universal_profile: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
+        farcaster: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
         anonymous: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true }
       }
     }
@@ -113,12 +122,14 @@ const COMMUNITY_PRESETS: CommunityPreset[] = [
         legacy: true,
         ens: true,
         universal_profile: true,
+        farcaster: true,
         anonymous: false
       },
       permissions: {
         legacy: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
         ens: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
         universal_profile: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
+        farcaster: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
         anonymous: { canPost: false, canComment: false, canUpvote: false, canReact: false, canJoinCommunity: false }
       }
     }
@@ -126,19 +137,21 @@ const COMMUNITY_PRESETS: CommunityPreset[] = [
   {
     id: 'premium_community',
     name: 'Premium Community',
-    description: 'Only ENS and Universal Profile users can join',
+    description: 'Only ENS, Farcaster, and Universal Profile users can join',
     icon: '💎',
     gating: {
       canJoinCommunity: {
         legacy: false,
         ens: true,
         universal_profile: true,
+        farcaster: true,
         anonymous: false
       },
       permissions: {
         legacy: { canPost: false, canComment: false, canUpvote: false, canReact: false, canJoinCommunity: false },
         ens: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
         universal_profile: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
+        farcaster: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
         anonymous: { canPost: false, canComment: false, canUpvote: false, canReact: false, canJoinCommunity: false }
       }
     }
@@ -153,12 +166,14 @@ const COMMUNITY_PRESETS: CommunityPreset[] = [
         legacy: true,
         ens: true,
         universal_profile: true,
+        farcaster: true,
         anonymous: true
       },
       permissions: {
         legacy: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
         ens: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
         universal_profile: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
+        farcaster: { canPost: true, canComment: true, canUpvote: true, canReact: true, canJoinCommunity: true },
         anonymous: { canPost: false, canComment: false, canUpvote: true, canReact: true, canJoinCommunity: true }
       }
     }
@@ -196,6 +211,14 @@ const IDENTITY_TYPES: Array<{
     description: 'Users with LUKSO Universal Profiles',
     icon: Crown,
     color: 'text-emerald-600 dark:text-emerald-400',
+    risk: 'low'
+  },
+  {
+    id: 'farcaster',
+    label: 'Farcaster Users',
+    description: 'Users with Farcaster accounts',
+    icon: Sparkles,
+    color: 'text-violet-600 dark:text-violet-400',
     risk: 'low'
   },
   {
@@ -267,6 +290,7 @@ export const IdentityGatingSettings: React.FC<IdentityGatingSettingsProps> = ({
       legacy: true,
       ens: true,
       universal_profile: true,
+      farcaster: true,
       anonymous: true
     },
     permissions: DEFAULT_PERMISSIONS

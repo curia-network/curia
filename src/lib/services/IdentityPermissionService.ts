@@ -57,6 +57,13 @@ export class IdentityPermissionService {
       canUpvote: true,
       canReact: true,
     },
+    farcaster: {
+      canJoinCommunity: true,
+      canPost: true,
+      canComment: true,
+      canUpvote: true,
+      canReact: true,
+    },
     anonymous: {
       canJoinCommunity: true,
       canPost: false,
@@ -178,6 +185,8 @@ export class IdentityPermissionService {
         return `ENS users cannot ${actionText} in this community. Please check the community's identity requirements.`;
       case 'universal_profile':
         return `Universal Profile users cannot ${actionText} in this community. Please check the community's identity requirements.`;
+      case 'farcaster':
+        return `Farcaster users cannot ${actionText} in this community. Please check the community's identity requirements.`;
       default:
         return `Your identity type cannot ${actionText} in this community. Please check the community's identity requirements.`;
     }
