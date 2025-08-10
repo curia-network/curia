@@ -284,8 +284,8 @@ export const IdentityGatingSettings: React.FC<IdentityGatingSettingsProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
-  // Get current identity gating or use defaults
-  const currentGating = currentSettings?.identityGating || {
+  // Get current identity gating or use defaults, ensuring all identity types are present
+  const defaultGating = {
     canJoinCommunity: {
       legacy: true,
       ens: true,
@@ -295,6 +295,17 @@ export const IdentityGatingSettings: React.FC<IdentityGatingSettingsProps> = ({
     },
     permissions: DEFAULT_PERMISSIONS
   };
+  
+  const currentGating = currentSettings?.identityGating ? {
+    canJoinCommunity: {
+      ...defaultGating.canJoinCommunity,
+      ...currentSettings.identityGating.canJoinCommunity
+    },
+    permissions: {
+      ...defaultGating.permissions,
+      ...currentSettings.identityGating.permissions
+    }
+  } : defaultGating;
 
   const [localGating, setLocalGating] = useState<CommunityIdentityGating>(currentGating);
   const [selectedPreset, setSelectedPreset] = useState<string>('');
@@ -304,12 +315,12 @@ export const IdentityGatingSettings: React.FC<IdentityGatingSettingsProps> = ({
   const stats = useMemo(() => {
     const totalIdentityTypes = IDENTITY_TYPES.length;
     const totalPermissions = PERMISSIONS.length;
-    const joinableTypes = IDENTITY_TYPES.filter(type => localGating.canJoinCommunity[type.id]).length;
+    const joinableTypes = IDENTITY_TYPES.filter(type => localGating.canJoinCommunity[type.id] ?? true).length;
     
     let totalEnabledPermissions = 0;
     IDENTITY_TYPES.forEach(type => {
       PERMISSIONS.forEach(permission => {
-        if (localGating.permissions[type.id][permission.id]) {
+        if (localGating.permissions[type.id] && localGating.permissions[type.id][permission.id]) {
           totalEnabledPermissions++;
         }
       });
@@ -509,7 +520,7 @@ export const IdentityGatingSettings: React.FC<IdentityGatingSettingsProps> = ({
                 <div className="space-y-2 mt-3">
                   {IDENTITY_TYPES.map((identityType) => {
                     const TypeIcon = identityType.icon;
-                    const canJoin = localGating.canJoinCommunity[identityType.id];
+                    const canJoin = localGating.canJoinCommunity[identityType.id] ?? true;
                     
                     return (
                       <div 
@@ -534,7 +545,7 @@ export const IdentityGatingSettings: React.FC<IdentityGatingSettingsProps> = ({
 
                         {/* Permission Checkboxes */}
                         {PERMISSIONS.map((permission) => {
-                          const isEnabled = localGating.permissions[identityType.id][permission.id];
+                          const isEnabled = localGating.permissions[identityType.id]?.[permission.id] || false;
                           const isJoinPermission = permission.id === 'canJoinCommunity';
                           
                           return (
